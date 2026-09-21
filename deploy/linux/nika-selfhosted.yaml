@@ -1,0 +1,9 @@
+# 合并到三个 nika-basic 实例实际读取的 Nacos / Spring 配置中。
+# 不要用本文件覆盖原有完整业务配置。修改后重启三个实例。
+nika:
+  video-parser:
+    selfhosted:
+      base-url: http://172.31.0.3:8765
+      timeout-ms: 180000
+      max-concurrent: 2
+      queue-timeout-ms: 1200000

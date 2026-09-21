@@ -7,13 +7,13 @@ Wants=network-online.target
 Type=simple
 User=douyin-parser
 Group=douyin-parser
-WorkingDirectory=/opt/douyin-original-parser
+WorkingDirectory=/opt/software/python
 Environment=HOST_ADDRESS=0.0.0.0
 Environment=PORT=8765
 Environment=MAX_CONCURRENT=6
 Environment=COOKIE_FILE=
 Environment=PYTHONUTF8=1
-ExecStart=/bin/bash /opt/douyin-original-parser/deploy/linux/start.sh
+ExecStart=/bin/bash /opt/software/python/deploy/linux/start.sh
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=150

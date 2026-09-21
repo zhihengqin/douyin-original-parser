@@ -1,28 +1,31 @@
 # Linux 无 Docker：三个 NiKa 实例共用一个原画解析服务
 
-只在其中一台服务器运行 Python 解析服务，三台 NiKa 后端统一访问它的内网 IP。以下以解析服务器内网 IP `10.0.0.11`、安装目录 `/opt/douyin-original-parser` 为例，IP 必须改成实际值。
+当前部署方案：在 Linux `172.31.0.3` 上运行一个 Python 解析服务，Java 实例 `172.31.0.3`、`172.31.0.4`、`172.31.0.6` 统一访问 `http://172.31.0.3:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于该目录内。只有 `.3` 需要安装 Python、Playwright 和 Chromium，`.4`、`.6` 无需安装浏览器或同步 Cookie。
+
+Python 服务由 systemd 独立管理，Java 发布或重启不应同时停止它。已由服务器截图确认 `.3` 为 Ubuntu 22.04.4 LTS，使用 `/usr/bin/python3`，版本 3.10.12，无需另装一套 Python。可用 `uname -m` 再确认 CPU 架构；浏览器安装仍须与当前 Playwright 支持的架构匹配。其他服务器若使用 CentOS、Rocky、AlmaLinux，不能直接套用这里的 `apt` 或假定 `--with-deps` 可用。
 
 ## 1. 上传和解压
 
-把 `douyin-original-parser-deploy.tar.gz` 上传到选定服务器，例如 `/tmp`。这个包包含源码、依赖清单和服务启动文件；服务器需要 Python 3.10+。安装时需要访问 Python 包仓库、Playwright 浏览器下载站和发行版软件源；解析时需要访问抖音官方页面、接口及视频 CDN。
-
-当前详情接口要求 UIFID 访客标识。程序通过无界面的 Chromium 新建匿名访客，随后用 Python 请求原画接口；不需要服务器桌面、登录抖音或个人浏览器资料。源码压缩包仍较小，Chromium 在服务器安装时单独下载，占用明显大于源码包，不能只传 Windows `.venv` 到 Linux。
+以下安装与服务管理命令只在 `172.31.0.3` 执行。先补齐 Ubuntu 的虚拟环境组件和下载工具；`python3 -m venv --help` 能显示帮助，不代表创建环境所需的 ensurepip 组件一定已经齐全。
 
 ```bash
-sudo tar -xzf /tmp/douyin-original-parser-deploy.tar.gz -C /opt
-cd /opt/douyin-original-parser
+sudo apt-get update
+sudo apt-get install -y python3-venv ca-certificates curl
+```
+
+把 `douyin-original-parser-deploy.tar.gz` 上传到选定服务器，例如 `/tmp`。这个包包含源码、依赖清单和服务启动文件；服务器需要 Python 3.10+。安装时需要访问 Python 包仓库、Playwright 浏览器下载站和发行版软件源；解析时需要访问抖音官方页面、接口及视频 CDN。
+
+当前详情接口要求 UIFID 访客标识。程序通过无界面的 Chromium 新建匿名访客，随后用 Python 请求原画接口；不需要服务器桌面、登录抖音或个人浏览器资料。源码压缩包仍较小，Chromium 在服务器安装时单独下载，占用明显大于源码包；虚拟环境须在目标服务器创建，不要搬用其他电脑的 `.venv`。
+
+```bash
+sudo mkdir -p /opt/software/python
+sudo tar -xzf /tmp/douyin-original-parser-deploy.tar.gz --strip-components=1 -C /opt/software/python
+cd /opt/software/python
 python3 --version
 sudo bash deploy/linux/install.sh
 ```
 
-压缩包自身已带 `douyin-original-parser/` 顶层目录，不要再解压到同名子目录中。ZIP 备份包可用 `sudo unzip /tmp/douyin-original-parser-deploy.zip -d /opt` 解压。
-
-Ubuntu 22.04+ / Debian 12+ 如果缺少 Python 或 venv，可先执行：
-
-```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-venv ca-certificates curl
-```
+压缩包自身已带 `douyin-original-parser/` 顶层目录，上面的 `--strip-components=1` 会去掉这一层。解压后应能看到 `/opt/software/python/run.py` 和 `/opt/software/python/deploy/linux/start.sh`。使用 ZIP 备份包或手动复制时，同样把项目文件夹里面的内容放入 `/opt/software/python`，不要额外套一层项目名目录。虚拟环境和浏览器会安装到该目录下的 `.venv` 与 `.browsers`；如果之前已在其他路径安装，不要搬用旧的 `.venv`，应在新目录重新执行安装脚本。
 
 Linux 安装脚本使用 Playwright 的 `--with-deps` 安装 Chromium 系统依赖，需要 root / sudo 权限；自动安装面向 Playwright 当前支持的 Debian / Ubuntu 版本和 CPU 架构。其他发行版不能仅凭 Python 版本判断兼容，需按 Playwright 支持范围准备浏览器及共享库。若较新的 Python 使用单独命令名，例如 `python3.12`，安装时指定：
 
@@ -40,11 +43,14 @@ sudo env PYTHON_BIN=python3.12 bash deploy/linux/install.sh
 id douyin-parser >/dev/null 2>&1 || sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin douyin-parser
 sudo install -m 644 deploy/linux/douyin-original-parser.service /etc/systemd/system/douyin-original-parser.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now douyin-original-parser
+sudo systemctl enable douyin-original-parser
+sudo systemctl restart douyin-original-parser
 sudo systemctl status douyin-original-parser --no-pager
 ```
 
 服务以 `douyin-parser` 账户运行，异常退出会自动重启。项目目录、`.venv` 和 `.browsers` 必须允许该账户读取和进入；安装脚本已为 `.browsers` 设置读取及必要的执行权限，不需要让该账户拥有源码写权限。访客浏览器使用临时上下文，不需要该账户登录桌面。若服务器的 nologin 路径不同，替换 `--shell` 的路径。
+
+父目录 `/opt/software` 也必须允许该账户进入。如出现权限错误，可用 `sudo -u douyin-parser test -r /opt/software/python/run.py` 和 `sudo -u douyin-parser test -x /opt/software/python/.venv/bin/python` 检查；失败时用 `namei -l /opt/software/python/.venv/bin/python` 定位具体目录，再针对性处理权限，不要递归修改整个 `/opt/software`。上面的 `restart` 同时适用于首次安装及已有服务更换启动目录。
 
 默认监听 `0.0.0.0:8765`。查看日志、重启、停止：
 
@@ -59,17 +65,17 @@ sudo systemctl stop douyin-original-parser
 
 默认自动获取匿名访客凭据，在服务进程内复用 20 分钟；平台拒绝签名时最多更新一次。第一次真实解析需要启动 Chromium，通常比后续请求慢。访客初始化仍可能受服务器网络或平台访问限制影响，启动成功并不代表上游一定允许访问。
 
-已有外部维护的访客文件时，可在 systemd 服务的 `[Service]` 中添加 `Environment=COOKIE_FILE=/opt/douyin-original-parser/credentials.json`，再执行 `daemon-reload` 和 `restart`。文件必须允许 `douyin-parser` 读取。支持普通 Cookie 文本 / JSON，以及带 `cookies`、`user_agent` 的 dtk-parse 文件；指定文件后不自动获取或覆盖 Cookie。服务每次解析重新读取文件，后续替换文件无需重启服务；无效或过期凭据需要由维护者更新。
+已有外部维护的访客文件时，可在 systemd 服务的 `[Service]` 中添加 `Environment=COOKIE_FILE=/opt/software/python/credentials.json`，再执行 `daemon-reload` 和 `restart`。文件必须允许 `douyin-parser` 读取。支持普通 Cookie 文本 / JSON，以及带 `cookies`、`user_agent` 的 dtk-parse 文件；指定文件后不自动获取或覆盖 Cookie。服务每次解析重新读取文件，后续替换文件无需重启服务；无效或过期凭据需要由维护者更新。
 
 ## 3. 三台 NiKa 都填同一个服务地址
 
-示例：
+三个实例的配置：
 
 | 实例 | Python 服务 | NiKa 的 base-url |
 | --- | --- | --- |
-| NiKa-1，内网 IP 10.0.0.11 | 运行 | http://10.0.0.11:8765 |
-| NiKa-2 | 不运行 | http://10.0.0.11:8765 |
-| NiKa-3 | 不运行 | http://10.0.0.11:8765 |
+| NiKa-1，172.31.0.3 | 运行，包含 Chromium | http://172.31.0.3:8765 |
+| NiKa-2，172.31.0.4 | 不运行 | http://172.31.0.3:8765 |
+| NiKa-3，172.31.0.6 | 不运行 | http://172.31.0.3:8765 |
 
 在 `nika-basic` 的 Nacos / Spring 配置中合并下面节点：
 
@@ -77,13 +83,15 @@ sudo systemctl stop douyin-original-parser
 nika:
   video-parser:
     selfhosted:
-      base-url: http://10.0.0.11:8765
-      timeout-ms: 120000
+      base-url: http://172.31.0.3:8765
+      timeout-ms: 180000
       max-concurrent: 2
       queue-timeout-ms: 1200000
 ```
 
 `base-url` 不要加 `/parse`，客户端会自动拼接。其他两台机器不能填写 `127.0.0.1`，它只表示各自本机。
+
+可复制的配置文件为 [linux/nika-selfhosted.yaml](linux/nika-selfhosted.yaml)，请合并到原有配置中，不要覆盖整个业务配置文件。`timeout-ms: 180000` 为浏览器初始化和解析留出等待时间；如果链路中有代理，也需检查代理超时。`queue-timeout-ms` 是各 Java 进程的本地排队时间，不是全局队列。
 
 如果三个实例读取同一份 Nacos 配置，修改一次，然后重启三个 `nika-basic` 实例；配置独立时分别修改并重启。三个后端都需要包含 `selfhosted` 接入代码，前端发布一次对应的新版本。使用同一业务数据库时，在“抓取任务中心”选择“自建原画（抖音）”并保存一次即可；不同数据库需分别选择。
 
@@ -92,32 +100,40 @@ nika:
 在解析服务器先执行：
 
 ```bash
-curl --fail http://127.0.0.1:8765/health
+curl --fail --connect-timeout 5 --max-time 10 http://127.0.0.1:8765/health
 ```
 
 再在三台 NiKa 服务器上分别执行：
 
 ```bash
-curl --fail http://10.0.0.11:8765/health
+curl --fail --connect-timeout 5 --max-time 10 http://172.31.0.3:8765/health
 ```
 
-应返回 `{"ok":true,"provider":"douyin-official-source"}`。安全组或防火墙只需允许 NiKa 服务器访问 TCP 8765；当前服务没有公网鉴权，使用内网访问。
+应返回 `{"ok":true,"provider":"douyin-official-source"}`。在 `.3` 的安全组及主机防火墙中，允许来源 `172.31.0.3/32`、`172.31.0.4/32`、`172.31.0.6/32` 访问 TCP 8765。若容器网络做了地址转换，应按 `.3` 实际看到的来源地址放行，并从 Java 容器内验证连通性。当前服务没有公网鉴权，使用内网访问。
+
+若 `.3` 已启用 UFW，可添加下面三条规则；未启用时不要为了这一端口盲目启用或重置防火墙，避免影响生产 SSH 和业务端口。使用其他防火墙时在现有策略中添加同等规则。
+
+```bash
+sudo ufw allow from 172.31.0.3 to any port 8765 proto tcp
+sudo ufw allow from 172.31.0.4 to any port 8765 proto tcp
+sudo ufw allow from 172.31.0.6 to any port 8765 proto tcp
+```
 
 真实解析检查：
 
 ```bash
-curl --fail-with-body -X POST http://10.0.0.11:8765/parse \
+curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0.3:8765/parse \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://www.douyin.com/video/7685326449011608873","with_probe":true}'
 ```
 
-成功响应的 `code` 为 0，`data.size_bytes` 对这条已核验视频应为 61,314,387；`data.probe.ok` 为 true。健康检查只证明进程在线，真实解析还会检查 Chromium 能否启动、访客初始化是否成功，以及服务器能否访问抖音。随后在 NiKa 提交一条素材，确认该环境的 TOS 转存和入库。
+成功响应的 `code` 为 0，`data.size_bytes` 对这条已核验视频应为 61,314,387；`data.probe.ok` 为 true。健康检查只证明进程在线，真实解析还会检查 Chromium 能否启动、访客初始化是否成功，以及服务器能否访问抖音。先在 systemd 启动后做一次真实解析预热，再让三个 Java 实例分别完成一条素材的解析、TOS 转存和入库。验收需确认任务实际分别由三个实例处理；Python 能读到 CDN 地址，并不等于 TOS 转存一定成功。
 
 如果出现浏览器不存在或缺少共享库的错误，重新执行安装脚本并确认 `.browsers` 对服务账户可读。如果出现 `403 Uifid Not Found` 或访客初始化失败，查看服务日志确认正在运行包含访客初始化的新包；使用外部 `COOKIE_FILE` 时还需确认文件包含有效 UIFID 及对应 User-Agent。`parse_links.py` 的解析失败现在会返回退出码 `2`。
 
 ## 5. 三实例并发配置
 
-Java 的 `max-concurrent: 2` 是每个后端进程的限制，三个实例合计最多发起 6 个正常解析请求。因此本包的 Linux 启动脚本和 systemd 模板使用 `MAX_CONCURRENT=6`，Python 服务最多同时解析 6 条；直接运行 `python run.py --serve` 的默认值仍为 2。
+Java 的 `max-concurrent: 2` 是每个后端进程的限制，三个实例合计最多发起 6 个正常解析请求。因此本包的 Linux 启动脚本和 systemd 模板使用 `MAX_CONCURRENT=6`，Python 服务最多同时解析 6 条；直接运行 `.venv/bin/python run.py --serve` 的默认值仍为 2。
 
 每个 Java 实例多余的请求在本实例内排队，`queue-timeout-ms` 只控制本地等待，并非跨三实例的全局队列。Python 槽位用尽时仍返回 429，当前 Java 客户端最多重试 5 次、总退避约 15 秒；额外手工请求或后端超时后仍在执行的解析可能占用槽位。
 
@@ -130,17 +146,18 @@ sudo systemctl restart douyin-original-parser
 
 并发数可设 1 到 32。增加并发会增加服务器网络开销和对上游的请求量，需要结合实际成功率调整；本机只验证了并发控制机制，未对抖音进行 6 路并发压力测试。三个实例共享这一台解析服务，解析服务器停止时三台的自建解析都会不可用。
 
+匿名访客缓存和初始化锁都在 `.3` 的一个 Python 进程里。并发首次请求会等待同一次浏览器初始化，每个解析请求拿到 Cookie 副本并使用独立 HTTP 会话；无需在三个 Java 实例间同步 Cookie。缓存保留 20 分钟，过期后按需更新；浏览器拿到访客凭据后即关闭。明确的凭据拒绝可触发一次刷新，普通网络错误和其他上游错误不保证能通过刷新解决。若需要机器故障时继续可用，须增加独立解析服务及故障切换，systemd 自动重启不能替代机器级冗余。
+
 ## 6. 后续重新打包
 
-在开发电脑的项目根目录执行：
+在项目根目录执行；以下以 `/opt/software/python` 为例：
 
-```powershell
-python package.py
+```bash
+cd /opt/software/python
+.venv/bin/python package.py --output-dir /tmp/douyin-parser-packages
 ```
 
-默认在项目父目录生成 `.tar.gz`、`.zip` 和 `.sha256` 校验文件。也可以用 `python package.py --output-dir 指定目录`。打包采用文件白名单，不包含 `.venv`、`.browsers`、`.git`、`.idea`、缓存、访客凭据、历史视频或解析结果。目标服务器通过安装脚本下载适合自身系统的 Chromium。包内 Linux 脚本使用 LF 换行和可执行权限。
-
-如果服务器以后更换为 Windows，包内也保留了 `deploy/windows/install.ps1` 和 `start.ps1`，需先安装 Python 3.10+；Windows 安装脚本同样将 Chromium 安装到项目 `.browsers`。
+上例在 `/tmp/douyin-parser-packages` 生成 `.tar.gz`、`.zip` 和 `.sha256` 校验文件；省略 `--output-dir` 时默认输出到项目父目录，需确保当前账户对输出目录有写权限。打包采用文件白名单，不包含 `.venv`、`.browsers`、`.git`、`.idea`、缓存、访客凭据、历史视频或解析结果。目标服务器通过安装脚本下载适合自身系统的 Chromium。包内 Linux 脚本使用 LF 换行和可执行权限。
 
 ## 验证记录（2026-09-21）
 

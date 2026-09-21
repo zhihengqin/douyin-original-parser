@@ -10,51 +10,57 @@
 
 ## 快速使用
 
-在 PowerShell 中：
+将项目文件放入 Linux 服务器的 `/opt/software/python`，确保 `run.py` 直接位于该目录内，然后执行：
 
-```powershell
-cd D:\ProjectPy\douyin-original-parser
-powershell -ExecutionPolicy Bypass -File deploy/windows/install.ps1
-.\.venv\Scripts\python.exe run.py "https://www.douyin.com/video/7685326449011608873"
+```bash
+cd /opt/software/python
+sudo bash deploy/linux/install.sh
+.venv/bin/python run.py "https://www.douyin.com/video/7685326449011608873"
 ```
 
-安装脚本创建或复用项目的 `.venv`，安装 Python 依赖，并将 Chromium 下载到项目 `.browsers`。仅安装 `requirements.txt` 不会自动下载浏览器。首次初始化访客通常比后续请求慢；PyCharm 使用本项目 `.venv` 作为解释器即可。
+安装脚本创建或复用项目的 `.venv`，安装 Python 依赖，并将 Chromium 下载到项目 `.browsers`。仅安装 `requirements.txt` 不会自动下载浏览器。首次初始化访客通常比后续请求慢；Ubuntu 的虚拟环境组件、完整安装步骤和 systemd 自启配置见 [Linux 部署说明](deploy/README.md)。
 
 默认检查实际大小、时长、分辨率以及音视频轨道。需要下载时：
 
-```powershell
-.\.venv\Scripts\python.exe run.py "https://www.douyin.com/video/7685326449011608873" --download output/my_source.mp4 --json output/my_result.json
+```bash
+.venv/bin/python run.py "https://www.douyin.com/video/7685326449011608873" --download output/my_source.mp4 --json output/my_result.json
 ```
 
-文件已存在时拒绝覆盖。要重新下载，请换一个输出文件名。对照附件：
+文件已存在时拒绝覆盖。要重新下载，请换一个输出文件名。将对照附件放到服务器的 `/tmp` 后可执行：
 
-```powershell
-.\.venv\Scripts\python.exe run.py "https://www.douyin.com/video/7685326449011608873" --download output/reference_check.mp4 --reference "C:/Users/EDY/Downloads/af61965f8683a01d24fc96d2ea98e935.mp4" --json output/reference_check.json
+```bash
+.venv/bin/python run.py "https://www.douyin.com/video/7685326449011608873" --download output/reference_check.mp4 --reference "/tmp/af61965f8683a01d24fc96d2ea98e935.mp4" --json output/reference_check.json
 ```
 
 对照一致时退出码为 `0`；解析或下载失败为 `2`；下载成功但与指定对照文件不一致为 `3`。
 
-也可以在 PyCharm 中打开 **parse_links.py**，编辑顶部 `LINKS`，直接运行。结果保存在本项目的 `output` 目录。把 `DOWNLOAD` 改为 `True` 即同时下载。任意链接解析失败时脚本退出码为 `2`，不会再显示“退出代码为 0”。
+也可以编辑 **parse_links.py** 顶部的 `LINKS`，再执行 `.venv/bin/python parse_links.py`。结果保存在本项目的 `output` 目录。把 `DOWNLOAD` 改为 `True` 即同时下载。任意链接解析失败时脚本退出码为 `2`，不会再显示“退出代码为 0”。
 
 其他选项：`--url-only` 只打印地址；`--no-probe` 跳过远程媒体校验。默认自动初始化访客，无需手动配置 Cookie。
 
 已有有效访客凭据时，可用 `--cookie-file credentials.json` 指定文件，或在 `parse_links.py` 设置 `COOKIE_FILE`。支持 `name=value; ...` 文本、名称到值的 JSON 对象、浏览器导出的 Cookie JSON 数组，以及包含 `cookies` 和 `user_agent` 的 dtk-parse `credentials.json`；后者会保留凭据配套的 User-Agent。显式指定文件时不自动获取或覆盖其 Cookie；HTTP 服务每次解析重新读取该文件，外部更新后下一次请求即可生效。
 
+## Linux 生产部署：三个 Java 实例共用服务
+
+当前生产方案是在 `172.31.0.3` 的 `/opt/software/python` 目录运行 Python 解析服务，`172.31.0.3`、`172.31.0.4`、`172.31.0.6` 的 Java 实例统一调用 `http://172.31.0.3:8765`。只有 `.3` 安装 Chromium，访客凭据由同一个 Python 进程管理。安装、systemd 自启、防火墙、三实例验证步骤见 [Linux 部署说明](deploy/README.md)，可合并的 Java 配置见 [nika-selfhosted.yaml](deploy/linux/nika-selfhosted.yaml)。
+
 ## HTTP 接口
 
-Linux 无 Docker、三个 NiKa 实例共用服务的部署步骤见 [部署说明](deploy/README.md)。执行 `python package.py` 可在项目父目录生成源码部署包，包含虚拟环境安装脚本和 systemd 配置。
+Linux 无 Docker、三个 NiKa 实例共用服务的部署步骤见 [部署说明](deploy/README.md)。执行 `.venv/bin/python package.py` 可在项目父目录生成源码部署包，包含虚拟环境安装脚本和 systemd 配置。
 
-```powershell
-.\.venv\Scripts\python.exe run.py --serve --port 8765
+```bash
+cd /opt/software/python
+.venv/bin/python run.py --serve --port 8765
 ```
 
 默认监听 `127.0.0.1`，提供 `GET /health`、`POST /parse` 和 `POST /api/v1/resolve`。
 
 直接启动默认最多同时解析 2 条；`--max-concurrent 6` 可配置为 6 条。三实例部署模板已经设为 6，与三个 NiKa 后端各自 2 条并发对应。
 
-```powershell
-$body = @{ url = "https://www.douyin.com/video/7685326449011608873"; with_probe = $true } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8765/parse" -ContentType "application/json" -Body $body
+```bash
+curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://127.0.0.1:8765/parse \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://www.douyin.com/video/7685326449011608873","with_probe":true}'
 ```
 
 核心响应结构：
@@ -109,8 +115,11 @@ NiKa 已新增独立的 `selfhosted` 渠道，页面名称为“自建原画（�
 | `7685326449011608873` | 61,314,387 | 1920 × 1080 | 175.149 |
 | `7659627743507778842` | 232,472,151 | 720 × 1280 | 456.622 |
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+离线测试需使用包含 `tests` 目录的完整源码；生产部署包不包含测试文件。在完整源码位于 `/opt/software/python` 时执行：
+
+```bash
+cd /opt/software/python
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
 已有离线测试覆盖官方地址编码样本、未知格式、身份不一致、普通档拒绝、无声音视频拒绝、备用地址、尾部 moov、截断下载、覆盖保护和过期地址重取。安装后的实际环境仍需调用 `/parse` 验证；`/health` 只检查服务进程在线。

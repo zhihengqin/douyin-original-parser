@@ -1,4 +1,4 @@
-"""生成不含本地环境、缓存、视频和凭据的 Linux/Windows 源码部署包。"""
+"""生成不含本地环境、缓存、视频和凭据的 Linux 源码部署包。"""
 
 import argparse
 import hashlib
@@ -14,7 +14,7 @@ PACKAGE_NAME = "douyin-original-parser"
 
 def package_files():
     files = [PROJECT_ROOT / name for name in (
-        "run.py", "parse_links.py", "requirements.txt", "README.md", "package.py", "package.ps1",
+        "run.py", "parse_links.py", "requirements.txt", "README.md", "package.py",
     )]
     files.extend(sorted((PROJECT_ROOT / "original_parser").glob("*.py")))
     files.extend(PROJECT_ROOT / name for name in (
@@ -22,17 +22,15 @@ def package_files():
         "deploy/linux/install.sh",
         "deploy/linux/start.sh",
         "deploy/linux/douyin-original-parser.service",
-        "deploy/windows/install.ps1",
-        "deploy/windows/start.ps1",
+        "deploy/linux/nika-selfhosted.yaml",
     ))
     for path in files:
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"打包文件缺失或是符号链接：{path}")
         relative = path.relative_to(PROJECT_ROOT).as_posix()
-        # Linux 脚本统一 LF；PowerShell 脚本带 BOM，兼容 Windows PowerShell 5.1。
+        # 源码及 Linux 脚本统一 UTF-8 和 LF 换行。
         source = path.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
-        encoding = "utf-8-sig" if path.suffix == ".ps1" else "utf-8"
-        yield relative, source.encode(encoding)
+        yield relative, source.encode("utf-8")
 
 
 def main():

@@ -2,8 +2,11 @@ __pycache__/
 .venv/
 *.pyc
 .pytest_cache/
+.idea/
+*.iml
 output/
 *.part
 .browsers/
 credentials.json
 cookies.txt
+logs/
