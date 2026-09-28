@@ -1,5 +1,6 @@
-import argparse
+﻿import argparse
 import json
+import logging
 import sys
 from pathlib import Path
 
@@ -8,10 +9,23 @@ import requests
 from .client import OriginalParser, ParseError, load_credentials
 
 
+def parse_interval(value: str) -> tuple[float, float]:
+    """解析间隔配置：``3-6`` 表示区间，``3`` 表示固定间隔。"""
+    text = str(value).strip()
+    if not text:
+        raise ValueError("--request-interval 不能为空，例如 3-6")
+    lower, separator, upper = text.partition("-")
+    if not separator:
+        seconds = float(text)
+        return (seconds, seconds)
+    return (float(lower.strip()), float(upper.strip()))
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stderr.reconfigure(encoding="utf-8")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(description="抖音原画解析：官方取址、地址还原、完整 MP4 校验")
     ap.add_argument("url", nargs="?", help="视频链接、分享文案或作品 ID")
     ap.add_argument("--download", type=Path, help="下载到指定 MP4 文件，不覆盖已有文件")
@@ -21,19 +35,40 @@ def main(argv=None):
     ap.add_argument("--no-probe", action="store_true", help="跳过远程 MP4 大小和轨道校验")
     ap.add_argument("--cookie-file", type=Path,
                     help="Cookie 文件或 dtk-parse credentials.json（当前抖音接口需要 UIFID_TEMP）")
+    ap.add_argument("--detail-mode", choices=("http", "browser"), default="http",
+                    help="详情获取方式；升级时保持原服务使用的模式")
+    ap.add_argument("--browser-profile", choices=("current", "native", "windows"), default="windows")
     ap.add_argument("--serve", action="store_true", help="启动本地 HTTP 服务")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8765)
-    ap.add_argument("--max-concurrent", type=int, default=2, help="HTTP 服务最大并发数，默认 2；三实例共享可设为 6")
+    ap.add_argument("--max-concurrent", type=int, default=6, help="HTTP 同时受理请求数；实际访问上游始终串行")
+    ap.add_argument("--request-interval", default="3-6", metavar="下限-上限",
+                    help="相邻上游任务之间的等待区间秒数，例如 3-6 表示在 3 到 6 秒之间随机；"
+                         "单个数字表示固定间隔，默认 3-6")
+    ap.add_argument("--cache-ttl", type=float, default=300, help="HTTP 成功缓存上限秒数，0 关闭缓存")
+    ap.add_argument("--cache-max-entries", type=int, default=128)
+    ap.add_argument("--queue-size", type=int, default=6, help="HTTP 等待执行的不同任务上限")
+    ap.add_argument("--queue-wait-timeout", type=float, default=150, help="HTTP 等待排队及结果的总秒数")
+    ap.add_argument("--failure-threshold", type=int, default=3, help="限制类错误触发暂停的次数")
+    ap.add_argument("--cooldown-seconds", type=float, default=900, help="触发暂停后的冷却秒数")
     args = ap.parse_args(argv)
     if not 1 <= args.max_concurrent <= 32:
         ap.error("--max-concurrent 必须在 1 到 32 之间")
+    if args.detail_mode == "browser" and args.cookie_file:
+        ap.error("浏览器页面模式不能同时指定 --cookie-file")
     if args.serve:
         from .server import serve
+        from .guard import GuardConfig
         try:
+            config = GuardConfig(interval_range=parse_interval(args.request_interval),
+                                 cache_ttl=args.cache_ttl,
+                                 cache_max_entries=args.cache_max_entries, max_pending=args.queue_size,
+                                 wait_timeout=args.queue_wait_timeout, failure_threshold=args.failure_threshold,
+                                 cooldown=args.cooldown_seconds)
             if args.cookie_file:
                 load_credentials(args.cookie_file)
-            serve(args.host, args.port, max_concurrent=args.max_concurrent, cookie_file=args.cookie_file)
+            serve(args.host, args.port, max_concurrent=args.max_concurrent, cookie_file=args.cookie_file,
+                  detail_mode=args.detail_mode, browser_profile=args.browser_profile, guard_config=config)
             return 0
         except (ParseError, OSError, ValueError) as exc:
             print(json.dumps({"code": getattr(exc, "code", "local_error"), "msg": str(exc), "data": None},
@@ -45,7 +80,9 @@ def main(argv=None):
         ap.error("--reference 需要同时指定 --download，完整下载后才能验证文件一致性")
     try:
         cookies, user_agent = load_credentials(args.cookie_file) if args.cookie_file else ({}, None)
-        with OriginalParser(cookies=cookies, user_agent=user_agent) as parser:
+        with OriginalParser(cookies=cookies if args.cookie_file else None, user_agent=user_agent,
+                            auto_guest=args.cookie_file is None, detail_mode=args.detail_mode,
+                            browser_profile=args.browser_profile) as parser:
             result = parser.parse(args.url, with_probe=not args.no_probe)
             if args.download:
                 parser.download(result, args.download, reference=args.reference)

@@ -1,9 +1,12 @@
 # 合并到三个 nika-basic 实例实际读取的 Nacos / Spring 配置中。
 # 不要用本文件覆盖原有完整业务配置。修改后重启三个实例。
+# 三个地址地位平等，服务端在健康出口之间随机选择；某个出口被平台限制时自动进入冷却并被跳过。
 nika:
   video-parser:
     selfhosted:
-      base-url: http://172.31.0.3:8765
+      base-url: http://172.31.0.4:8765
+      # 逗号分隔或 YAML 列表均可；留空表示只使用 base-url。
+      backup-base-urls: http://172.31.0.6:8765,http://172.31.0.3:8765
       timeout-ms: 180000
       max-concurrent: 2
       queue-timeout-ms: 1200000

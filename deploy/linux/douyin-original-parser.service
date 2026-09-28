@@ -1,4 +1,4 @@
-[Unit]
+﻿[Unit]
 Description=抖音自建原画解析服务
 After=network-online.target
 Wants=network-online.target
@@ -12,6 +12,15 @@ Environment=HOST_ADDRESS=0.0.0.0
 Environment=PORT=8765
 Environment=MAX_CONCURRENT=6
 Environment=COOKIE_FILE=
+Environment=DETAIL_MODE=http
+Environment=BROWSER_PROFILE=windows
+Environment=REQUEST_INTERVAL=3-6
+Environment=CACHE_TTL=300
+Environment=CACHE_MAX_ENTRIES=128
+Environment=QUEUE_SIZE=6
+Environment=QUEUE_WAIT_TIMEOUT=150
+Environment=FAILURE_THRESHOLD=3
+Environment=COOLDOWN_SECONDS=900
 Environment=PYTHONUTF8=1
 ExecStart=/bin/bash /opt/software/python/deploy/linux/start.sh
 Restart=on-failure

@@ -6,7 +6,7 @@
 
 运行时需要 Python 3.10+、requests、cryptography、Playwright 及其 Chromium。2026-09-21 已确认抖音详情接口开始拒绝缺少 UIFID 的匿名 HTTP 请求，返回 `403 Uifid Not Found`；因此不能继续使用“无需浏览器、直接匿名请求”的旧启动方式。
 
-程序默认用 Playwright 创建全新的匿名 Chromium 上下文，访问抖音首页取得 `ttwid`、`UIFID_TEMP` 后关闭浏览器，再使用对应的 User-Agent 和网页签名请求详情。访客凭据在进程内复用 20 分钟，签名被拒时最多更新一次。整个过程不读取个人浏览器资料或登录 Cookie，不需要手机、模拟器、APK、其他工作区项目或第三方解析 API。
+程序默认用 Playwright 创建全新的匿名 Chromium 上下文，访问抖音首页取得 `ttwid`、`UIFID_TEMP` 后关闭浏览器，再使用对应的 User-Agent 和网页签名请求详情。HTTP 模式的访客凭据在进程内复用 20 分钟；直接 CLI 遇到访客相关失败最多刷新一次，受保护的 HTTP 服务不在单个任务内刷新重试。可用 `--detail-mode browser --browser-profile windows` 沿用 04 已验证的页面请求方式。整个过程不读取个人浏览器资料或登录 Cookie。
 
 ## 快速使用
 
@@ -42,7 +42,7 @@ sudo bash deploy/linux/install.sh
 
 ## Linux 生产部署：三个 Java 实例共用服务
 
-当前生产方案是在 `172.31.0.3` 的 `/opt/software/python` 目录运行 Python 解析服务，`172.31.0.3`、`172.31.0.4`、`172.31.0.6` 的 Java 实例统一调用 `http://172.31.0.3:8765`。只有 `.3` 安装 Chromium，访客凭据由同一个 Python 进程管理。安装、systemd 自启、防火墙、三实例验证步骤见 [Linux 部署说明](deploy/README.md)，可合并的 Java 配置见 [nika-selfhosted.yaml](deploy/linux/nika-selfhosted.yaml)。
+当前主解析节点为已验证可用的 `172.31.0.4`，目录仍为 `/opt/software/python`，三个 Java 实例主调用地址为 `http://172.31.0.4:8765`。HTTP 服务新增统一串行队列、任务间隔、同作品请求合并、有效期缓存和连续失败暂停。已有服务升级及适用范围见 [请求保护说明](deploy/REQUEST_PROTECTION.md)，首次部署见 [Linux 部署说明](deploy/README.md)。备用解析节点若被启用，各进程的保护状态独立。
 
 ## HTTP 接口
 
@@ -55,7 +55,7 @@ cd /opt/software/python
 
 默认监听 `127.0.0.1`，提供 `GET /health`、`POST /parse` 和 `POST /api/v1/resolve`。
 
-直接启动默认最多同时解析 2 条；`--max-concurrent 6` 可配置为 6 条。三实例部署模板已经设为 6，与三个 NiKa 后端各自 2 条并发对应。
+默认最多同时受理 6 个 HTTP 请求，实际访问上游始终串行，每个完整任务结束后至少间隔 10 秒。同作品完整链接/ID 自动合并，成功且已校验的原画结果最多缓存 5 分钟，并提前 60 秒避开地址到期；累计 3 次限制类错误后冷却 15 分钟，真实解析成功清零。冷却返回 HTTP 503 和 `Retry-After`，满队列或等待超时返回 HTTP 429。参数及短链、进程内状态等边界见 [请求保护说明](deploy/REQUEST_PROTECTION.md)。这些措施降低重复访问，不保证不会被平台限制。
 
 ```bash
 curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://127.0.0.1:8765/parse \

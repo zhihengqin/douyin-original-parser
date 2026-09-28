@@ -19,8 +19,12 @@ def package_files():
     files.extend(sorted((PROJECT_ROOT / "original_parser").glob("*.py")))
     files.extend(PROJECT_ROOT / name for name in (
         "deploy/README.md",
+        "deploy/REQUEST_PROTECTION.md",
         "deploy/linux/install.sh",
+        "deploy/linux/deploy.sh",
+        "deploy/linux/upgrade.sh",
         "deploy/linux/start.sh",
+        "deploy/linux/request-protection.conf",
         "deploy/linux/douyin-original-parser.service",
         "deploy/linux/nika-selfhosted.yaml",
     ))

@@ -1,34 +1,52 @@
-"""默认仅监听本机的 HTTP 接口，方便业务系统接入。"""
+"""HTTP 接口；所有实例的上游请求共用排队、缓存和失败暂停。"""
 
+import hashlib
 import json
+import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .client import OriginalParser, ParseError, load_credentials
+from .client import OriginalParser, ParseError, load_credentials, resolve_id_local
+from .guard import GuardConfig, GuardError, RequestGuard
+
+logger = logging.getLogger(__name__)
 
 
-def serve(host="127.0.0.1", port=8765, max_concurrent=2, cookie_file=None):
+def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
+          detail_mode="http", browser_profile="windows", guard_config=None):
     if not 1 <= max_concurrent <= 32:
-        raise ValueError("解析并发数必须在 1 到 32 之间")
+        raise ValueError("同时受理的 HTTP 请求数必须在 1 到 32 之间")
+    if detail_mode not in ("http", "browser") or browser_profile not in ("current", "native", "windows"):
+        raise ValueError("不支持的详情模式或浏览器配置")
+    if detail_mode == "browser" and cookie_file is not None:
+        raise ValueError("浏览器页面模式不能同时指定外部 Cookie")
+    config = guard_config or GuardConfig()
     slots = threading.BoundedSemaphore(max_concurrent)
+    guard = RequestGuard(config)
 
     class Handler(BaseHTTPRequestHandler):
         def setup(self):
             super().setup()
             self.connection.settimeout(15)
 
-        def send_json(self, status, data):
+        def send_json(self, status, data, *, retry_after=None):
             body = json.dumps(data, ensure_ascii=False).encode("utf-8")
-            self.send_response(status)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                if retry_after is not None:
+                    self.send_header("Retry-After", str(max(1, int(retry_after))))
+                self.end_headers()
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError, TimeoutError):
+                logger.info("http_client_disconnected status=%s", status)
 
         def do_GET(self):
             if self.path == "/health":
-                self.send_json(200, {"ok": True, "provider": "douyin-official-source"})
+                self.send_json(200, {"ok": True, "provider": "douyin-official-source",
+                                     "protection": guard.snapshot()})
             else:
                 self.send_json(404, {"code": "not_found", "msg": "接口不存在", "data": None})
 
@@ -49,28 +67,62 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=2, cookie_file=None):
                 with_probe = payload.get("with_probe", True)
                 if not isinstance(with_probe, bool):
                     raise ValueError("with_probe 必须为布尔值")
+                aweme_id, normalized_url = resolve_id_local(text)
             except (ValueError, UnicodeError) as exc:
                 self.send_json(400, {"code": "invalid_input", "msg": str(exc), "data": None})
                 return
+            except ParseError as exc:
+                self.send_json(400, {"code": exc.code, "msg": str(exc), "data": None})
+                return
             if not slots.acquire(blocking=False):
-                self.send_json(429, {"code": "busy", "msg": "正在处理其他解析，请稍后重试", "data": None})
+                self.send_json(429, {"code": "busy", "msg": "解析请求较多，请稍后重试", "data": None},
+                               retry_after=max(1, config.interval_upper))
                 return
             try:
-                # 外部指定的凭据每次读取，替换文件后不必重启服务。
-                cookies, user_agent = load_credentials(cookie_file) if cookie_file else ({}, None)
-                with OriginalParser(cookies=cookies, user_agent=user_agent) as parser:
-                    self.send_json(200, parser.parse(text, with_probe=with_probe))
+                # 每次读取外部文件；凭据变化后隔离缓存和在途请求，密钥不进入日志。
+                cookies, user_agent = load_credentials(cookie_file) if cookie_file else (None, None)
+                credential_scope = "auto"
+                if cookie_file:
+                    credential_scope = hashlib.sha256(json.dumps(
+                        [cookies, user_agent], sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+                key = (credential_scope, "id" if aweme_id else "link",
+                       aweme_id or normalized_url, with_probe)
+
+                def parse_once():
+                    # 此函数只在唯一工作线程运行；短链的跳转也受统一排队控制。
+                    with OriginalParser(cookies=cookies, user_agent=user_agent,
+                                        auto_guest=cookie_file is None,
+                                        detail_mode=detail_mode, browser_profile=browser_profile,
+                                        refresh_guest_on_rejection=False) as parser:
+                        return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
+
+                result = guard.run(key, parse_once)
+                self.send_json(200, result)
+            except GuardError as exc:
+                status = 503 if exc.code == "upstream_cooldown" else 429
+                self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None,
+                                        "retry_after_seconds": exc.retry_after}, retry_after=exc.retry_after)
             except ParseError as exc:
                 status = 400 if exc.code in ("invalid_input", "invalid_url") else 502
                 self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None})
             except Exception as exc:
+                logger.warning("parse_failed category=%s", type(exc).__name__)
                 self.send_json(502, {"code": "upstream_error", "msg": "解析失败：" + type(exc).__name__, "data": None})
             finally:
                 slots.release()
 
-    with ThreadingHTTPServer((host, port), Handler) as server:
-        print(f"原画解析服务：http://{host}:{port}，最大并发 {max_concurrent}，按 Ctrl+C 停止", flush=True)
-        try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            pass
+    try:
+        with ThreadingHTTPServer((host, port), Handler) as server:
+            print(f"原画解析服务：http://{host}:{port}，最多受理 {max_concurrent} 个请求，上游串行，按 Ctrl+C 停止", flush=True)
+            logger.info("detail_mode=%s browser_profile=%s credential_mode=%s", detail_mode, browser_profile,
+                        "external_file" if cookie_file else "auto_guest")
+            logger.info("protection interval=%s-%ss cache_ttl=%ss pending=%s wait=%ss threshold=%s cooldown=%ss",
+                        config.interval_range[0], config.interval_range[1],
+                        config.cache_ttl, config.max_pending,
+                        config.wait_timeout, config.failure_threshold, config.cooldown)
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                pass
+    finally:
+        guard.close()

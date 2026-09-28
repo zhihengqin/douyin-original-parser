@@ -1,12 +1,12 @@
 # Linux 无 Docker：三个 NiKa 实例共用一个原画解析服务
 
-当前部署方案：在 Linux `172.31.0.3` 上运行一个 Python 解析服务，Java 实例 `172.31.0.3`、`172.31.0.4`、`172.31.0.6` 统一访问 `http://172.31.0.3:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于该目录内。只有 `.3` 需要安装 Python、Playwright 和 Chromium，`.4`、`.6` 无需安装浏览器或同步 Cookie。
+当前主解析节点为 Linux `172.31.0.4`，三个 Java 实例的主调用地址为 `http://172.31.0.4:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于目录内。只有运行解析服务的节点需要安装 Python、Playwright 和 Chromium，Java 节点无需同步 Cookie。已部署成功的 04 升级步骤见 [请求保护说明](REQUEST_PROTECTION.md)，无需重装依赖。
 
 Python 服务由 systemd 独立管理，Java 发布或重启不应同时停止它。已由服务器截图确认 `.3` 为 Ubuntu 22.04.4 LTS，使用 `/usr/bin/python3`，版本 3.10.12，无需另装一套 Python。可用 `uname -m` 再确认 CPU 架构；浏览器安装仍须与当前 Playwright 支持的架构匹配。其他服务器若使用 CentOS、Rocky、AlmaLinux，不能直接套用这里的 `apt` 或假定 `--with-deps` 可用。
 
 ## 1. 上传和解压
 
-以下安装与服务管理命令只在 `172.31.0.3` 执行。先补齐 Ubuntu 的虚拟环境组件和下载工具；`python3 -m venv --help` 能显示帮助，不代表创建环境所需的 ensurepip 组件一定已经齐全。
+以下首次安装与服务管理命令在解析节点 `172.31.0.4` 执行，假定与 03 一样使用 Ubuntu。先补齐 Ubuntu 的虚拟环境组件和下载工具；`python3 -m venv --help` 能显示帮助，不代表创建环境所需的 ensurepip 组件一定已经齐全。
 
 ```bash
 sudo apt-get update
@@ -40,7 +40,8 @@ sudo env PYTHON_BIN=python3.12 bash deploy/linux/install.sh
 创建专用运行账户（首次部署执行），安装服务文件并启动：
 
 ```bash
-id douyin-parser >/dev/null 2>&1 || sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin douyin-parser
+id douyin-parser >/dev/null 2>&1 || sudo useradd --system --user-group --home-dir /home/douyin-parser --create-home --shell /usr/sbin/nologin douyin-parser
+sudo install -d -m 750 -o douyin-parser -g douyin-parser /home/douyin-parser
 sudo install -m 644 deploy/linux/douyin-original-parser.service /etc/systemd/system/douyin-original-parser.service
 sudo systemctl daemon-reload
 sudo systemctl enable douyin-original-parser
@@ -63,7 +64,7 @@ sudo systemctl stop douyin-original-parser
 
 如果先在终端试运行而不注册服务，可执行 `bash deploy/linux/start.sh`；关闭终端会停止。不要同时运行前台进程和 systemd 服务，以免占用同一端口。
 
-默认自动获取匿名访客凭据，在服务进程内复用 20 分钟；平台拒绝签名时最多更新一次。第一次真实解析需要启动 Chromium，通常比后续请求慢。访客初始化仍可能受服务器网络或平台访问限制影响，启动成功并不代表上游一定允许访问。
+默认 HTTP 详情模式自动获取匿名访客凭据，在进程内复用 20 分钟。受保护的服务不会在一个任务内刷新访客重复请求，限制类错误统一累计并触发冷却。browser 模式沿用独立匿名页面获取详情。启动成功不代表平台一定允许访问，配置说明见 [请求保护说明](REQUEST_PROTECTION.md)。
 
 已有外部维护的访客文件时，可在 systemd 服务的 `[Service]` 中添加 `Environment=COOKIE_FILE=/opt/software/python/credentials.json`，再执行 `daemon-reload` 和 `restart`。文件必须允许 `douyin-parser` 读取。支持普通 Cookie 文本 / JSON，以及带 `cookies`、`user_agent` 的 dtk-parse 文件；指定文件后不自动获取或覆盖 Cookie。服务每次解析重新读取文件，后续替换文件无需重启服务；无效或过期凭据需要由维护者更新。
 
@@ -73,9 +74,9 @@ sudo systemctl stop douyin-original-parser
 
 | 实例 | Python 服务 | NiKa 的 base-url |
 | --- | --- | --- |
-| NiKa-1，172.31.0.3 | 运行，包含 Chromium | http://172.31.0.3:8765 |
-| NiKa-2，172.31.0.4 | 不运行 | http://172.31.0.3:8765 |
-| NiKa-3，172.31.0.6 | 不运行 | http://172.31.0.3:8765 |
+| NiKa-1，172.31.0.3 | 不作为主解析服务 | http://172.31.0.4:8765 |
+| NiKa-2，172.31.0.4 | 运行，包含 Chromium | http://172.31.0.4:8765 |
+| NiKa-3，172.31.0.6 | 可按需另部署备用服务 | http://172.31.0.4:8765 |
 
 在 `nika-basic` 的 Nacos / Spring 配置中合并下面节点：
 
@@ -83,7 +84,7 @@ sudo systemctl stop douyin-original-parser
 nika:
   video-parser:
     selfhosted:
-      base-url: http://172.31.0.3:8765
+      base-url: http://172.31.0.4:8765
       timeout-ms: 180000
       max-concurrent: 2
       queue-timeout-ms: 1200000
@@ -106,12 +107,12 @@ curl --fail --connect-timeout 5 --max-time 10 http://127.0.0.1:8765/health
 再在三台 NiKa 服务器上分别执行：
 
 ```bash
-curl --fail --connect-timeout 5 --max-time 10 http://172.31.0.3:8765/health
+curl --fail --connect-timeout 5 --max-time 10 http://172.31.0.4:8765/health
 ```
 
-应返回 `{"ok":true,"provider":"douyin-official-source"}`。在 `.3` 的安全组及主机防火墙中，允许来源 `172.31.0.3/32`、`172.31.0.4/32`、`172.31.0.6/32` 访问 TCP 8765。若容器网络做了地址转换，应按 `.3` 实际看到的来源地址放行，并从 Java 容器内验证连通性。当前服务没有公网鉴权，使用内网访问。
+应返回 `ok=true`、`provider=douyin-official-source` 以及新增的 `protection` 状态。在 `.4` 的安全组及主机防火墙中，允许来源 `172.31.0.3/32`、`172.31.0.4/32`、`172.31.0.6/32` 访问 TCP 8765。若容器网络做了地址转换，应按 `.4` 实际看到的来源地址放行，并从 Java 容器内验证连通性。当前服务没有公网鉴权，使用内网访问。
 
-若 `.3` 已启用 UFW，可添加下面三条规则；未启用时不要为了这一端口盲目启用或重置防火墙，避免影响生产 SSH 和业务端口。使用其他防火墙时在现有策略中添加同等规则。
+若 `.4` 已启用 UFW，可添加下面三条规则；未启用时不要为了这一端口盲目启用或重置防火墙，避免影响生产 SSH 和业务端口。使用其他防火墙时在现有策略中添加同等规则。
 
 ```bash
 sudo ufw allow from 172.31.0.3 to any port 8765 proto tcp
@@ -122,7 +123,7 @@ sudo ufw allow from 172.31.0.6 to any port 8765 proto tcp
 真实解析检查：
 
 ```bash
-curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0.3:8765/parse \
+curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0.4:8765/parse \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://www.douyin.com/video/7685326449011608873","with_probe":true}'
 ```
@@ -131,22 +132,15 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0
 
 如果出现浏览器不存在或缺少共享库的错误，重新执行安装脚本并确认 `.browsers` 对服务账户可读。如果出现 `403 Uifid Not Found` 或访客初始化失败，查看服务日志确认正在运行包含访客初始化的新包；使用外部 `COOKIE_FILE` 时还需确认文件包含有效 UIFID 及对应 User-Agent。`parse_links.py` 的解析失败现在会返回退出码 `2`。
 
-## 5. 三实例并发配置
+## 5. 三实例请求保护
 
-Java 的 `max-concurrent: 2` 是每个后端进程的限制，三个实例合计最多发起 6 个正常解析请求。因此本包的 Linux 启动脚本和 systemd 模板使用 `MAX_CONCURRENT=6`，Python 服务最多同时解析 6 条；直接运行 `.venv/bin/python run.py --serve` 的默认值仍为 2。
+Java 的 `max-concurrent: 2` 是每个后端的限制，三个实例合计最多提交 6 个请求。Python 的 `MAX_CONCURRENT=6` 表示同时受理数量，包含等待者；实际访问上游只有一个任务，完成后默认间隔 10 秒。同作品合并和有效期缓存会减少实际执行次数。
 
-每个 Java 实例多余的请求在本实例内排队，`queue-timeout-ms` 只控制本地等待，并非跨三实例的全局队列。Python 槽位用尽时仍返回 429，当前 Java 客户端最多重试 5 次、总退避约 15 秒；额外手工请求或后端超时后仍在执行的解析可能占用槽位。
+默认成功结果最多缓存 5 分钟，提前 60 秒避开地址到期；累计 3 次限制类失败后冷却 15 分钟，真实解析成功清零。队列满或等待超时返回 HTTP 429；冷却期间无有效缓存返回 HTTP 503，并提供重试时间。参数、升级和验收见 [请求保护说明](REQUEST_PROTECTION.md)。
 
-要改服务并发，编辑 `/etc/systemd/system/douyin-original-parser.service` 中的 `Environment=MAX_CONCURRENT=6`，再执行：
+受理数量可设 1 到 32，提高该值只增加等待者数量，不增加上游并发。三个 Java 共用同一进程时共用保护状态；如果启用另一台备用解析服务，其队列、缓存、计数分别独立。本轮未修改 Java 的备用切换逻辑。
 
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart douyin-original-parser
-```
-
-并发数可设 1 到 32。增加并发会增加服务器网络开销和对上游的请求量，需要结合实际成功率调整；本机只验证了并发控制机制，未对抖音进行 6 路并发压力测试。三个实例共享这一台解析服务，解析服务器停止时三台的自建解析都会不可用。
-
-匿名访客缓存和初始化锁都在 `.3` 的一个 Python 进程里。并发首次请求会等待同一次浏览器初始化，每个解析请求拿到 Cookie 副本并使用独立 HTTP 会话；无需在三个 Java 实例间同步 Cookie。缓存保留 20 分钟，过期后按需更新；浏览器拿到访客凭据后即关闭。明确的凭据拒绝可触发一次刷新，普通网络错误和其他上游错误不保证能通过刷新解决。若需要机器故障时继续可用，须增加独立解析服务及故障切换，systemd 自动重启不能替代机器级冗余。
+HTTP 模式保留进程内访客缓存，browser 模式仍使用独立匿名页面，两者都受外层控制。状态在内存里，重启会清空；不要频繁重启来跳过冷却。直接 CLI 解析不经过 HTTP 保护，不适合与生产服务并行批量使用。
 
 ## 6. 后续重新打包
 
