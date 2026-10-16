@@ -67,6 +67,9 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 with_probe = payload.get("with_probe", True)
                 if not isinstance(with_probe, bool):
                     raise ValueError("with_probe 必须为布尔值")
+                force_refresh = payload.get("force_refresh", False)
+                if not isinstance(force_refresh, bool):
+                    raise ValueError("force_refresh 必须为布尔值")
                 aweme_id, normalized_url = resolve_id_local(text)
             except (ValueError, UnicodeError) as exc:
                 self.send_json(400, {"code": "invalid_input", "msg": str(exc), "data": None})
@@ -96,7 +99,7 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                                         refresh_guest_on_rejection=False) as parser:
                         return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
 
-                result = guard.run(key, parse_once)
+                result = guard.run(key, parse_once, force_refresh=force_refresh)
                 self.send_json(200, result)
             except GuardError as exc:
                 status = 503 if exc.code == "upstream_cooldown" else 429

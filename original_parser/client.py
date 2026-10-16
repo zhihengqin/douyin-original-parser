@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import logging
@@ -25,7 +26,7 @@ GUEST_RETRY_CODES = frozenset(("credentials_required", "credentials_rejected",
                                "upstream_empty_response", "upstream_non_json"))
 PLATFORM_HOSTS = ("douyin.com", "iesdouyin.com")
 MEDIA_HOSTS = ("douyinvod.com", "douyin.com", "iesdouyin.com", "snssdk.com",
-               "amemv.com", "ixigua.com", "365yg.com", "bytecdn.cn", "bytecdn.com",
+               "amemv.com", "ixigua.com", "365yg.com", "toutiaovod.com", "bytecdn.cn", "bytecdn.com",
                "bytedance.com", "bytedance.net", "bytednsdoc.com", "pstatp.com")
 
 
@@ -295,37 +296,78 @@ class OriginalParser:
         aid = parse_qs(p.query).get("aid", [""])[0]
         if aid != "392139":
             raise ParseError("source_unavailable", "备用播放接口的应用标识不符合当前实现")
-        # 保留官方下发的签名路径，只选择 source 流；不拼接已失效的 /aweme/v1/play。
+        # 原片选择依赖完整下发查询；仅切换 stream_type 会遗漏部分作品的原画。
+        original_params = parse_qs(p.query, keep_blank_values=True)
+        original_params.pop("logo_type", None)
+        original_params["force_fids"] = [base64.b64encode(b"original").decode("ascii")]
+        original_params["codec_type"] = ["5"]
+        original_url = urlunsplit((p.scheme, p.netloc, p.path,
+                                  urlencode(original_params, doseq=True), ""))
         source_url = urlunsplit((p.scheme, p.netloc, p.path,
                                 urlencode({"aid": aid, "stream_type": "source"}), ""))
-        payload = self._json(source_url)
+        try:
+            return self._source_candidates(self._json(original_url, stage="原画接口"), video_id)
+        except ParseError as exc:
+            if exc.code != "source_unavailable":
+                raise
+        # 新选档无原画时兼容旧 source 入口；身份、网络及限制类错误直接返回。
+        return self._source_candidates(self._json(source_url, stage="原画接口"), video_id)
+
+    def _source_candidates(self, payload: dict, video_id: str) -> tuple[dict, list[dict]]:
         info = payload.get("video_info") or {}
         data = info.get("data") or {}
         if payload.get("code") != 0 or info.get("code") != 0 or data.get("status") != 10:
             raise ParseError("source_unavailable", "官方备用接口没有返回可用原画")
         if data.get("video_id") != video_id:
             raise ParseError("identity_mismatch", "原画接口返回了另一个视频")
-        rows = data.get("video_list") or {}
-        rows = list(rows.values()) if isinstance(rows, dict) else rows
+        rows = data.get("video_list")
+        if rows is None:
+            rows = []
+        elif isinstance(rows, dict):
+            rows = list(rows.values())
+        elif not isinstance(rows, list):
+            raise ParseError("source_unavailable", "原画接口返回的视频档位列表格式异常")
+        rows = [row for row in rows if isinstance(row, dict)]
+        if not rows:
+            raise ParseError("source_unavailable", "原画接口未返回有效的视频档位")
         candidates = []
+        source_count = normal_count = 0
+        # 只汇总固定原因与数量，不把上游地址、密钥或任意响应文本放入错误消息。
+        rejected = {"非 MP4 格式": 0, "带媒体加密标记": 0, "缺少播放地址": 0,
+                    "地址解码失败": 0, "地址校验未通过": 0}
         for row in rows:
-            if not isinstance(row, dict):
-                continue
             quality = str(row.get("quality") or "").lower()
-            if quality not in ("original", "source") or row.get("vtype") != "mp4":
+            if quality == "normal":
+                normal_count += 1
+            if quality not in ("original", "source"):
+                continue
+            source_count += 1
+            if row.get("vtype") != "mp4":
+                rejected["非 MP4 格式"] += 1
                 continue
             if row.get("encrypt") or row.get("spade_a") or row.get("encryption_method"):
+                rejected["带媒体加密标记"] += 1
                 continue
             urls = []
+            has_address = False
             for key in ("main_url", "backup_url_1", "backup_url_2", "backup_url_3", "backup_url"):
                 if not row.get(key):
                     continue
+                has_address = True
                 try:
-                    url = check_url(decode_url(row[key], data.get("key_seed", "")), MEDIA_HOSTS)
-                except (ValueError, UnicodeError, ParseError):
+                    url = decode_url(row[key], data.get("key_seed", ""))
+                except (ValueError, TypeError, UnicodeError):
+                    rejected["地址解码失败"] += 1
+                    continue
+                try:
+                    url = check_url(url, MEDIA_HOSTS)
+                except ParseError:
+                    rejected["地址校验未通过"] += 1
                     continue
                 if url not in urls:
                     urls.append(url)
+            if not has_address:
+                rejected["缺少播放地址"] += 1
             if urls:
                 candidates.append({
                     "url": urls[0], "urls": urls, "quality": "source", "level": "原画",
@@ -338,7 +380,14 @@ class OriginalParser:
                     "duration_seconds": data.get("video_duration"),
                 })
         if not candidates:
-            raise ParseError("source_unavailable", "没有可还原的完整原画地址；不会降级为网页转码档")
+            if not source_count:
+                message = (f"原画接口仅返回普通转码档（{normal_count} 个），未返回 original/source 原画档位"
+                           if normal_count == len(rows) else
+                           f"原画接口返回了 {len(rows)} 个视频档位，但未返回 original/source 原画档位")
+            else:
+                reasons = "、".join(f"{reason} {count} 项" for reason, count in rejected.items() if count)
+                message = f"原画接口返回了 {source_count} 个原画档位，但没有可用的完整 MP4 地址：{reasons}"
+            raise ParseError("source_unavailable", message + "；不会降级为网页转码档")
         candidates.sort(key=lambda c: (c["width"] * c["height"], c["bit_rate"], c["size"]), reverse=True)
         return data, candidates
 

@@ -7,7 +7,7 @@ from pathlib import Path
 from original_parser import OriginalParser, ParseError
 from original_parser.client import load_credentials
 
-LINKS = ["https://www.douyin.com/video/7687258143025433892"]
+LINKS = ["https://www.douyin.com/video/7695411862271315236"]
 DOWNLOAD = False
 # 默认自动取得匿名访客标识；也可指定包含 Cookie 和 User-Agent 的凭据文件。
 COOKIE_FILE = None

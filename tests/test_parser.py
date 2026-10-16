@@ -10,6 +10,7 @@ import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 from original_parser.client import (OriginalParser, ParseError, id_from_url, load_credentials,
                                     signed_headers, signed_query)
@@ -211,8 +212,160 @@ class ParserTests(unittest.TestCase):
         with OriginalParser() as parser, patch.object(parser, "_json", return_value=payload()) as call:
             _, candidates = parser.source_streams(detail())
             self.assertEqual(candidates[0]["url"], FIXTURE["decoded_url"])
-            self.assertIn("stream_type=source", call.call_args.args[0])
+            query = parse_qs(urlsplit(call.call_args.args[0]).query)
+            self.assertEqual(query["stream_type"], ["normal"])
+            self.assertEqual(query["force_fids"], [base64.b64encode(b"original").decode()])
+            self.assertEqual(query["codec_type"], ["5"])
+            call.assert_called_once()
+            self.assertEqual(call.call_args.kwargs["stage"], "原画接口")
             self.assertEqual(candidates[0]["size"], 61314387)
+
+    def test_original_selection_preserves_issued_path_and_query_context(self):
+        item = detail()
+        model = json.loads(item["video"]["video_model"])
+        issued = model["fallback_api"]["fallback_api"] + (
+            "&codec_type=1&force_fids=old&logo_type=watermarked"
+            "&encode_user_tag=tag%2Bvalue&device_id=123&vquality=&imp=a&imp=b")
+        model["fallback_api"]["fallback_api"] = issued
+        item["video"]["video_model"] = json.dumps(model)
+        with OriginalParser(auto_guest=False) as parser:
+            with patch.object(parser, "_json", return_value=payload()) as call:
+                parser.source_streams(item)
+        requested = urlsplit(call.call_args.args[0])
+        self.assertEqual((requested.scheme, requested.netloc, requested.path),
+                         (urlsplit(issued).scheme, urlsplit(issued).netloc, urlsplit(issued).path))
+        query = parse_qs(requested.query, keep_blank_values=True)
+        self.assertEqual(query["encode_user_tag"], ["tag+value"])
+        self.assertEqual(query["device_id"], ["123"])
+        self.assertEqual(query["vquality"], [""])
+        self.assertEqual(query["imp"], ["a", "b"])
+        self.assertNotIn("logo_type", query)
+        self.assertEqual(query["codec_type"], ["5"])
+        self.assertEqual(query["force_fids"], ["b3JpZ2luYWw="])
+        call.assert_called_once()
+
+    def test_original_selection_can_fall_back_once_to_legacy_source(self):
+        normal = payload()
+        normal["video_info"]["data"]["video_list"]["video_1"]["quality"] = "normal"
+        with OriginalParser(auto_guest=False) as parser:
+            with patch.object(parser, "_json", side_effect=[normal, payload()]) as call:
+                _, candidates = parser.source_streams(detail())
+        self.assertEqual(candidates[0]["official_quality"], "original")
+        self.assertEqual(call.call_count, 2)
+        self.assertEqual(parse_qs(urlsplit(call.call_args.args[0]).query),
+                         {"aid": ["392139"], "stream_type": ["source"]})
+
+    def test_identity_and_upstream_rejections_do_not_trigger_legacy_request(self):
+        wrong = payload()
+        wrong["video_info"]["data"]["video_id"] = "another_video"
+        for response in (wrong, ParseError("upstream_rate_limited", "限流"),
+                         ParseError("upstream_forbidden", "拒绝"),
+                         ParseError("network_error", "网络失败")):
+            with self.subTest(response=type(response).__name__), OriginalParser(auto_guest=False) as parser:
+                with patch.object(parser, "_json", side_effect=[response]) as call:
+                    with self.assertRaises(ParseError):
+                        parser.source_streams(detail())
+                call.assert_called_once()
+
+    def test_normal_only_response_is_rejected_before_decoding(self):
+        response = payload()
+        row = response["video_info"]["data"]["video_list"]["video_1"]
+        row.update({"quality": "normal", "vwidth": 3840, "vheight": 2160,
+                    "bitrate": 20000000})
+        with OriginalParser(auto_guest=False) as parser:
+            with patch.object(parser, "_json", return_value=response):
+                with patch("original_parser.client.decode_url") as decode:
+                    with self.assertRaises(ParseError) as caught:
+                        parser.source_streams(detail())
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        decode.assert_not_called()
+
+    def test_source_failure_diagnostics_distinguish_selection_and_address_failures(self):
+        cases = {
+            "empty": (None, "未返回有效的视频档位"),
+            "normal": ({"quality": "normal"}, "仅返回普通转码档"),
+            "container": ({"vtype": "dash"}, "非 MP4 格式"),
+            "encrypted": ({"encrypt": True}, "带媒体加密标记"),
+            "missing_url": ({"main_url": ""}, "缺少播放地址"),
+            "decode": ({"main_url": "not-a-valid-encoded-url"}, "地址解码失败"),
+            "host": ({"main_url": "https://untrusted.example/video.mp4"}, "地址校验未通过"),
+        }
+        messages = {}
+        for reason, (fields, expected) in cases.items():
+            response = payload()
+            rows = response["video_info"]["data"]["video_list"]
+            if fields is None:
+                rows.clear()
+            else:
+                rows["video_1"].update(fields)
+            with self.subTest(reason=reason), OriginalParser(auto_guest=False) as parser:
+                with patch.object(parser, "_json", return_value=response):
+                    with self.assertRaises(ParseError) as caught:
+                        parser.source_streams(detail())
+                self.assertEqual(caught.exception.code, "source_unavailable")
+                messages[reason] = str(caught.exception)
+                self.assertIn(expected, messages[reason])
+        self.assertEqual(len(set(messages.values())), len(cases), messages)
+
+    def test_mixed_source_failures_include_all_reasons(self):
+        response = payload()
+        row = response["video_info"]["data"]["video_list"]["video_1"]
+        response["video_info"]["data"]["video_list"] = [
+            dict(row, vtype="dash"), dict(row, encrypt=True), dict(row, main_url=""),
+            dict(row, main_url={"unexpected": "type"},
+                 backup_url_1="https://untrusted.example/video.mp4"),
+        ]
+        with OriginalParser(auto_guest=False) as parser:
+            with patch.object(parser, "_json", return_value=response):
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail())
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        for reason in ("非 MP4 格式", "带媒体加密标记", "缺少播放地址", "地址解码失败", "地址校验未通过"):
+            self.assertIn(reason + " 1 项", str(caught.exception))
+
+    def test_invalid_source_row_collections_report_parse_error(self):
+        for rows in (None, {}, [], [None, "invalid"], "invalid", 7):
+            response = payload()
+            response["video_info"]["data"]["video_list"] = rows
+            with self.subTest(rows=rows), OriginalParser(auto_guest=False) as parser:
+                with patch.object(parser, "_json", return_value=response):
+                    with self.assertRaises(ParseError) as caught:
+                        parser.source_streams(detail())
+                self.assertEqual(caught.exception.code, "source_unavailable")
+
+    def test_source_selection_ignores_normal_and_uses_valid_backup(self):
+        response = payload()
+        rows = response["video_info"]["data"]["video_list"]
+        rows["normal"] = dict(rows["video_1"], quality="normal", size=999999999,
+                              vwidth=3840, vheight=2160, bitrate=20000000)
+        rows["video_1"].update({"main_url": "invalid-address",
+                                "backup_url_1": FIXTURE["encoded_url"],
+                                "backup_url_2": FIXTURE["encoded_url"]})
+        with OriginalParser(auto_guest=False) as parser:
+            with patch.object(parser, "_json", return_value=response):
+                _, candidates = parser.source_streams(detail())
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["official_quality"], "original")
+        self.assertEqual(candidates[0]["size"], 61314387)
+        self.assertEqual(candidates[0]["urls"], [FIXTURE["decoded_url"]])
+
+    def test_source_diagnostics_do_not_expose_upstream_secrets(self):
+        markers = ("secret-query-token", "secret-key-seed", "secret-quality-value")
+        for fields in ({"main_url": "https://untrusted.example/video?token=" + markers[0]},
+                       {"main_url": "bad-base64-" + markers[0]},
+                       {"quality": markers[2]}):
+            response = payload()
+            response["video_info"]["data"]["key_seed"] = markers[1]
+            response["video_info"]["data"]["video_list"]["video_1"].update(fields)
+            with self.subTest(fields=fields), OriginalParser(auto_guest=False) as parser:
+                with patch.object(parser, "_json", return_value=response):
+                    with patch("original_parser.client.logger") as diagnostic_log:
+                        with self.assertRaises(ParseError) as caught:
+                            parser.source_streams(detail())
+                output = str(caught.exception) + repr(diagnostic_log.mock_calls)
+                for marker in markers:
+                    self.assertNotIn(marker, output)
+                self.assertLess(len(str(caught.exception)), 1200)
 
     def test_refuse_web_fallback_or_encrypted_video(self):
         for fields in ({"quality": "normal"}, {"vtype": "dash"}, {"encrypt": True}, {"spade_a": "key"}):

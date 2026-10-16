@@ -180,6 +180,71 @@ class GuardTests(unittest.TestCase):
         guard.run("video", load)
         self.assertEqual(len(calls), 2)
 
+    def test_force_refresh_replaces_cached_result_for_subsequent_callers(self):
+        guard = self.guard()
+        first = guard.run("video", lambda: verified_result(marker="old"))
+        self.assertEqual(first["data"]["marker"], "old")
+
+        refreshed = guard.run("video", lambda: verified_result(marker="fresh"),
+                              force_refresh=True)
+        self.assertEqual(refreshed["data"]["marker"], "fresh")
+        cached = guard.run("video", lambda: self.fail("Fresh result should be cached"))
+        self.assertEqual(cached, refreshed)
+        self.assertEqual(guard.snapshot()["started"], 2)
+
+    def test_failed_force_refresh_does_not_restore_invalidated_cached_result(self):
+        guard = self.guard()
+        guard.run("video", lambda: verified_result(marker="old"))
+
+        def fail():
+            raise ParseError("source_unavailable", "Source is currently unavailable")
+
+        with self.assertRaises(ParseError) as caught:
+            guard.run("video", fail, force_refresh=True)
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        recovered = guard.run("video", lambda: verified_result(marker="recovered"))
+        self.assertEqual(recovered["data"]["marker"], "recovered")
+        self.assertEqual(guard.snapshot()["started"], 3)
+
+    def test_concurrent_force_refresh_and_normal_requests_share_new_work(self):
+        guard = self.guard()
+        guard.run("video", lambda: verified_result(marker="old"))
+        entered, release = threading.Event(), threading.Event()
+
+        def refresh():
+            entered.set()
+            self.assertTrue(release.wait(2))
+            return verified_result(marker="fresh")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            try:
+                first = pool.submit(guard.run, "video", refresh, force_refresh=True)
+                self.assertTrue(entered.wait(1))
+                second = pool.submit(guard.run, "video",
+                                     lambda: self.fail("Refresh must coalesce"),
+                                     force_refresh=True)
+                third = pool.submit(guard.run, "video",
+                                    lambda: self.fail("Normal call must join refresh"))
+                self.eventually(lambda: guard.snapshot()["coalesced"] == 2)
+            finally:
+                release.set()
+            for future in (first, second, third):
+                self.assertEqual(future.result(2)["data"]["marker"], "fresh")
+        self.assertEqual(guard.snapshot()["started"], 2)
+
+    def test_force_refresh_respects_upstream_cooldown(self):
+        guard = self.guard(failure_threshold=1)
+        guard.run("video", lambda: verified_result(marker="old"))
+
+        def restricted():
+            raise ParseError("upstream_empty_response", "No body")
+
+        with self.assertRaises(ParseError):
+            guard.run("other", restricted)
+        self.assert_guard_error("upstream_cooldown", lambda: guard.run(
+            "video", lambda: self.fail("Refresh must respect cooldown"), force_refresh=True))
+        self.assertEqual(guard.snapshot()["started"], 2)
+
     def test_cache_honors_earliest_mirror_expiry_and_safety_margin(self):
         clock = Clock()
         guard = self.guard(clock, cache_ttl=300, expiry_margin=60)

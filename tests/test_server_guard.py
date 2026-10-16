@@ -173,6 +173,25 @@ class ServerGuardTests(unittest.TestCase):
             self.assertIsNone(skipped_again[2]["data"]["probe"])
             self.assertEqual(service.parsed, [(AWEME, False), (AWEME, True), (AWEME, False)])
 
+    def test_force_refresh_bypasses_cache_and_updates_both_public_endpoints(self):
+        calls = []
+
+        def parse(text, with_probe, options):
+            calls.append(text)
+            return response_payload(text, with_probe=with_probe, marker=f"attempt-{len(calls)}")
+
+        with LocalService(parse) as service:
+            initial = service.request({"url": AWEME})
+            cached = service.request({"url": AWEME, "force_refresh": False})
+            self.assertEqual(cached[2], initial[2])
+            refreshed = service.request({"url": AWEME, "force_refresh": True},
+                                        path="/api/v1/resolve")
+            self.assertEqual(refreshed[0], 200)
+            self.assertEqual(refreshed[2]["data"]["marker"], "attempt-2")
+            current = service.request({"url": AWEME})
+            self.assertEqual(current[2], refreshed[2])
+            self.assertEqual(calls, [AWEME, AWEME])
+
     def test_three_restrictions_pause_upstream_and_return_503_retry_contract(self):
         def restricted(*_):
             raise ParseError("upstream_empty_response", "视频页面详情接口返回 HTTP 200 空内容")
@@ -228,6 +247,9 @@ class ServerGuardTests(unittest.TestCase):
                 {"url": "https://example.com/video/" + AWEME},
                 {"url": "https://www.douyin.com.attacker.example/video/" + AWEME},
                 {"url": "not a video"}, {"url": AWEME, "with_probe": "true"},
+                {"url": AWEME, "force_refresh": "true"},
+                {"url": AWEME, "force_refresh": 1},
+                {"url": AWEME, "force_refresh": None},
                 {"url": ""}, [],
             ):
                 with self.subTest(payload=payload):

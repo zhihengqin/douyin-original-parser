@@ -145,7 +145,7 @@ class RequestGuard:
                                         name="parser-request-guard", daemon=True)
         self._thread.start()
 
-    def run(self, key: Hashable, loader: Callable[[], dict]) -> dict:
+    def run(self, key: Hashable, loader: Callable[[], dict], *, force_refresh: bool = False) -> dict:
         """Run one complete parse, or join an identical request already queued.
 
         A caller timing out does not cancel a running parse.  That parse can
@@ -154,11 +154,17 @@ class RequestGuard:
         hash(key)
         if not callable(loader):
             raise TypeError("loader must be callable")
+        if not isinstance(force_refresh, bool):
+            raise TypeError("force_refresh must be bool")
         with self._condition:
             self._counts["requests"] += 1
             if self._shutdown:
                 self._counts["rejected"] += 1
                 raise self._closed_error()
+            # 下载方发现直链失效时，必须清除旧结果；刷新失败也不能回落到旧地址。
+            # 后续仍复用同作品的在途任务，并受原有队列、间隔与冷却控制。
+            if force_refresh:
+                self._cache.pop(key, None)
             cached = self._cached(key)
             if cached is not None:
                 self._counts["cache_hits"] += 1
