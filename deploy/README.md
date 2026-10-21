@@ -134,7 +134,7 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0
 
 ## 5. 三实例请求保护
 
-Java 的 `max-concurrent: 2` 是每个后端的限制，三个实例合计最多提交 6 个请求。Python 的 `MAX_CONCURRENT=6` 表示同时受理数量，包含等待者；实际访问上游只有一个任务，完成后默认间隔 10 秒。同作品合并和有效期缓存会减少实际执行次数。
+Java 的 `max-concurrent: 2` 是每个后端的限制，三个实例合计最多提交 6 个请求。Python 的 `MAX_CONCURRENT=6` 表示同时受理数量，包含等待者；实际访问上游只有一个任务，完成后默认随机间隔 3～6 秒，以实际 `REQUEST_INTERVAL` 配置为准。同作品合并和有效期缓存会减少实际执行次数。
 
 默认成功结果最多缓存 5 分钟，提前 60 秒避开地址到期；累计 3 次限制类失败后冷却 15 分钟，真实解析成功清零。队列满或等待超时返回 HTTP 429；冷却期间无有效缓存返回 HTTP 503，并提供重试时间。参数、升级和验收见 [请求保护说明](REQUEST_PROTECTION.md)。
 

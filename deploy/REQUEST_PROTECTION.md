@@ -14,7 +14,7 @@
 | `FAILURE_THRESHOLD` | `3` | 自上次真实成功以来累计 3 次限制类失败后暂停 |
 | `COOLDOWN_SECONDS` | `900` | 暂停 900 秒后，允许下一条请求试探恢复 |
 
-`MAX_CONCURRENT=6` 表示最多同时受理 6 个 HTTP 请求，包含等待者。实际短链跳转、详情、原画接口及媒体校验由一个工作线程串行执行。间隔作用于完整任务；单个任务内部仍有多条必要网络请求，并不是每条 HTTP 都间隔 10 秒。
+`MAX_CONCURRENT=6` 表示最多同时受理 6 个 HTTP 请求，包含等待者。实际短链跳转、详情、原画接口及媒体校验由一个工作线程串行执行。间隔作用于完整任务；单个任务内部仍有多条必要网络请求，不是每条 HTTP 请求都单独等待 3～6 秒。
 
 完整作品 URL、裸作品 ID、包含完整作品链接的分享文案按作品 ID 合并。相同短链接也会合并和缓存；不同短链接即使指向同一作品，当前仍按不同输入处理。`with_probe=true/false` 的请求分开处理，外部 Cookie 文件内容改变后也会隔离原缓存。
 
@@ -66,7 +66,7 @@ curl --noproxy '*' --fail --connect-timeout 5 --max-time 10 http://127.0.0.1:876
 journalctl -u douyin-original-parser -n 30 --no-pager
 ```
 
-日志应显示原来的详情模式，以及 `protection interval=10.0s ... threshold=3 cooldown=900.0s`。`/health` 的 `ok=true` 仍只表示服务在线，新增 `protection`：
+日志应显示原来的详情模式，以及 `protection interval=3.0-6.0s ... threshold=3 cooldown=900.0s`（采用当前默认配置时；已有实例以实际启动参数为准）。`/health` 的 `ok=true` 仍只表示服务在线，新增 `protection`：
 
 - `state=closed` 正常；`open` 冷却中；`half_open` 正在试探恢复。
 - `active`、`pending` 为实际执行和排队的任务数。
