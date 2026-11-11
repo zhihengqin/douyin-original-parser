@@ -1,4 +1,4 @@
-﻿"""Process-wide queue, request coalescing, result cache and upstream cooldown.
+"""Process-wide queue, request coalescing, result cache and upstream cooldown.
 
 One guard belongs to one service process.  Its loader must perform the complete
 parse, including media verification, so all expensive work shares the same
@@ -282,12 +282,21 @@ class RequestGuard:
             return
         data = result.get("data")
         if (result.get("code") != 0 or isinstance(result.get("code"), bool)
-                or not isinstance(data, dict) or data.get("source_selected") is not True
+                or not isinstance(data, dict)
                 or not isinstance(data.get("probe"), dict)
                 or data["probe"].get("ok") is not True):
             return
+        if (data.get("source_selected") is not True
+                or data.get("fallback_used") is not False
+                or data.get("source_evidence") not in ("official_quality", "official_play_hash")):
+            return
         rows = data.get("video_list")
         if not isinstance(rows, list) or not rows:
+            return
+        if any(not isinstance(row, dict)
+               or row.get("quality") != "source"
+               or row.get("source_evidence") not in ("official_quality", "official_play_hash")
+               for row in rows):
             return
         expires = [_expiry(data.get("expires_at"))]
         for row in rows:

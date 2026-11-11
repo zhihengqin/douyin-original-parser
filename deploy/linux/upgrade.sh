@@ -111,7 +111,7 @@ fi
 
 step "备份当前源码到 $BACKUP"
 BACKUP_TARGETS=()
-for item in original_parser run.py parse_links.py requirements.txt package.py README.md; do
+for item in original_parser run.py parse_links.py requirements.txt package.py README.md original_metadata.json; do
   if [ -e "$TARGET/$item" ]; then
     BACKUP_TARGETS+=("$item")
   fi
@@ -135,7 +135,7 @@ step "覆盖源码"
 mkdir -p "$TARGET/original_parser" "$TARGET/deploy"
 cp -a "$STAGE/original_parser/." "$TARGET/original_parser/"
 cp -a "$STAGE/deploy/." "$TARGET/deploy/"
-for item in run.py parse_links.py requirements.txt package.py README.md; do
+for item in run.py parse_links.py requirements.txt package.py README.md original_metadata.json; do
   [ -f "$STAGE/$item" ] && cp -f "$STAGE/$item" "$TARGET/$item"
 done
 chmod -R a+rX "$TARGET"

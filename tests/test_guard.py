@@ -30,10 +30,13 @@ def verified_result(*, expiry=None, marker="original"):
         "data": {
             "aweme_id": "7689381368630906122",
             "source_selected": True,
+            "fallback_used": False,
+            "source_evidence": "official_quality",
             "probe": {"ok": True},
             "expires_at": expiry,
             "url": "https://video.douyinvod.com/example.mp4",
-            "video_list": [{"expires_at": expiry, "quality": "original"}],
+            "video_list": [{"expires_at": expiry, "quality": "source",
+                            "source_evidence": "official_quality"}],
             "marker": marker,
         },
     }
@@ -249,7 +252,10 @@ class GuardTests(unittest.TestCase):
         clock = Clock()
         guard = self.guard(clock, cache_ttl=300, expiry_margin=60)
         result = verified_result(expiry=clock.wall + 1000)
-        result["data"]["video_list"].append({"expires_at": str(int(clock.wall + 80))})
+        result["data"]["video_list"].append({
+            "expires_at": str(int(clock.wall + 80)), "quality": "source",
+            "source_evidence": "official_quality",
+        })
         calls = []
 
         def load():
@@ -300,6 +306,11 @@ class GuardTests(unittest.TestCase):
             ("without probe", lambda d: d.update(probe=None)),
             ("failed probe", lambda d: d.update(probe={"ok": False})),
             ("not original", lambda d: d.update(source_selected=False)),
+            ("fallback marker", lambda d: d.update(fallback_used=True)),
+            ("non-original evidence", lambda d: d.update(source_evidence="transcode")),
+            ("non-source candidate", lambda d: d["video_list"][0].update(quality="normal")),
+            ("non-original candidate evidence", lambda d: d["video_list"][0].update(
+                source_evidence="transcode")),
         ]:
             value = copy.deepcopy(baseline)
             mutate(value["data"])

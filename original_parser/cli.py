@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import logging
 import sys
@@ -94,9 +94,16 @@ def main(argv=None):
             print(data["url"])
         else:
             print(f"{data['desc']}\n作者：{data['author']}\n作品：{data['aweme_id']}")
-            print(f"原画：{data['width']}×{data['height']}，{data['size_bytes']:,} 字节 "
+            print(f"画质：{data['level']}，{data['width']}×{data['height']}，{data['size_bytes']:,} 字节 "
                   f"({data['size_bytes']/1_000_000:.2f} MB)，{data['duration_seconds']:.3f} 秒")
-            print("来源：抖音官方 source 档位；未使用第三方解析服务")
+            evidence = data.get("source_evidence")
+            if evidence == "official_quality":
+                source = f"抖音官方原画档位 {data['official_quality']}"
+            elif evidence == "official_play_hash":
+                source = f"抖音官方原片分发（已验证 file_hash，档位 {data['official_quality']}）"
+            else:
+                source = f"抖音官方原画档位 {data['official_quality']}"
+            print(f"来源：{source}；未使用第三方解析服务")
             print("媒体校验：" + ("通过，包含视频与音频轨道" if data['probe'] else "已跳过"))
             print("播放地址：" + data["url"])
             if data.get("download"):

@@ -7,7 +7,7 @@ from pathlib import Path
 from original_parser import OriginalParser, ParseError
 from original_parser.client import load_credentials
 
-LINKS = ["https://www.douyin.com/video/7695411862271315236"]
+LINKS = ["https://www.douyin.com/video/7706477018388536499"]
 DOWNLOAD = False
 # 默认自动取得匿名访客标识；也可指定包含 Cookie 和 User-Agent 的凭据文件。
 COOKIE_FILE = None
@@ -27,9 +27,18 @@ def main():
                 data = result["data"]
                 if DOWNLOAD:
                     parser.download(result, output / f"{data['aweme_id']}_source.mp4")
+                    data = result["data"]
                 path = output / f"{data['aweme_id']}.json"
                 path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-                print(f"{data['aweme_id']}：原画 {data['width']}×{data['height']}，{data['size_bytes']/1_000_000:.2f} MB")
+                evidence = data.get("source_evidence")
+                if evidence == "official_quality":
+                    tier = f"官方原画档位 {data['official_quality']}"
+                elif evidence == "official_play_hash":
+                    tier = f"官方原片分发（已验证 file_hash，档位 {data['official_quality']}）"
+                else:
+                    tier = f"官方原画档位 {data['official_quality']}"
+                print(f"{data['aweme_id']}：{data['level']}，{data['width']}×{data['height']}，"
+                      f"{data['size_bytes']/1_000_000:.2f} MB，{tier}")
                 print(data["url"])
                 print(f"结果已保存：{path}")
             except ParseError as exc:

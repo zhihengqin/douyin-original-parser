@@ -1,5 +1,11 @@
 # Linux 无 Docker：三个 NiKa 实例共用一个原画解析服务
 
+**当前策略：**只返回经过完整媒体校验的官方原画。官方没有下发 `original/source`，或可信的官方原片分发无法签发时，HTTP 返回 `source_unavailable`（消息包含“获取原画失败”），普通转码档不会作为成功结果返回，也不会缓存。2026-11-06 的“最高可用画质降级”只保留在历史调查记录中，不是当前部署行为。
+
+更新时需要替换 Python 源码并重启解析服务，同时编译发布使用该服务的 NiKa 后端；旧 Java 客户端会拒绝 `source_selected=false` 的普通档。依赖和既有启动参数无需改变，已启用自建渠道的前端无需改动。先升级 NiKa 后端可兼容仍返回原画的旧 Python 服务，再更新 Python。严格原画选档、媒体校验和 HTTP 缓存已经在 Windows 本地联调通过，目标 Linux 是否已更新需按下方命令复查。
+
+更新后用作品 `7706466342664277290` 调用 `/parse`，成功回包只返回 `{"code":0,"msg":"原画解析成功","data":{"url":"..."}}`，应验证 `data.url` 可下载且为约 185,591,975 字节的原片；可信记录来自部署包中的 `original_metadata.json`，服务账户无法写入项目目录时不影响静态记录读取。没有匹配原片记录且官方只返回普通档的作品，例如 `7704212621922159898`，应返回 HTTP 502、`code=source_unavailable`、`data=null`。这些是本地官方接口与 MP4 Range 校验结果，若上游返回发生变化应以新回包及媒体校验为准。
+
 当前主解析节点为 Linux `172.31.0.4`，三个 Java 实例的主调用地址为 `http://172.31.0.4:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于目录内。只有运行解析服务的节点需要安装 Python、Playwright 和 Chromium，Java 节点无需同步 Cookie。已部署成功的 04 升级步骤见 [请求保护说明](REQUEST_PROTECTION.md)，无需重装依赖。
 
 Python 服务由 systemd 独立管理，Java 发布或重启不应同时停止它。已由服务器截图确认 `.3` 为 Ubuntu 22.04.4 LTS，使用 `/usr/bin/python3`，版本 3.10.12，无需另装一套 Python。可用 `uname -m` 再确认 CPU 架构；浏览器安装仍须与当前 Playwright 支持的架构匹配。其他服务器若使用 CentOS、Rocky、AlmaLinux，不能直接套用这里的 `apt` 或假定 `--with-deps` 可用。

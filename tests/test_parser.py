@@ -246,14 +246,18 @@ class ParserTests(unittest.TestCase):
 
     def test_original_selection_can_fall_back_once_to_legacy_source(self):
         normal = payload()
-        normal["video_info"]["data"]["video_list"]["video_1"]["quality"] = "normal"
+        normal_row = normal["video_info"]["data"]["video_list"]["video_1"]
+        normal_row["quality"] = "normal"
+        normal_row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
         with OriginalParser(auto_guest=False) as parser:
             with patch.object(parser, "_json", side_effect=[normal, payload()]) as call:
                 _, candidates = parser.source_streams(detail())
         self.assertEqual(candidates[0]["official_quality"], "original")
         self.assertEqual(call.call_count, 2)
-        self.assertEqual(parse_qs(urlsplit(call.call_args.args[0]).query),
-                         {"aid": ["392139"], "stream_type": ["source"]})
+        query = parse_qs(urlsplit(call.call_args.args[0]).query)
+        self.assertEqual(query["aid"], ["392139"])
+        self.assertEqual(query["stream_type"], ["source"])
 
     def test_identity_and_upstream_rejections_do_not_trigger_legacy_request(self):
         wrong = payload()
@@ -267,23 +271,27 @@ class ParserTests(unittest.TestCase):
                         parser.source_streams(detail())
                 call.assert_called_once()
 
-    def test_normal_only_response_is_rejected_before_decoding(self):
+    def test_normal_only_response_is_rejected_without_decoding(self):
         response = payload()
         row = response["video_info"]["data"]["video_list"]["video_1"]
         row.update({"quality": "normal", "vwidth": 3840, "vheight": 2160,
                     "bitrate": 20000000})
+        row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-v-0051/")
         with OriginalParser(auto_guest=False) as parser:
-            with patch.object(parser, "_json", return_value=response):
-                with patch("original_parser.client.decode_url") as decode:
-                    with self.assertRaises(ParseError) as caught:
-                        parser.source_streams(detail())
+            with patch.object(parser, "_json", return_value=response) as request, \
+                    patch("original_parser.client.decode_url") as decode:
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail())
         self.assertEqual(caught.exception.code, "source_unavailable")
+        self.assertIn("获取原画失败", str(caught.exception))
+        self.assertIn("未返回 original/source 原画档位", str(caught.exception))
+        self.assertEqual(request.call_count, 2)
         decode.assert_not_called()
 
     def test_source_failure_diagnostics_distinguish_selection_and_address_failures(self):
         cases = {
             "empty": (None, "未返回有效的视频档位"),
-            "normal": ({"quality": "normal"}, "仅返回普通转码档"),
             "container": ({"vtype": "dash"}, "非 MP4 格式"),
             "encrypted": ({"encrypt": True}, "带媒体加密标记"),
             "missing_url": ({"main_url": ""}, "缺少播放地址"),
@@ -338,6 +346,8 @@ class ParserTests(unittest.TestCase):
         rows = response["video_info"]["data"]["video_list"]
         rows["normal"] = dict(rows["video_1"], quality="normal", size=999999999,
                               vwidth=3840, vheight=2160, bitrate=20000000)
+        rows["normal"]["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
         rows["video_1"].update({"main_url": "invalid-address",
                                 "backup_url_1": FIXTURE["encoded_url"],
                                 "backup_url_2": FIXTURE["encoded_url"]})
@@ -348,6 +358,74 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(candidates[0]["official_quality"], "original")
         self.assertEqual(candidates[0]["size"], 61314387)
         self.assertEqual(candidates[0]["urls"], [FIXTURE["decoded_url"]])
+
+    def test_catalog_original_dispatch_requires_matching_identity_and_valid_mp4(self):
+        record = {
+            "aweme_id": AWEME, "video_id": VID, "file_id": VID,
+            "file_hash": "b" * 32, "size": 123456,
+            "width": 1920, "height": 1080, "duration_seconds": 175.148,
+            "bit_rate": 2800574, "codec": "h264", "fps": 25,
+            "verified_by": "official_fplay_and_mp4_probe",
+        }
+        body = b"\x00\x00\x00\x10ftypisom0000"
+        dispatch = Response(body, status=206, url="https://v11.douyinvod.com/original.mp4",
+                            headers={"Content-Range": "bytes 0-15/123456"})
+        normal = payload()
+        normal_row = normal["video_info"]["data"]["video_list"]["video_1"]
+        normal_row.update({"quality": "normal", "size": 60000000})
+        normal_row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
+
+        with OriginalParser(auto_guest=False) as parser, \
+                patch("original_parser.client._read_original_records", return_value={AWEME: record}), \
+                patch.object(parser, "_json", return_value=normal), \
+                patch.object(parser, "_get", return_value=dispatch) as get:
+            _, candidates = parser.source_streams(detail())
+
+        selected = candidates[0]
+        self.assertEqual(selected["source_evidence"], "official_play_hash")
+        self.assertEqual(selected["official_quality"], "original")
+        self.assertEqual(selected["file_id"], VID)
+        params = parse_qs(urlsplit(get.call_args.args[0]).query)
+        self.assertEqual(params["video_id"], [VID])
+        self.assertEqual(params["file_id"], [VID])
+        self.assertEqual(params["sign"], ["b" * 32])
+        self.assertEqual(params["is_play_url"], ["1"])
+
+    def test_catalog_original_dispatch_rejects_wrong_size_and_wrong_identity(self):
+        record = {
+            "aweme_id": AWEME, "video_id": VID, "file_id": VID,
+            "file_hash": "b" * 32, "size": 123456,
+            "width": 1920, "height": 1080, "duration_seconds": 175.148,
+            "verified_by": "official_fplay_and_mp4_probe",
+        }
+        normal = payload()
+        normal_row = normal["video_info"]["data"]["video_list"]["video_1"]
+        normal_row["quality"] = "normal"
+        normal_row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
+        bad_size = Response(b"\x00\x00\x00\x10ftypisom0000", status=206,
+                            url="https://v11.douyinvod.com/original.mp4",
+                            headers={"Content-Range": "bytes 0-15/123457"})
+        stale = dict(record, video_id="different_video_id")
+
+        with OriginalParser(auto_guest=False) as parser, \
+                patch("original_parser.client._read_original_records", return_value={AWEME: record}), \
+                patch.object(parser, "_json", return_value=normal), \
+                patch.object(parser, "_get", return_value=bad_size):
+            with self.assertRaises(ParseError) as caught:
+                parser.source_streams(detail())
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        self.assertIn("获取原画失败", str(caught.exception))
+
+        with OriginalParser(auto_guest=False) as parser, \
+                patch("original_parser.client._read_original_records", return_value={AWEME: stale}), \
+                patch.object(parser, "_json", return_value=normal), \
+                patch.object(parser, "_get") as get:
+            with self.assertRaises(ParseError) as caught:
+                parser.source_streams(detail())
+        get.assert_not_called()
+        self.assertEqual(caught.exception.code, "source_unavailable")
 
     def test_source_diagnostics_do_not_expose_upstream_secrets(self):
         markers = ("secret-query-token", "secret-key-seed", "secret-quality-value")
@@ -368,7 +446,7 @@ class ParserTests(unittest.TestCase):
                 self.assertLess(len(str(caught.exception)), 1200)
 
     def test_refuse_web_fallback_or_encrypted_video(self):
-        for fields in ({"quality": "normal"}, {"vtype": "dash"}, {"encrypt": True}, {"spade_a": "key"}):
+        for fields in ({"vtype": "dash"}, {"encrypt": True}, {"spade_a": "key"}):
             response = payload()
             response["video_info"]["data"]["video_list"]["video_1"].update(fields)
             with self.subTest(fields=fields), OriginalParser() as parser:

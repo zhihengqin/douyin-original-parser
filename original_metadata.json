@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "aweme_id": "7706430541934972201",
+      "video_id": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "file_id": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "file_hash": "942fa5c51f10f4a15e602b85b7b43b5f",
+      "size": 87979914,
+      "width": 1920,
+      "height": 1440,
+      "duration_seconds": 46.208,
+      "bit_rate": 15231977,
+      "codec": "h264",
+      "fps": 30,
+      "verified_by": "official_fplay_and_mp4_probe"
+    },
+    {
+      "aweme_id": "7706466342664277290",
+      "video_id": "v28033gi0000dbpdslfog65jrl118t10",
+      "file_id": "v28033gi0000dbpdslfog65jrl118t10",
+      "file_hash": "b0236de44eb9956c24312e0b8587cee4",
+      "size": 185591975,
+      "width": 1080,
+      "height": 1920,
+      "duration_seconds": 285.64,
+      "bit_rate": 5197926,
+      "codec": "h264",
+      "fps": 25,
+      "verified_by": "official_fplay_and_mp4_probe"
+    },
+    {
+      "aweme_id": "7706477018388536499",
+      "video_id": "v0200fg10000dbpefufog65l21hq0vlg",
+      "file_id": "v0200fg10000dbpefufog65l21hq0vlg",
+      "file_hash": "e51a13fb1b8d5c51a85996373ee734e6",
+      "size": 27668186,
+      "width": 1080,
+      "height": 1920,
+      "duration_seconds": 31.069,
+      "bit_rate": 7124547,
+      "codec": "hevc",
+      "fps": 30,
+      "verified_by": "official_fplay_and_mp4_probe"
+    }
+  ]
+}

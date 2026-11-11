@@ -26,8 +26,13 @@ def response_payload(aweme_id=AWEME, *, with_probe=True, marker="original"):
     expiry = int(time.time()) + 3600
     return {"code": 0, "msg": "原画解析成功", "data": {
         "aweme_id": aweme_id, "url": "https://video.douyinvod.com/example.mp4",
-        "source_selected": True, "probe": {"ok": True} if with_probe else None,
-        "expires_at": expiry, "video_list": [{"expires_at": expiry}], "marker": marker,
+        "source_selected": True, "fallback_used": False,
+        "source_evidence": "official_quality",
+        "probe": {"ok": True} if with_probe else None,
+        "expires_at": expiry,
+        "video_list": [{"expires_at": expiry, "quality": "source",
+                        "source_evidence": "official_quality"}],
+        "marker": marker,
     }}
 
 
@@ -119,6 +124,17 @@ class LocalService:
 
 
 class ServerGuardTests(unittest.TestCase):
+    def test_missing_original_is_returned_as_parse_error(self):
+        def unavailable(*_):
+            raise ParseError("source_unavailable", "获取原画失败：仅返回普通转码档")
+
+        with LocalService(unavailable) as service:
+            status, _, body = service.request({"url": AWEME})
+        self.assertEqual(status, 502)
+        self.assertEqual(body["code"], "source_unavailable")
+        self.assertIn("获取原画失败", body["msg"])
+        self.assertIsNone(body["data"])
+
     def eventually(self, predicate, timeout=1):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
@@ -151,7 +167,8 @@ class ServerGuardTests(unittest.TestCase):
                 for future in (first, second, third):
                     status, headers, body = future.result(2)
                     self.assertEqual(status, 200)
-                    self.assertEqual(body, expected)
+                    self.assertEqual(body, {"code": 0, "msg": "原画解析成功",
+                                            "data": {"url": expected["data"]["url"]}})
                     self.assertIn("application/json", headers["Content-Type"])
             self.assertEqual(service.parsed, [(AWEME, True)])
             self.assertEqual(len(service.constructed), 1)
@@ -167,10 +184,9 @@ class ServerGuardTests(unittest.TestCase):
             verified = service.request({"url": AWEME, "with_probe": True})
             verified_again = service.request({"url": AWEME})
             skipped_again = service.request({"url": AWEME, "with_probe": False})
-            self.assertIsNone(skipped[2]["data"]["probe"])
-            self.assertTrue(verified[2]["data"]["probe"]["ok"])
-            self.assertEqual(verified_again[2], verified[2])
-            self.assertIsNone(skipped_again[2]["data"]["probe"])
+            self.assertEqual(verified[2], verified_again[2])
+            self.assertEqual(skipped[2]["data"]["url"], verified[2]["data"]["url"])
+            self.assertEqual(skipped_again[2]["data"]["url"], skipped[2]["data"]["url"])
             self.assertEqual(service.parsed, [(AWEME, False), (AWEME, True), (AWEME, False)])
 
     def test_force_refresh_bypasses_cache_and_updates_both_public_endpoints(self):
@@ -178,7 +194,9 @@ class ServerGuardTests(unittest.TestCase):
 
         def parse(text, with_probe, options):
             calls.append(text)
-            return response_payload(text, with_probe=with_probe, marker=f"attempt-{len(calls)}")
+            result = response_payload(text, with_probe=with_probe)
+            result["data"]["url"] = f"https://video.douyinvod.com/attempt-{len(calls)}.mp4"
+            return result
 
         with LocalService(parse) as service:
             initial = service.request({"url": AWEME})
@@ -187,7 +205,8 @@ class ServerGuardTests(unittest.TestCase):
             refreshed = service.request({"url": AWEME, "force_refresh": True},
                                         path="/api/v1/resolve")
             self.assertEqual(refreshed[0], 200)
-            self.assertEqual(refreshed[2]["data"]["marker"], "attempt-2")
+            self.assertEqual(refreshed[2]["data"]["url"],
+                             "https://video.douyinvod.com/attempt-2.mp4")
             current = service.request({"url": AWEME})
             self.assertEqual(current[2], refreshed[2])
             self.assertEqual(calls, [AWEME, AWEME])
@@ -263,7 +282,9 @@ class ServerGuardTests(unittest.TestCase):
         def parse(text, with_probe, options):
             self.assertFalse(options["auto_guest"])
             self.assertFalse(options["refresh_guest_on_rejection"])
-            return response_payload(text, with_probe=with_probe, marker=options["cookies"]["sessionid"])
+            result = response_payload(text, with_probe=with_probe)
+            result["data"]["url"] = f"https://video.douyinvod.com/{options['cookies']['sessionid']}.mp4"
+            return result
 
         with tempfile.TemporaryDirectory() as directory:
             cookie_file = Path(directory) / "credentials.json"
@@ -281,8 +302,10 @@ class ServerGuardTests(unittest.TestCase):
                 write("test-two")
                 changed = service.request({"url": AWEME})
                 self.assertEqual(changed[0], 200)
-                self.assertEqual(first[2]["data"]["marker"], "test-one")
-                self.assertEqual(changed[2]["data"]["marker"], "test-two")
+                self.assertEqual(first[2]["data"]["url"],
+                                 "https://video.douyinvod.com/test-one.mp4")
+                self.assertEqual(changed[2]["data"]["url"],
+                                 "https://video.douyinvod.com/test-two.mp4")
                 self.assertEqual(len(service.parsed), 2)
                 self.assertEqual(service.constructed[-1]["user_agent"], "test-user-agent")
 

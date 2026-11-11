@@ -15,6 +15,7 @@ PACKAGE_NAME = "douyin-original-parser"
 def package_files():
     files = [PROJECT_ROOT / name for name in (
         "run.py", "parse_links.py", "requirements.txt", "README.md", "package.py",
+        "original_metadata.json",
     )]
     files.extend(sorted((PROJECT_ROOT / "original_parser").glob("*.py")))
     files.extend(PROJECT_ROOT / name for name in (

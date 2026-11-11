@@ -12,6 +12,15 @@ from .guard import GuardConfig, GuardError, RequestGuard
 logger = logging.getLogger(__name__)
 
 
+def public_result(result: dict) -> dict:
+    """对外只返回最高画质链接，其余档位、镜像和探测信息不进入回包。"""
+    data = result.get("data")
+    if not isinstance(data, dict):
+        return result
+    return {"code": result.get("code"), "msg": result.get("msg"),
+            "data": {"url": data.get("url")}}
+
+
 def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
           detail_mode="http", browser_profile="windows", guard_config=None):
     if not 1 <= max_concurrent <= 32:
@@ -100,7 +109,7 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                         return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
 
                 result = guard.run(key, parse_once, force_refresh=force_refresh)
-                self.send_json(200, result)
+                self.send_json(200, public_result(result))
             except GuardError as exc:
                 status = 503 if exc.code == "upstream_cooldown" else 429
                 self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None,

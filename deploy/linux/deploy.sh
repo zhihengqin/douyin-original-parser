@@ -113,7 +113,7 @@ restore_units() {
 
 step "备份当前源码到 $BACKUP"
 BACKUP_TARGETS=()
-for item in original_parser run.py parse_links.py requirements.txt package.py; do
+for item in original_parser run.py parse_links.py requirements.txt package.py original_metadata.json; do
   [ -e "$TARGET/$item" ] && BACKUP_TARGETS+=("$item")
 done
 [ -f "$TARGET/README.md" ] && BACKUP_TARGETS+=("README.md")
@@ -138,7 +138,7 @@ step "覆盖源码"
 copy_tree "$STAGE/original_parser" "$TARGET/original_parser"
 copy_tree "$STAGE/deploy" "$TARGET/deploy"
 cp -f "$STAGE/run.py" "$TARGET/run.py"
-for item in parse_links.py requirements.txt package.py README.md; do
+for item in parse_links.py requirements.txt package.py README.md original_metadata.json; do
   [ -f "$STAGE/$item" ] && cp -f "$STAGE/$item" "$TARGET/$item"
 done
 chmod -R a+rX "$TARGET"
