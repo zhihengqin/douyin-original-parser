@@ -1,0 +1,361 @@
+{
+  "date": "2026-11-13",
+  "timezone": "Asia/Shanghai",
+  "production_fix_verified": false,
+  "target_aweme_ids": [
+    "7707196543073275177",
+    "7704677676878925119"
+  ],
+  "reference_for_offline_acceptance_only": {
+    "aweme_id": "7707196543073275177",
+    "size_bytes": 132665774,
+    "md5": "96e395ae426871e3fc3294755d54308f",
+    "sha256": "1e2253bf96b99cb671bc1140bc972e1525fc408981fe11ef10d49dd42bbf0dc5"
+  },
+  "fixed_repository_versions": [
+    {
+      "repository": "yuchen0x1/Short-Video-Analysis",
+      "commit": "20cf5ec4ef64339863aede4228c48a3da19f406d"
+    },
+    {
+      "repository": "wenhe-cpu/douyin-downloader",
+      "commit": "a51e631299fbbb553604772bf3e0c415f3342dd8"
+    },
+    {
+      "repository": "Evil0ctal/Douyin_TikTok_Download_API",
+      "commit": "3c045e11aecd58ab076562f1246931b9dd5d909b"
+    },
+    {
+      "repository": "jiji262/douyin-downloader",
+      "commit": "7c4b8b2252acbfe24728664cc77364bb75a24ecb"
+    },
+    {
+      "repository": "Brilliant666/DokiTool-Go",
+      "commit": "b6c2887479c17cdf8c80338d98953dd8dc468510"
+    },
+    {
+      "repository": "catscarlet/Download-Original-Raw-Image-from-Doubao-without-Watermark-Experimental",
+      "commit": "c719640c79bcb697491d5bac4469bedce0ab80dc"
+    },
+    {
+      "repository": "sasigai1/douyinxiazai",
+      "commit": "973b864a02339823ad88039a3ac1050488d44191"
+    },
+    {
+      "repository": "wqvbjhc/MediaBridge",
+      "commit": "2a086e9e122ba615b411210973caa0f176943617"
+    },
+    {
+      "repository": "Su-1003/douyin-fetch",
+      "commit": "4ea33047c55c48c9ba7182135615b357b4ef1caa"
+    },
+    {
+      "repository": "2196475465-cloud/video-extract-tool",
+      "commit": "5088130ecde4601e6a66f17460bfd5ae05f5a365"
+    },
+    {
+      "repository": "KAMIENDER/douyin-downloader",
+      "commit": "f05426b4cf8204c1c09e8e8038603b535c4f7a54"
+    },
+    {
+      "repository": "652036/video-unwatermark",
+      "commit": "ebc8b03378195cb2356ebca2ec8d6e99b2439547"
+    },
+    {
+      "repository": "dingwei2028/douyin-downloader-local",
+      "commit": "8a05b4affb4387ad4e46d7ec7adc34f687081bf0"
+    },
+    {
+      "repository": "lazymicezhu/Douyin-download",
+      "commit": "8e89d1b52f66a4c20c49e8a777caae5bc2c14c3e"
+    }
+  ],
+  "evil0ctal_offline_replay": [
+    {
+      "aweme_id": "7707196543073275177",
+      "test_type": "offline replay of unmodified upstream parser and planner against captured official detail",
+      "stream_count": 4,
+      "first_selected": {
+        "width": 540,
+        "height": 962,
+        "size": 36153126,
+        "bitrate": null,
+        "watermark": false
+      },
+      "reported_sizes": [
+        36153126,
+        21881031,
+        18992672,
+        57651328
+      ],
+      "video_plan_mirror_count": 14
+    },
+    {
+      "aweme_id": "7704677676878925119",
+      "test_type": "offline replay of unmodified upstream parser and planner against captured official detail",
+      "stream_count": 4,
+      "first_selected": {
+        "width": 540,
+        "height": 960,
+        "size": 54305669,
+        "bitrate": null,
+        "watermark": false
+      },
+      "reported_sizes": [
+        54305669,
+        32811564,
+        27184562,
+        81999228
+      ],
+      "video_plan_mirror_count": 14
+    }
+  ],
+  "jiji262_live_probe": {
+    "commit": "7c4b8b2252acbfe24728664cc77364bb75a24ecb",
+    "checked_at": "2026-11-13T10:57:51.431488+00:00",
+    "network": "official Douyin play endpoint only",
+    "signature": "a_bogus from repository; standard-library SM3 replacement for gmssl primitive",
+    "cases": [
+      {
+        "aweme_id": "7707196543073275177",
+        "video_id": "v02033g10000dbqncrvog65l6dmpd7rg",
+        "request_params": {
+          "video_id": "v02033g10000dbqncrvog65l6dmpd7rg",
+          "ratio": "default",
+          "line": "0",
+          "is_play_url": "1",
+          "watermark": "0",
+          "source": "PackSourceEnum_PUBLISH"
+        },
+        "requested_range": "bytes=0-0",
+        "signature_field_names": [
+          "a_bogus"
+        ],
+        "http": 404,
+        "content_type": "application/json; charset=utf-8",
+        "content_range": "",
+        "total_bytes": 0,
+        "host": "www.douyin.com",
+        "etag": null,
+        "redirects": [],
+        "body_read_bytes": 0,
+        "error_body_preview": "",
+        "elapsed_seconds": 0.727
+      },
+      {
+        "aweme_id": "7704677676878925119",
+        "video_id": "v02033g10000dbm873fog65puos79er0",
+        "request_params": {
+          "video_id": "v02033g10000dbm873fog65puos79er0",
+          "ratio": "default",
+          "line": "0",
+          "is_play_url": "1",
+          "watermark": "0",
+          "source": "PackSourceEnum_PUBLISH"
+        },
+        "requested_range": "bytes=0-0",
+        "signature_field_names": [
+          "a_bogus"
+        ],
+        "http": 404,
+        "content_type": "application/json; charset=utf-8",
+        "content_range": "",
+        "total_bytes": 0,
+        "host": "www.douyin.com",
+        "etag": null,
+        "redirects": [],
+        "body_read_bytes": 0,
+        "error_body_preview": "",
+        "elapsed_seconds": 0.37
+      }
+    ]
+  },
+  "dokitool_live_probe": [
+    {
+      "aweme_id": "7707196543073275177",
+      "video_id": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "detail": {
+        "http": 200,
+        "bytes": 65767,
+        "status_code": 0,
+        "returned_aweme_id": "7707196543073275177",
+        "returned_vid": "v02033g10000dbqncrvog65l6dmpd7rg"
+      },
+      "play_hops": [
+        {
+          "host": "aweme.snssdk.com",
+          "http": 404,
+          "content_range": null,
+          "content_type": "application/json; charset=utf-8",
+          "bytes_read": 0,
+          "is_mp4": false
+        }
+      ]
+    },
+    {
+      "aweme_id": "7704677676878925119",
+      "video_id": "v02033g10000dbm873fog65puos79er0",
+      "detail": {
+        "http": 200,
+        "bytes": 299,
+        "status_code": 0,
+        "returned_aweme_id": null,
+        "returned_vid": null
+      },
+      "play_hops": [
+        {
+          "host": "aweme.snssdk.com",
+          "http": 404,
+          "content_range": null,
+          "content_type": "application/json; charset=utf-8",
+          "bytes_read": 0,
+          "is_mp4": false
+        }
+      ]
+    },
+    {
+      "aweme_id": "7695305664234589459",
+      "video_id": "v0200fg10000db5jd27og65gafbkjltg",
+      "play_hops": [
+        {
+          "host": "aweme.snssdk.com",
+          "http": 302,
+          "content_range": null,
+          "content_type": "text/plain; charset=utf-8"
+        },
+        {
+          "host": "n98-v-ncdncold.douyinvod.com",
+          "http": 302,
+          "content_range": null,
+          "content_type": null
+        }
+      ],
+      "stopped_host": "4b19a02d-9.sjxydc.com"
+    }
+  ],
+  "dokitool_exact_upstream_headers_control": [
+    {
+      "aweme_id": "7707196543073275177",
+      "method": "GET",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36",
+        "Range": "bytes=0-65535",
+        "Accept-Encoding": "identity",
+        "Accept": "video/mp4, application/octet-stream"
+      },
+      "upstream_headers_matched": true,
+      "http": 404,
+      "content_type": "application/json; charset=utf-8",
+      "has_redirect": false,
+      "body_read_bytes": 0
+    },
+    {
+      "aweme_id": "7704677676878925119",
+      "method": "GET",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36",
+        "Range": "bytes=0-65535",
+        "Accept-Encoding": "identity",
+        "Accept": "video/mp4, application/octet-stream"
+      },
+      "upstream_headers_matched": true,
+      "http": 404,
+      "content_type": "application/json; charset=utf-8",
+      "has_redirect": false,
+      "body_read_bytes": 0
+    }
+  ],
+  "dokitool_new_detail_inventory": {
+    "aweme_id": "7707196543073275177",
+    "bit_rate_count": 10,
+    "max_reported_size": 57651328,
+    "video_model_present": false,
+    "play_auth_token_present": false,
+    "reference_identity_hits": {
+      "object": [],
+      "md5": [],
+      "sha256": [],
+      "size": []
+    },
+    "inspection_stats": {
+      "string_values": 421,
+      "url_unquoted": 44,
+      "nested_json_decoded": 43,
+      "base64_values": 61
+    },
+    "inspection_errors": [],
+    "input_sha256": "8e1fc72cb538bbc18107cd43995a438b7d52fc343b439b56df44ba8f5a0fcd1c",
+    "additional_renditions": [
+      {
+        "gear_name": "low_720_0",
+        "quality_type": 211,
+        "bit_rate": 831538,
+        "width": 720,
+        "height": 1282,
+        "data_size": 32180517,
+        "file_hash": "dcf162bfd71421878d14d96ac873937d"
+      },
+      {
+        "gear_name": "low_540_0",
+        "quality_type": 292,
+        "bit_rate": 717555,
+        "width": 576,
+        "height": 1026,
+        "data_size": 27769362,
+        "file_hash": "150aca6dcd350555b813e03d79ca083f"
+      },
+      {
+        "gear_name": "adapt_low_540_0",
+        "quality_type": 291,
+        "bit_rate": 488037,
+        "width": 576,
+        "height": 1026,
+        "data_size": 18887016,
+        "file_hash": "fade905ff900f6de4af253e48a3f529a"
+      }
+    ]
+  },
+  "evidence_source_directory": "C:\\Users\\EDY\\AppData\\Local\\Temp\\douyin-test-7707196543073275177\\research-roundup",
+  "additional_public_candidates": [
+    {
+      "repository": "lijinrui182/douyin-8k-parser",
+      "commit": "eb3a1b1ac0e65e380fbcc31fe46918a0b04201a1",
+      "method": "existing play dispatcher with ratio=default and improve_bitrate=1",
+      "source_identity_discovery": false,
+      "upstream_quality_verification": "CDN bucket substring only",
+      "live_probe_aweme_ids": [
+        "7707196543073275177",
+        "7704677676878925119",
+        "7707561244894580004"
+      ],
+      "live_probe_result": "HTTP 404 without redirect for all three under tested session; positive control also failed"
+    }
+  ],
+  "official_video_origin_api": {
+    "documentation": "https://open.douyin.com/platform/resource/docs/openapi/video-management/douyin/search-video/douyin-video-origin/",
+    "authorization_scope": "video.data and authorizing user access token",
+    "response_kind": "source category, not media URL or source-file identity",
+    "called": false
+  },
+  "apk_origin_api_audit": {
+    "apk_version": "32.2.6",
+    "dex_files_scanned": 34,
+    "found_public_aweme_to_source_route": false,
+    "report": "docs/douyin-apk-origin-api-audit-2026-11-13.md"
+  },
+  "production_recheck": {
+    "command": ".venv/Scripts/python.exe parse_links.py",
+    "aweme_id": "7707196543073275177",
+    "result": "source_unavailable",
+    "reported_source_tiers": 0,
+    "reported_transcode_tiers": 8,
+    "production_fix_verified": false
+  },
+  "boundaries": [
+    "No third-party parsing services were called.",
+    "No geographic egress change was tested.",
+    "Reference identity was not used in discovery requests or added to catalog.",
+    "Evil0ctal was a parser/planner replay, not an end-to-end live identity-pool test.",
+    "Positive DokiTool dispatcher redirects were observed without claiming complete media validation."
+  ]
+}

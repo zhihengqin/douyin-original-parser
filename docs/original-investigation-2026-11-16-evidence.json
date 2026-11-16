@@ -1,0 +1,543 @@
+{
+  "date": "2026-11-16",
+  "timezone": "Asia/Shanghai",
+  "production_fix_verified": false,
+  "catalog_disabled_for_web_baseline": true,
+  "reference_identity_used_for_discovery": false,
+  "official_client": {
+    "manifest_version": "41.1.0",
+    "version_code": 410101,
+    "aid": 1128,
+    "existing_anonymous_device_reused": true
+  },
+  "probes": [
+    {
+      "evidence_file": "fresh-detail-7695305664234589459.summary.json",
+      "case": "fresh-detail-7695305664234589459",
+      "http": 200,
+      "bytes": 122842,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": null,
+      "filter_reason": null,
+      "items": [
+        {
+          "aweme_id": "7695305664234589459",
+          "vid": "v0200fg10000db5jd27og65gafbkjltg",
+          "video_model_bytes": 13162,
+          "model_has_fallback": true,
+          "bitrate_count": 7
+        }
+      ]
+    },
+    {
+      "evidence_file": "fresh-detail-7704677676878925119.summary.json",
+      "case": "fresh-detail-7704677676878925119",
+      "http": 200,
+      "bytes": 299,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": null,
+      "filter_reason": "series_control_filter",
+      "items": []
+    },
+    {
+      "evidence_file": "fresh-detail-7707196543073275177.summary.json",
+      "case": "fresh-detail-7707196543073275177",
+      "http": 200,
+      "bytes": 73459,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": null,
+      "filter_reason": null,
+      "items": [
+        {
+          "aweme_id": "7707196543073275177",
+          "vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 3
+        }
+      ]
+    },
+    {
+      "evidence_file": "post-baseline-7695305664234589459.summary.json",
+      "case": "post-baseline-7695305664234589459",
+      "http": 200,
+      "bytes": 488651,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": "",
+      "filter_reason": null,
+      "items": [
+        {
+          "aweme_id": "7695816987653524774",
+          "vid": "v0300fg10000db6gganog65gdhqpqnf0",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 3
+        },
+        {
+          "aweme_id": "7695617728379456768",
+          "vid": "v0200fg10000db655t7og65jmk6rcfeg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 8
+        },
+        {
+          "aweme_id": "7695419590213487910",
+          "vid": "v0300fg10000db5psdnog65rb0g5dg90",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 8
+        },
+        {
+          "aweme_id": "7695305664234589459",
+          "vid": "v0200fg10000db5jd27og65gafbkjltg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 7
+        },
+        {
+          "aweme_id": "7694330362746522930",
+          "vid": "v0d00fg10000db3ruavog65h1ct4ib40",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 4
+        }
+      ]
+    },
+    {
+      "evidence_file": "post-baseline-7707196543073275177.summary.json",
+      "case": "post-baseline-7707196543073275177",
+      "http": 200,
+      "bytes": 373037,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": "",
+      "filter_reason": null,
+      "items": [
+        {
+          "aweme_id": "7703145361723919654",
+          "vid": "v0d00fg10000dbjg94nog65lpma0p4a0",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 1
+        },
+        {
+          "aweme_id": "7703106182457658658",
+          "vid": "v0300fg10000dbjerlfog65oorfi86dg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 1
+        },
+        {
+          "aweme_id": "7703103000474127657",
+          "vid": "v0200fg10000dbjektnog65kv5virieg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 1
+        },
+        {
+          "aweme_id": "7703017006718651698",
+          "vid": "v0d00fg10000dbj9n6fog65ngscebfpg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 1
+        },
+        {
+          "aweme_id": "7702769342248668479",
+          "vid": "v0200fg10000dbiooivog65v141ludbg",
+          "video_model_bytes": 0,
+          "model_has_fallback": false,
+          "bitrate_count": 1
+        }
+      ]
+    },
+    {
+      "evidence_file": "post-locate-calibrated-7695305664234589459.summary.json",
+      "case": "post-locate-calibrated-7695305664234589459",
+      "http": 200,
+      "bytes": 503097,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 0,
+      "status_msg": null,
+      "filter_reason": null,
+      "items": [
+        {
+          "aweme_id": "7695816987653524774",
+          "vid": "v0300fg10000db6gganog65gdhqpqnf0",
+          "video_model_bytes": 15827,
+          "model_has_fallback": true,
+          "bitrate_count": 3
+        },
+        {
+          "aweme_id": "7695617728379456768",
+          "vid": "v0200fg10000db655t7og65jmk6rcfeg",
+          "video_model_bytes": 12612,
+          "model_has_fallback": true,
+          "bitrate_count": 7
+        },
+        {
+          "aweme_id": "7695419590213487910",
+          "vid": "v0300fg10000db5psdnog65rb0g5dg90",
+          "video_model_bytes": 13194,
+          "model_has_fallback": true,
+          "bitrate_count": 7
+        },
+        {
+          "aweme_id": "7695305664234589459",
+          "vid": "v0200fg10000db5jd27og65gafbkjltg",
+          "video_model_bytes": 13140,
+          "model_has_fallback": true,
+          "bitrate_count": 7
+        },
+        {
+          "aweme_id": "7694330362746522930",
+          "vid": "v0d00fg10000db3ruavog65h1ct4ib40",
+          "video_model_bytes": 15755,
+          "model_has_fallback": true,
+          "bitrate_count": 4
+        }
+      ]
+    },
+    {
+      "evidence_file": "post-locate-calibrated-7704677676878925119.summary.json",
+      "case": "post-locate-calibrated-7704677676878925119",
+      "http": 200,
+      "bytes": 147,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 3002056,
+      "status_msg": "视频不见了",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "post-locate-calibrated-7707196543073275177.summary.json",
+      "case": "post-locate-calibrated-7707196543073275177",
+      "http": 200,
+      "bytes": 147,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 3002056,
+      "status_msg": "视频不见了",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "post-legacy-locate-7695305664234589459.summary.json",
+      "case": "post-legacy-locate-7695305664234589459",
+      "http": 200,
+      "bytes": 380,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 3002056,
+      "status_msg": "视频不见了",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "post-legacy-locate-7704677676878925119.summary.json",
+      "case": "post-legacy-locate-7704677676878925119",
+      "http": 200,
+      "bytes": 380,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 3002056,
+      "status_msg": "视频不见了",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "post-legacy-locate-7707196543073275177.summary.json",
+      "case": "post-legacy-locate-7707196543073275177",
+      "http": 200,
+      "bytes": 380,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 3002056,
+      "status_msg": "视频不见了",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "series-type0-7695305664234589459.summary.json",
+      "case": "series-type0-7695305664234589459",
+      "http": 200,
+      "bytes": 106,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 8,
+      "status_msg": "用户未登录",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "series-type0-7704677676878925119.summary.json",
+      "case": "series-type0-7704677676878925119",
+      "http": 200,
+      "bytes": 106,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 8,
+      "status_msg": "用户未登录",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "series-type0-7707196543073275177.summary.json",
+      "case": "series-type0-7707196543073275177",
+      "http": 200,
+      "bytes": 106,
+      "method": "GET",
+      "body_bytes": 0,
+      "signer_ok": true,
+      "status_code": 8,
+      "status_msg": "用户未登录",
+      "filter_reason": null,
+      "items": []
+    },
+    {
+      "evidence_file": "duet-detail-7695305664234589459.inventory.json",
+      "case": "7695305664234589459",
+      "http": 200,
+      "status": 0,
+      "message": "",
+      "items": [
+        {
+          "aweme_id": "7695305664234589459",
+          "vid": "v0200fg10000db5jd27og65gafbkjltg",
+          "video_model_bytes": 13156,
+          "model_has_fallback": true,
+          "bitrate_count": 5
+        }
+      ]
+    },
+    {
+      "evidence_file": "duet-detail-7704677676878925119.inventory.json",
+      "case": "7704677676878925119",
+      "http": 200,
+      "status": 3075,
+      "message": "data is empty",
+      "items": []
+    },
+    {
+      "evidence_file": "duet-detail-7707196543073275177.inventory.json",
+      "case": "7707196543073275177",
+      "http": 200,
+      "status": 3075,
+      "message": "data is empty",
+      "items": []
+    },
+    {
+      "evidence_file": "batch-positive-cronet-lowercase.summary.json",
+      "case": "batch-positive-cronet-lowercase",
+      "http": 200,
+      "bytes": 0,
+      "method": "POST",
+      "body_bytes": 127,
+      "signer_ok": true,
+      "json": false
+    },
+    {
+      "evidence_file": "batch-positive-warmed-session.summary.json",
+      "case": "batch-positive-warmed-session",
+      "http": 200,
+      "bytes": 0,
+      "method": "POST",
+      "body_bytes": 127,
+      "signer_ok": true,
+      "json": false
+    },
+    {
+      "evidence_file": "batch-browser-positive.summary.json",
+      "http": 200,
+      "bytes": 0
+    },
+    {
+      "evidence_file": "batch-kmp-positive-id-only.summary.json",
+      "case": "batch-kmp-positive-id-only",
+      "http": 200,
+      "bytes": 0,
+      "method": "POST",
+      "body_bytes": 35,
+      "signer_ok": true,
+      "json": false
+    },
+    {
+      "evidence_file": "native-im-positive-generic.summary.json",
+      "case": "native-im-positive-generic",
+      "http": 200,
+      "bytes": 260,
+      "method": "POST",
+      "body_bytes": 154,
+      "signer_ok": true,
+      "status_code": 5,
+      "status_msg": null,
+      "items": []
+    },
+    {
+      "evidence_file": "native-im-chat-7695305664234589459.summary.json",
+      "case": "native-im-chat-7695305664234589459",
+      "http": 200,
+      "bytes": 260,
+      "method": "POST",
+      "body_bytes": 178,
+      "signer_ok": true,
+      "status_code": 5,
+      "status_msg": null,
+      "items": []
+    },
+    {
+      "evidence_file": "round7-20261116/kmp-exact-mime-positive.summary.json",
+      "case": "kmp-exact-mime-positive",
+      "http": 200,
+      "bytes": 0,
+      "method": "POST",
+      "body_bytes": 35,
+      "request_content_type": "application/x-www-form-urlencoded",
+      "signer_ok": true,
+      "json": false,
+      "targets_requested_after_control": false
+    }
+  ],
+  "round7_audit": {
+    "production_fix_verified": false,
+    "new_target_original_candidate": false,
+    "reference_identity_used_for_discovery": false,
+    "kmp_transport": {
+      "content_type_has_charset": false,
+      "single_encoding_only": true,
+      "body_bytes": 35,
+      "body_md5": "F7FDA997A77D8BE69D46BA67BB908967",
+      "android_bridge": "KmpNetworkServiceImplWithRetrofit",
+      "common_parameter_levels_cause_no_override": [0, -1],
+      "control_returned_parseable_response": false
+    },
+    "resource_refresh": {
+      "evidence_file": "round7-20261116/resource-refresh/FINDINGS.md",
+      "requires_existing_model_or_cached_fallback": true,
+      "issues_new_original_identity_from_aweme_or_vid": false,
+      "legacy_md5_route_already_tested": true,
+      "play_entity_default_context": {
+        "item_id": 0,
+        "ad_id": 0,
+        "category": null
+      },
+      "new_target_requests": 0
+    },
+    "public_discussions": {
+      "evidence_file": "round7-20261116/public-issue-audit/FINDINGS.md",
+      "issues": [
+        {
+          "url": "https://github.com/yt-dlp/yt-dlp/issues/4138",
+          "comments_read": 45,
+          "new_original_mapping": false
+        },
+        {
+          "url": "https://github.com/yt-dlp/yt-dlp/issues/13134",
+          "comments_read": 12,
+          "new_douyin_batch_difference": false
+        }
+      ],
+      "fixed_research_commit": "3878b69d64ef4734fd81c7edc95e102008bb6dde",
+      "fixed_research_commit_uses_known_vid_play_route": true,
+      "hd_research_tree": "378db08fea9759f614de4bc6204dc874c0f7dd9d",
+      "hd_research_mobile_high_quality_is_unverified": true,
+      "third_party_resolver_called": false
+    },
+    "source_relationship_fields": {
+      "evidence_file": "round7-20261116/source-relation-audit/FINDINGS.md",
+      "target_origin_duet_resource_uri_empty": true,
+      "native_misc_info_contains_mapping": false,
+      "origin_video_resource_id_producer": "existing play_addr_265 or play_addr URI copied into editing and draft models",
+      "original_video_info_business": "interactive video model",
+      "delete_duplicate_video_id_business": "duplicate Aweme IDs in follow-feed monitoring",
+      "is_source_hdr_business_consumer": "window brightness strategy",
+      "new_original_vid_mapping_established": false,
+      "new_target_requests": 0,
+      "current_and_historical_response_contexts_distinguished": true
+    },
+    "search_limits": {
+      "resource_relation_issue_queries": 6,
+      "maximum_items_read_per_query": 8,
+      "later_commit_queries_secondary_rate_limited": 2,
+      "forum_body_obtained": false,
+      "configured_local_proxy_available": false,
+      "system_proxy_modified": false
+    }
+  },
+  "web_baseline": [
+    {
+      "work": "7695305664234589459",
+      "catalog_disabled": true,
+      "returned_id": "7695305664234589459",
+      "vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "video_model": true,
+      "responses": 3,
+      "candidates": [
+        {
+          "official_quality": "original",
+          "size": 528422694,
+          "width": 1920,
+          "height": 1248,
+          "source_evidence": "official_quality"
+        }
+      ],
+      "media_probe": {
+        "ok": true,
+        "actual_size": 528422694,
+        "duration_seconds": 486.342,
+        "has_video": true,
+        "has_audio": true,
+        "tracks": [
+          {
+            "width": 1920,
+            "height": 1248,
+            "type": "vide",
+            "codec": "hev1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ]
+      }
+    },
+    {
+      "work": "7707196543073275177",
+      "catalog_disabled": true,
+      "returned_id": "7707196543073275177",
+      "vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "video_model": true,
+      "error_code": "source_unavailable",
+      "responses": 3
+    },
+    {
+      "work": "7704677676878925119",
+      "catalog_disabled": true,
+      "error_code": "detail_unavailable",
+      "responses": 1
+    }
+  ]
+}

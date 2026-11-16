@@ -7,20 +7,33 @@ from pathlib import Path
 from original_parser import OriginalParser, ParseError
 from original_parser.client import load_credentials
 
-LINKS = ["https://www.douyin.com/video/7706477018388536499"]
+LINKS = ["https://www.douyin.com/video/7707964786692083007"]
 DOWNLOAD = False
 # 默认自动取得匿名访客标识；也可指定包含 Cookie 和 User-Agent 的凭据文件。
 COOKIE_FILE = None
+# 历史已核对过的外部来源原片身份默认不参与取址；设 True 或命令行加 --allow-external
+# 才会使用（仍走官方分发重签与 MP4 媒体校验）。None 表示跟随环境变量
+# DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY。
+ALLOW_EXTERNAL = True
 
 
-def main():
+def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    argv = sys.argv[1:] if argv is None else list(argv)
+    unknown = [item for item in argv if item != "--allow-external"]
+    if unknown:
+        print(f"无法识别的参数：{' '.join(unknown)}；只支持 --allow-external", file=sys.stderr)
+        return 2
+    allow_external = ALLOW_EXTERNAL
+    if "--allow-external" in argv:
+        allow_external = True
     output = Path(__file__).parent / "output"
     output.mkdir(exist_ok=True)
     cookies, user_agent = load_credentials(Path(COOKIE_FILE)) if COOKIE_FILE else ({}, None)
     failed = False
-    with OriginalParser(cookies=cookies, user_agent=user_agent) as parser:
+    with OriginalParser(cookies=cookies, user_agent=user_agent,
+                        allow_external_asset_recovery=allow_external) as parser:
         for link in LINKS:
             try:
                 result = parser.parse(link)

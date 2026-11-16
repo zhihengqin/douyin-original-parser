@@ -4,6 +4,10 @@
 
 **当前选档策略：**只接受官方 `quality=original/source` 档位，或由官方原片分发接口根据已验证 `file_hash` 重新签发并通过媒体校验的原片。普通 `normal/adapt`、网页转码、DASH 分轨以及仅凭 `tos-cn-v-*` 桶名识别的地址均返回 `source_unavailable`，不会降级。
 
+**2026-11-16 当前链接验收：**仅输入作品 `7707993970332290314` 的链接，并禁用全部历史原片记录与参考资产后，两个官方取址分支均只返回 9 个转码档，首次原片发现仍未修复。该作品依靠已有参考资产 MD5 的官方重签成功，不属于仅链接解析成功；`DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1` 也不具备从链接发现未知哈希的能力。实际对照与补查边界见[仅输入链接的验收记录](docs/original-investigation-2026-11-16-link-only.md)。
+
+**同日官方续查：**从目标自己的转码 MP4 找到了另一个内嵌 VID，并完成 SDK 播放目录、精确 FID 选择与官方网页 token 签发对照，仍未发现该作品原片。新增只读研究工具 `tools/probe_official_vid_lineage.py` 可由链接复现 VID 检查，不使用 catalog；诊断完成不表示生产解析已修复。此前“只差 native Authorization 算法”的推断也已按真实调用链纠正。详见[官方发现续查与复现命令](docs/original-investigation-2026-11-16-official-link-discovery.md)。
+
 **2026-11-10 原画恢复：**作品 `7706466342664277290` 已恢复官方原片解析。此前官方 fplay 回包只下发普通转码，但该作品的 `video_id`、`file_id`、MD5、大小和 MP4 媒体信息已经通过官方回包与 Range 校验确认；程序在两个 fplay 入口均没有原画时，使用这些可信元数据调用官方 `/aweme/v1/play/` 分发接口重新签发临时原片地址，并再次核对 `206`、完整大小和 MP4 头。当前返回 185,591,975 字节、1080×1920、H264/AAC，`source_selected=true`、`source_evidence=official_play_hash`。没有匹配记录或分发失败时，保持 `source_unavailable`，不返回普通转码档。
 
 **2026-11-07 原画恢复进展（尚未通用修复）：**参考公开的 `file_id/sign` 线索，作品 `7695411862271315236` 已由官方播放分发入口重新取得 **207,466,034 字节**历史原片。完整下载的 MD5 与历史记录一致，720×1280 HEVC 视频及 AAC 音频均完整。该请求依赖历史已知的原片 MD5；当前详情未下发它，新作品 `7704869082255904042` 的原片仍未恢复，因此尚未接入生产自动解析。全部实测均直接访问官方接口，没有调用第三方解析服务。机制、对照与限制见[11 月 7 日调查记录](docs/original-investigation-2026-11-07.md)。11 月 6 日的失败状态保留在[历史研究报告](docs/original-investigation-2026-11-06.md)与[专项复查记录](#自建原画专项复查2026-11-06尚未恢复缺失原画)。
@@ -50,11 +54,32 @@ sudo bash deploy/linux/install.sh
 
 也可以编辑 **parse_links.py** 顶部的 `LINKS`，再执行 `.venv/bin/python parse_links.py`。结果保存在本项目的 `output` 目录。把 `DOWNLOAD` 改为 `True` 即同时下载。任意链接解析失败时脚本退出码为 `2`，不会再显示“退出代码为 0”。
 
+`parse_links.py` 同样支持 `--allow-external`（放行本地已核对过的外部来源原片身份，仍走官方分发重签与媒体校验）；PyCharm 里不想带参数时，把该文件顶部的 `ALLOW_EXTERNAL` 设成 `True` 即可，`None` 表示跟随环境变量 `DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY`。除 `--allow-external` 之外的参数会被拒绝并返回退出码 `2`。
+
+### 登记一条已有的原片直链（`--register-original`）
+
+如果手上已经有一条原片直链（例如第三方解析给出的地址），可以让项目自己把它的身份核验进本地记录，而不是手工改 JSON：
+
+```bash
+.venv/bin/python run.py "https://www.douyin.com/video/<作品ID>" --register-original "<原片直链>"
+```
+
+核验四件事，任一不过就拒绝，不会写入：
+
+1. 该地址必须是可 Range 读取的完整 MP4（首 16 字节为 `ftyp`），且同时含视频与音频轨道；
+2. moov 实读时长必须与作品详情一致（容差 1 秒）；
+3. 总字节数**不得等于**详情里任何已知转码档的大小（防止把转码档当原片登记）；
+4. 用该文件整文件 MD5 打官方 `/aweme/v1/play/` 重签，必须返回同字节数的可读 MP4。
+
+缺 `Content-MD5` 响应的边缘会流式读完整文件算 MD5（一次性的，不落盘）。登记记录标记为 `official_play_hash_from_verified_asset`，与外部来源同一策略：**默认不参与取址，需要 `--allow-external` 才生效**。它证明的是“该对象确实存在且官方认可”，不是“只凭作品 ID 能自己发现”。
+
 其他选项：`--url-only` 只打印地址；`--no-probe` 跳过远程媒体校验。默认自动初始化访客，无需手动配置 Cookie。
 
 官方未提供可用原画时直接返回 `source_unavailable`，消息包含“获取原画失败”；普通档达到 1080p、位于 `tos-cn-v-*` 桶或被第三方标记为“原画”，都不能改变这个结果。自动更新 Cookie、重试或跳过媒体校验并不保证恢复原画。错误会汇总格式、媒体加密标记、地址缺失、解码或地址校验等原因，不包含 Cookie、密钥或完整播放地址。
 
 已有有效访客凭据时，可用 `--cookie-file credentials.json` 指定文件，或在 `parse_links.py` 设置 `COOKIE_FILE`。支持 `name=value; ...` 文本、名称到值的 JSON 对象、浏览器导出的 Cookie JSON 数组，以及包含 `cookies` 和 `user_agent` 的 dtk-parse `credentials.json`；后者会保留凭据配套的 User-Agent。显式指定文件时不自动获取或覆盖其 Cookie；HTTP 服务每次解析重新读取该文件，外部更新后下一次请求即可生效。
+
+旧素材原片仍缺失时，可用独立的[登录前后对照工具](docs/original-session-comparison.md)验证会话差异：Windows 可双击项目根目录的 `compare_original_sessions.cmd`，先自动测匿名，再由用户在新浏览器手动登录，最后复测登录会话及匿名会话。Cookie 不导出，报告不保存临时地址，历史原片 catalog 禁用。2026-11-16 用户已完成一次登录测试：`7707196543073275177` 三阶段返回相同 8 个普通档，`7704677676878925119` 登录后仍被详情过滤，目标原片均未恢复；阳性首次匿名详情 HTTP 403 使完整对照总标签保守记为 `inconclusive`，后两阶段阳性均通过原片媒体校验。证据及限制见[登录结果记录](docs/original-investigation-2026-11-16-login-result.md)。该工具不改变生产解析行为。
 
 ## Linux 生产部署：三个 Java 实例共用服务
 
@@ -114,7 +139,7 @@ NiKa 的独立 `selfhosted` 渠道，页面名称为“自建原画（抖音）�
 1. 提取作品 ID，支持视频链接、`modal_id`、分享文案和短链。
 2. 初始化或复用匿名访客凭据，计算 `x-secsdk-web-signature`，请求官方 Web 详情，使用 `aid=392139` 取得非空 `video_model`。普通 `aid=6383` 的 `bit_rate` 只用于此前的转码档对比，不作为本程序的原画结果。
 3. 从 `video_model.fallback_api` 读取平台签发的 `/video/fplay/1/{签名}/{video_id}` 路径。保留完整查询（包括原有 `stream_type`、`encode_user_tag` 等上下文），删除 `logo_type`，覆盖 `force_fids=Base64("original")` 与 `codec_type=5`。新选档没有可用原画时，再使用同一签名路径、保留其他签发参数并仅切换 `stream_type=source` 兼容一次；不反复重试。
-4. 校验响应的视频资源 ID，只接受 `quality=original/source` 的完整 MP4 候选。两个入口均无可用原片时，若有已验证的可信 `file_id/file_hash` 记录，则调用官方 `/aweme/v1/play/` 重新签发原片并核对精确大小、MP4 头和后续媒体轨道；没有匹配记录或分发失败时返回 `source_unavailable`。不额外请求第三方或网页转码入口。所有候选均排除媒体加密、非法域名和无效元数据。
+4. 校验响应的视频资源 ID，只接受 `quality=original/source` 的完整 MP4 候选。两个入口均无可用原片时，先用官方 `/aweme/v1/play/?ratio=default`（`a_bogus` 签名，只凭 `video_id`）探测平台"默认档"：命中要求 `206` + MP4 头 + 字节数不等于任何已知转码档尺寸，再由 moov 校验时长与音轨，分辨率从 moov 回填。仍无候选时，若有已验证的可信 `file_id/file_hash` 记录，则调用官方 `/aweme/v1/play/` 重新签发原片并核对精确大小、MP4 头和后续媒体轨道；没有匹配记录或分发失败时返回 `source_unavailable`。不额外请求第三方或网页转码入口。所有候选均排除媒体加密、非法域名和无效元数据。算法全貌见 `docs/original-source-algorithm-2026-11-16.md`。
 5. 还原播放地址。本轮格式为 Base64 后的 `a8 00 01 00` 头部加 AES-CBC 密文；响应提供 32 字节 `key_seed`。派生方式为 `SHA512(SHA512(seed) + 固定64字节常量)`，前 16 字节作为 AES key，接下来 16 字节作为 IV；按 PKCS#7 去填充得到 URL。代码在 `original_parser/codec.py`。普通 URL、普通 Base64 URL 也支持。
 6. 用 Range 请求核对真实大小并读取 MP4 moov，确认视频、音频、时长和分辨率。支持 moov 位于文件尾部；不用下载整个视频即可完成常规解析校验。
 7. 下载时核对文件大小和官方 MD5；可再与本地参考文件做 SHA-256 比较。地址过期或全部镜像下载失败会重新解析一次。
@@ -169,10 +194,11 @@ cd /opt/software/python
 | 现象或错误码 | 优先查阅 |
 | --- | --- |
 | `403 Uifid Not Found`、`credentials_required`、`credentials_rejected` | [访客身份与自动 Cookie](#访客身份与自动-cookie2026-09-21) |
+| `guest_initialization_failed`，首页导航约 20 秒超时 | [访客初始化的页面等待超时](#访客初始化的页面等待超时2026-11-16已修复) |
 | 本地可用、Linux 返回 502；`guest_setup_required`、`guest_initialization_failed`、crashpad 错误 | [Linux 浏览器运行环境](#linux-浏览器运行环境部署排查项) |
 | `upstream_empty_response`、`upstream_non_json`、“平台返回空内容或非 JSON” | [空内容与非 JSON](#空内容与非-json2026-10-16-补充诊断) |
 | `upstream_rate_limited`、`upstream_forbidden`、`upstream_cooldown`、HTTP 429/503 | [集中请求与平台限制](#集中请求与平台限制2026-09-28) |
-| `source_unavailable`、“没有可还原的完整原画地址”、“仅返回普通转码档” | [自建原画专项复查](#自建原画专项复查2026-11-06尚未恢复缺失原画)；[两家第三方对照与历史复测](#两家第三方对照与历史原画复测2026-11-06)；[历史选档修复](#原画选档失败2026-10-16已修复) |
+| `source_unavailable`、“没有可还原的完整原画地址”、“仅返回普通转码档”、`is_source_HDR=1` | [HDR 源作品不列举原片](#hdr-源作品不列举原片2026-11-16第三方可取本项目取不到)；[已验证资产哈希重签](#已验证资产哈希重签2026-11-16历史补救非首次发现)；[自建原画专项复查](#自建原画专项复查2026-11-06尚未恢复缺失原画)；[两家第三方对照与历史原画复测](#两家第三方对照与历史原画复测2026-11-06)；[历史选档修复](#原画选档失败2026-10-16已修复) |
 | 解析成功后旧 CDN 地址返回 403、`probe_failed`、`download_failed` | [直链过期与旧缓存](#直链过期与旧缓存2026-10-16-记录)；这些错误也可能有其他原因，需检查媒体校验和下载结果 |
 
 ### 访客身份与自动 Cookie（2026-09-21）
@@ -181,6 +207,12 @@ cd /opt/software/python
 - **修复：**用 Playwright 新建匿名 Chromium 上下文取得 `ttwid`、`UIFID_TEMP`，使用配套 User-Agent 及网页签名请求详情。HTTP 模式的访客凭据在进程内复用 20 分钟，并发初始化加锁。相关代码为 [guest.py](original_parser/guest.py) 和 [client.py](original_parser/client.py)。
 - **验证：**作品 `7685326449011608873`、`7659627743507778842` 已完成原画取址及远程媒体校验；原始记录见 [Linux 部署说明](deploy/README.md#验证记录2026-09-21)。
 - **再次出现时：**先看浏览器初始化日志及凭据配置。显式设置 `COOKIE_FILE` / `--cookie-file` 表示凭据由外部维护，程序不会自动获取或覆盖它；文件更新后 HTTP 下一次解析会重新读取。默认自动访客不需要登录账号。直接 CLI 遇到指定凭据类错误最多刷新一次；HTTP 服务通过队列与冷却处理失败，不在单个任务中重复刷新访客。
+
+### 访客初始化的页面等待超时（2026-11-16，已修复）
+
+- **实际复现：**Windows 本地运行 `parse_links.py` 返回 `guest_initialization_failed`；独立初始化也复现底层 Playwright `TimeoutError`，约 20.6 秒后失败，紧接着的新匿名会话在 1.7 秒内成功取得访客标识。因此本次不是缺少 Chromium；不能将通用错误提示直接当作依赖未安装的证据。
+- **修复：**[guest.py](original_parser/guest.py) 收到首页响应后即开始独立等待 `ttwid` 和 UIFID，不再要求首页先完成 `DOMContentLoaded`。导航等待超时时也在同一匿名上下文中检查完整访客标识；只有两种标识都存在才成功。浏览器启动和 Cookie 等待仍有时限，真实网络错误仍返回失败，错误信息补充固定阶段及受限的网络错误码。
+- **验证：**新增 6 项导航与 Cookie 回归检查，全项目 91 项测试通过。修复后实际运行当前 `parse_links.py`，`7707196543073275177` 已完成访客初始化、详情和目录查询，返回真实的 `source_unavailable`（8 个普通档）。另从全新进程解析阳性 `7695305664234589459`，取得 528,422,694 字节、1920×1248 的官方 `original`，实际大小及音视频轨道校验通过。本次修复恢复访客初始化，不代表两个缺失原片目标已恢复。
 
 ### Linux 浏览器运行环境（部署排查项）
 
@@ -336,6 +368,44 @@ APK 复核还确认 `isNeedSetCookie()` 实际对应 JSON 的 `need_set_token`�
 参考 [yt-dlp #7109](https://github.com/yt-dlp/yt-dlp/issues/7109)，将已验证的历史原片 MD5 用作官方 `/aweme/v1/play/` 的 `sign`，以 VID 同时作为 `video_id` 与 `file_id`。作品 `7695411862271315236` 已重新完整下载 207,466,034 字节原片，整文件 MD5 与历史一致，音视频完整；作品 `7685326449011608873` 也经相同机制取得 61,314,387 字节的同一历史原片对象，远程媒体校验通过，第二份文件本轮没有重新完整下载。两条不带 sign 的同类请求均为 404。
 
 这证明原片仍可从官方入口获取，也验证了“已知原片哈希”的取址机制。当前公开详情未提供新作品所需的原片哈希，`7704869082255904042` 仍未恢复，不能将此结果称为通用解析修复。生产没有硬编码作品、哈希或临时地址；取址代码与部署尚未更新。完整结果及新增公开资料对照见[当日调查记录](docs/original-investigation-2026-11-07.md)。
+
+### 新旧素材与精选新版复查（2026-11-12，部分旧素材仍未恢复）
+
+新作品 `7707234108203650342` 已直接取得 119,146,775 字节官方原片；同一签发 URL 在发布约 38 分钟后不再列举原片，而已有可信身份仍可官方重签。旧目标 `7706282108947385626` 当前最大 normal 已完整比较，确认重新编码，不能按大小或标签放行。精选 41.1.0 的真实匿名注册与签名请求、源文件元数据消费者及公开代码增量核对，尚未建立无历史记录的旧作品首次原片取址链路。本轮没有修改生产解析器或部署，详见 [11 月 12 日调查记录](docs/original-investigation-2026-11-12.md)。
+
+同日启用 VPN 后补查了国内外公开实现、Sourcegraph 全局源码和官方客户端保存视频链，并通过 VPN 实测旧目标的两种 fplay 选择及新签发播放 token，仍未取得该旧目标原片。没有将普通档标签或上传完成后的 SourceInfo 当作恢复依据；生产代码未改，详见 [VPN 复查记录](docs/original-investigation-2026-11-12-vpn.md)。
+
+### 已验证资产哈希重签（2026-11-16，历史补救，非首次发现）
+
+- **现象：**`7707196543073275177` 的两个 fplay 选择器只列 8 个普通档，生产返回 `source_unavailable`；但用户持有的同作品参考文件为 132,665,774 字节，明显大于最大普通档 57,651,328 字节。
+- **确认原因：**不是原片被删除，而是该作品的 fplay 目录不再列举原片。用参考文件的整文件 MD5 `96e395ae426871e3fc3294755d54308f` 作为 `sign` 请求官方 `/aweme/v1/play/`（VID 同时作为 `video_id` 和 `file_id`），两个官方域名均返回 HTTP 206、`Content-Range` 精确 132,665,774 字节、MP4 头正常。阳性校准 `7706466342664277290` 同步验证同一请求方式有效；去掉 `file_id` 则为 404，说明入口仍按作品身份匹配。
+- **修复与边界：**该对象整文件 MD5 与 `sign` 完全一致；720×1282、309.639 秒、avc1+mp4a 均由 moov 实际解析；CDN 对象 `tos-cn-v-0051/oMq8DeoSEA0EB2TDE2AzrAAwANFLbCfo5gtDiE` 与 11 月 13 日记录一致，即参考文件就是官方原片对象本身。**但这条路径依赖外部取得的资产哈希，无法由作品 ID 推出，不属于首次发现**：记录以 `official_play_hash_from_verified_asset` 标记写入 `original_metadata.json`，默认不参与生产，仅 `DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1` 时生效；主线 catalog 仍只接受 `official_fplay_and_mp4_probe`（平台自己下发身份）。
+- **验证：**显式开启后 `run.py` 端到端取回 `原画（官方原片分发）`，媒体校验通过；新增回归用例覆盖"默认丢弃且不发请求""开启后仍需通过分发与媒体校验""自定义来源拒绝"，全套 85 项离线测试通过。证据见 [当日调查记录](docs/original-investigation-2026-11-16-asset-hash-recovery.md)。
+- **关键限制：**官方原片分发需要 `(video_id, file_id, file_hash)` 三元组，而 `file_hash` 是整文件 MD5——没有原片文件算不出，有文件才需要它来取文件，构成闭环。所以本条只能解释"已知身份为何取不回"，不能解释"身份从哪来"。`7704677676878925119`、`7706282108947385626` 没有可用资产，仍未修复。
+- **再次出现时：**先确认是否已有同作品的可靠原片副本或直链，再走本机制重签并完整核对 MD5；没有资产时不要用普通档哈希去撞，也不要按第三方"原画"标签放行。
+
+### 原画列举按作品状态变化（2026-11-16 实测）
+
+- **现象：**同样是历史成功取过原画的作品，一部分长期仍能从官方 fplay 拿到 `quality=original` 一行，另一部分两个选择器都只剩转码档，生产返回 `source_unavailable`。
+- **实测：**对 10 个有记录的作品做只读探针（`tools/probe_original_listing.py`，只用作品详情与官方备用播放接口），仍在列举的 4 个公开播放量为 28.4 万–656.7 万，已不列举的 6 个为 64–3.7 万；分辨率、时长、编码、画幅、发布时间都无法区分两组。分辨率与画幅尤其不能作为判据：仍列举的 `7706477018388536499` 只有 31 秒、1080×1920、hevc，而不列举的 `7706732556430953770` 是 1920×1080、416 秒。
+- **现场验证：**`7706477018388536499` 用当前代码端到端取回 `原画，1080×1920，27,668,186 字节，31.069 秒`，来源 `official_quality`，媒体校验通过，未使用任何离线哈希。说明"仍列举"的作品随时可取，不需要外部身份。
+- **处理：**仍列举时直接解析即可，`parse()` 通过媒体校验后会自动把 `file_id`/`file_hash` 写入 `original_metadata.json`，失效后仍可官方重签。已不列举且没有记录的作品，客户端没有参数能把这一行要回来。
+- **再次出现时：**先确认该作品当前是否仍列举（跑一次探针或直接解析），再判断能不能取；不要靠调参数、换 codec、改画幅去"逼出"原画档。详见[当日实测记录](docs/original-investigation-2026-11-16-listing-rule.md)。
+
+### HDR 源作品不列举原片（2026-11-16，第三方可取、本项目取不到）
+
+- **现象：**`7707993970332290314` 用户的第三方解析服务能给出原片地址，本项目两个选择器只拿到 9 个转码档，返回 `source_unavailable`。
+- **分界字段：**把 11 个有记录作品逐个取官方详情对齐后，仍在列举原片的 4 个全部 `video.is_source_HDR=0`，不列举的 6 个全部 `is_source_HDR=1`（含本条目标，`is_long_video=1`）。播放量只是伴随现象，`is_long_video` 无法区分两组。原始对照表在[当日记录](docs/original-investigation-7707993970332290314.md)。
+- **第三方那条地址是什么：**指向 `v26-dy.ixigua.com` 的 `tos-cn-v-0051-ce` 原片桶，Range 读为 38,562,411 字节 / 326.937 秒 / 720×1280 / avc1+mp4a，`Content-MD5` = `b4665e915a3177897c2cffc8bff735ed`；`expire` 只比签发时刻晚约 27 分钟，是实时签发的短时地址。用该 MD5 作 `sign` 打官方 `/aweme/v1/play/`（VID 同时作 `video_id`/`file_id`）返回 302 → 官方 CDN → 206、`bytes 0-15/38562411`，即**第三方链接就是官方分发的结果**；全零 32 位与转码档 MD5 均返回 404，`sign` 必须是该对象的整文件 MD5。
+- **已排除（全部只有 `tos-cn-ve-51-ce` 转码桶）：**fplay `vquality=5/8/9`、`codec_type=1/5/6`、`force_fids=Base64("source")`、**保留模型原值 `force_fids`**、**完全去掉 `force_fids`**、`aid=2329/1128`、`support_hdr=1`/`hdr_type=1`/`enable_hdr=1`；详情的 `play_addr`/`play_addr_265`/`play_addr_h264`/`download_addr`；`video_model.video_list`；分享页 HTML；`iesdouyin iteminfo`（200 空）、web 详情 `aid=6383`（403）、app 详情 `aid=1128`（200 空）、无 `sign` 的分发（404）。
+- **第二轮排除（同日，仍未拿到原片行）：**详情 `device_platform` 取 `webapp`/`android`/`iphone`/`unknown`（四种上下文的 `video_model` 完全相同）；fplay `stream_type` 取 `hdr`/`origin`/`original`/`high`/`dash`；fplay `vquality` 全值域 `0`–`13` 加 `hd/sd/source/original/origin/hdr` 共 20 个取值；详情每个 `addr` 的 `url_list` 全部条目；无头浏览器打开作品页并触发播放（页面被挡）；`/play/hd|hdr|source|original|hevc|h264/` 路径矩阵（均为网页壳）。以上全部只有 `tos-cn-ve-51-ce` 转码桶。脚本见 `tools/probe_detail_context.py`、`probe_stream_and_play_paths.py`、`probe_vquality_sweep.py`、`probe_video_page.py`、`probe_download_endpoints.py`。
+- **短链下载接口（已实测失败）：**`api.amemv.com/aweme/v1/aweme/download/` 真实存在，但对作品页、分享页、iesdouyin 页以及真实分享短链 `https://v.douyin.com/9odWMuc0J9Q/`（含整段分享口令、加 `aid=1128`）一律返回 `status_code=0 / Url does not match`；短链落地是 `www.douyin.com/video/7707993970332290314?previous_page=web_code_link` 的 72KB 空壳页，无 `play_addr`、无任何桶地址。该接口显然需要 App 侧签名头或认的不是这种短链，本项目无法复现。
+- **两种地址形状：**官方档位分发跳转到 `douyinvod` 边缘时带长串参数（`a=1128&br=921&bt=921&btag=…&cquery=…&dy_q=…&mime_type=video_mp4&qs=13&rc=…`），而第三方那条只有 `mime_type` 与 `expire`。最可能说明第三方拿到的是**对象级直读签名**而不是档位分发；但也不能排除只是 `ixigua` 边缘与 `douyinvod` 边缘的跳转形状差异（本项目未观察到 `ixigua` 边缘形状）。两种解释都读不出对象哈希。
+- **对象级直读接口已定位、但签名未通：**详情自带 `video.token_auth.play_auth_token`（`GetPlayInfo/2019-03-15` 的 AWS4 签发 query，1 小时有效）；`douyin-32.2.6.apk` 的 `classes30.dex` 里有服务端模板 `%s/video/openapi/v1/?action=GetPlayInfo&video_id=%s&ptoken=%s&aid=%s%s`。按模板请求 `vod.bytedanceapi.com` / `vod-luna.douyin.com` 均返回 `CodeN=100024 InvalidAuthorization`（缺 `Authorization` 头），`api-play.amemv.com` 返回 `10408/10409 Miss the Authorization header / The sign's format is not valid`；用 token 里的 `X-Amz-Credential`/`X-Amz-Signature` 重排成 `AWS4-HMAC-SHA256 Credential=…, Signature=…` 仍被拒；把路径换成 `/video/openapi/v1/` 而 query 原样带 token 时是 `100010 SignatureDoesNotMatch`（路径参与签名），路径保持 `/` 则是 `100013 AccessDenied`（资源解析为空）。该头的构造在客户端原生层，密钥不在明文常量里，因此本项目无法在只输入链接时复现这一步。
+- **已有原片直链的登记能力：**`--register-original` 可把一条已知原片直链核验后写成原片身份记录（完整 MP4 + 时长与详情一致 + 不等于任何转码档大小 + 整文件 MD5 经官方重签返回同大小 MP4），记录按外部来源对待，默认不参与取址。实测 `7708052871413075238`：直链 140,778,272 字节 / 1280×720 / 330.867 秒 / `avc1`+`mp4a`，MD5 `351f10c0e8f038973f2a63c9c749cb41`，官方重签得到的地址与小帅那条**同桶同对象 key**（`tos-cn-v-0051/ogAAMdqlAbNZiScDirADwEEB1gsDeA8BdWfGq8`）。详见[仅输入链接的验收记录](docs/original-investigation-2026-11-16-link-only.md)。
+- **代码改动与限制：**对本条目标，已验证参考资产的 MD5 能通过官方 `/aweme/v1/play/` 重新签发，整文件完整性已核实；记录加入 `original_metadata.json`，标记为 `official_play_hash_from_verified_asset`。按外部资产哈希的既定安全策略，默认仍不读取这条记录；设置 `DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1` 或直接给 `run.py` 加 `--allow-external`（`--serve` 同样支持）后，解析器会重新向官方分发取临时地址，并验证 MP4 大小、时长、分辨率和轨道。默认策略下失败时，错误信息会明确提示"本地已有该作品原片身份记录、被策略屏蔽、如何放行"。详见[当日记录](docs/original-investigation-7707993970332290314.md)。
+- **问题边界：**HDR 源的 fplay 目录没有列出原片行，故只输入作品 ID 仍无法首次发现该哈希。这条已验证参考资产可供本目标恢复，但不能推广到没有可信资产/哈希的其他作品。
+- **再次出现时：**已有同作品可靠原片副本或直链时，可验证整文件哈希并由官方分发重签；没有资产时不要用普通档哈希尝试，也不要按第三方的"原画"标签放行。
 
 ### 直链过期与旧缓存（2026-10-16 记录）
 

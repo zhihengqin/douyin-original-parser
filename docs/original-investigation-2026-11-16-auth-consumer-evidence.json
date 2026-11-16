@@ -1,0 +1,122 @@
+{
+  "scope": "Offline audit only; no network calls or production changes; no catalog/reference identities used",
+  "target_aweme_id": "7707993970332290314",
+  "fresh_web_detail": {
+    "path": "output\\official-link-research-20261116\\7707993970332290314.detail.private.json",
+    "sha256": "3fcf88a17540e3068c49be82d686a808e5d97bf40a90bf6e2dbacdd0a1f7fe3c",
+    "token_auth_keys": [
+      "play_auth_token"
+    ],
+    "token_query_length": 673,
+    "token_query_keys": [
+      "Action",
+      "Version",
+      "X-Amz-Algorithm",
+      "X-Amz-Credential",
+      "X-Amz-Date",
+      "X-Amz-Expires",
+      "X-Amz-NotSignBody",
+      "X-Amz-Signature",
+      "X-Amz-SignedHeaders",
+      "X-Amz-SignedQueries",
+      "aid",
+      "codec_type",
+      "format_type",
+      "stream_type",
+      "video_id"
+    ],
+    "signed_query_keys": [
+      "Action",
+      "Version",
+      "X-Amz-Algorithm",
+      "X-Amz-Credential",
+      "X-Amz-Date",
+      "X-Amz-Expires",
+      "X-Amz-NotSignBody",
+      "X-Amz-SignedHeaders",
+      "X-Amz-SignedQueries",
+      "aid",
+      "codec_type",
+      "format_type",
+      "stream_type",
+      "video_id"
+    ],
+    "signed_missing": [],
+    "signed_blank_values": {
+      "X-Amz-NotSignBody": [
+        ""
+      ],
+      "X-Amz-SignedHeaders": [
+        ""
+      ]
+    },
+    "safe_query_values": {
+      "Action": [
+        "GetPlayInfo"
+      ],
+      "Version": [
+        "2019-03-15"
+      ],
+      "aid": [
+        "392139"
+      ],
+      "codec_type": [
+        "0"
+      ],
+      "format_type": [
+        "mp4"
+      ],
+      "stream_type": [
+        "video"
+      ],
+      "video_id": [
+        "v28033gi0000dbs4nevog65jrl6u1s10"
+      ]
+    },
+    "native_wrapper_missing": [
+      "vid",
+      "token",
+      "hosts",
+      "auth",
+      "version"
+    ],
+    "metadata_token_auth_present": false,
+    "model_version": 3
+  },
+  "saved_native_detail": {
+    "path": "C:\\Users\\EDY\\AppData\\Local\\Temp\\douyin-original-round5-20261113\\target-770799-link-only-native\\native-detail-7707993970332290314.response.private.json",
+    "video_model_bytes": 0,
+    "token_auth_present": false,
+    "play_auth_token_present": false,
+    "metadata_token_auth_present": false
+  },
+  "checked_web_corpus": {
+    "inventory_path": "C:\\Users\\EDY\\AppData\\Local\\Temp\\douyin-original-round5-20261113\\round8-20261116\\web-player\\source-inventory.json",
+    "total_files": 105,
+    "sha256_matching_files": 105,
+    "all_present_and_unchanged": true
+  },
+  "native_v2_consumer": {
+    "url_builder": "Y.ADSourceS4249S0100000_43.apiForFetcher case0: https://<issued host>/?<issued query>",
+    "app_wrapper": "X.1I5w.LIZ sets version2 with null auth",
+    "fetcher_branch": "X.0AGe.LJJLIIIJLLLLLLLZ byte offsets 796/802 branch to 892 null auth for version2/4; passes at848",
+    "transport": "VideoInfoFetcher.LIZ adds Authorization only when stored auth is nonempty; X.17mE default client preserves URL, supplied headers only",
+    "caveat": "Custom TTVNetClient and platform hooks are outside this bounded branch"
+  },
+  "aws_string_provenance": {
+    "apk": "douyin-32.2.6/douyin-32.2.6.apk",
+    "dex": "classes4.dex",
+    "aws4_header_class": "Lcom/ss/bduploader/AWSV4Auth;",
+    "method": "buildAuthorizationString",
+    "literal_offset": 8,
+    "spaced_fragments_class": "Lcom/ss/android/ugc/aweme/video/qos/QOSSpeedUpApi;",
+    "spaced_fragments_method": "LIZLLL",
+    "spaced_fragment_offsets": [
+      838,
+      854
+    ],
+    "qos_request_literal_offset": 482,
+    "qos_request_literal": "POST\n/api/v1/mna/assurance\n\n"
+  },
+  "conclusion": "The missing native Authorization/signature explanation is unsupported. Fresh target web token lacks native wrapper and host; inspected native v2 branch intentionally uses null auth. No new original discovery route established."
+}

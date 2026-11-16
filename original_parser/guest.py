@@ -1,6 +1,7 @@
 """在独立的匿名浏览器会话中取得访客 Cookie，进程内短期复用。"""
 
 import os
+import re
 import threading
 import time
 from pathlib import Path
@@ -53,22 +54,34 @@ def _earn_guest() -> dict[str, str]:
     from .client import ParseError
 
     try:
-        from playwright.sync_api import Error, sync_playwright
+        from playwright.sync_api import Error, TimeoutError as BrowserTimeout, sync_playwright
     except ImportError as exc:
         raise ParseError("guest_setup_required", "自动访客初始化需要 Playwright，请用当前解释器安装 requirements.txt，"
                          "再执行 python -m playwright install chromium") from exc
     shared_browsers = Path(__file__).resolve().parent.parent / ".browsers"
     if shared_browsers.is_dir():
         os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(shared_browsers))
+    stage = "browser_launch"
+    navigation_timed_out = False
     try:
         with sync_playwright() as playwright:
             # 全新非持久上下文，不读取个人浏览器资料或已有登录状态。
-            browser = playwright.chromium.launch(headless=True, channel="chromium")
+            browser = playwright.chromium.launch(headless=True, channel="chromium", timeout=20000)
             try:
+                stage = "browser_context"
                 context = browser.new_context(user_agent=USER_AGENT, locale="zh-CN",
                                               timezone_id="Asia/Shanghai")
                 page = context.new_page()
-                page.goto("https://www.douyin.com/", wait_until="domcontentloaded", timeout=20000)
+                stage = "homepage_navigation"
+                try:
+                    # 访客标识可能早于 DOMContentLoaded 下发；页面脚本或资源
+                    # 挂起不应使已取得的标识失效，后面单独等待并检查 Cookie。
+                    page.goto("https://www.douyin.com/", wait_until="commit", timeout=20000)
+                except BrowserTimeout:
+                    # 导航超时也必须检查同一匿名上下文，不能直接判访客失败。
+                    # 真实网络错误、浏览器退出等仍交由外层处理。
+                    navigation_timed_out = True
+                stage = "guest_cookies"
                 deadline = time.monotonic() + 25
                 while time.monotonic() < deadline:
                     jar = {c["name"]: c["value"] for c in context.cookies("https://www.douyin.com/")}
@@ -81,7 +94,10 @@ def _earn_guest() -> dict[str, str]:
         if "Executable doesn't exist" in str(exc):
             raise ParseError("guest_setup_required", "未安装 Chromium，请用当前解释器执行 "
                              "python -m playwright install chromium；Linux 部署请重新运行安装脚本") from exc
-        raise ParseError("guest_initialization_failed", "无法完成抖音访客初始化，请检查浏览器运行依赖和网络；"
+        network_error = re.search(r"\bnet::ERR_[A-Z0-9_]+\b", str(exc))
+        reason = "，" + network_error.group(0) if network_error else ""
+        raise ParseError("guest_initialization_failed", f"无法完成抖音访客初始化（阶段={stage}{reason}），请检查浏览器运行依赖和网络；"
                          "可在本地浏览器确认抖音是否要求额外验证") from exc
-    raise ParseError("guest_initialization_failed", "抖音没有下发 UIFID 访客标识，可能需要额外验证；"
+    navigation_note = "首页导航超时，且" if navigation_timed_out else ""
+    raise ParseError("guest_initialization_failed", navigation_note + "抖音没有下发完整访客标识（ttwid 和 UIFID），可能需要额外验证；"
                      "请检查当前网络，或通过 --cookie-file 提供有效访客凭据")

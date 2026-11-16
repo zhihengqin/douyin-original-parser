@@ -1,0 +1,2022 @@
+{
+  "date": "2026-11-16",
+  "timezone": "Asia/Shanghai",
+  "production_fix_verified": false,
+  "reference_identity_used_for_discovery": false,
+  "third_party_resolver_called": false,
+  "sdk_dash": [
+    {
+      "case": "positive",
+      "work": "7695305664234589459",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "method": "GET",
+      "host": "vod-urls.bytedanceapi.com",
+      "parameter_subset": {
+        "format_type": "dash",
+        "codec_type": "3"
+      },
+      "full_app_replay": false,
+      "http": 200,
+      "bytes": 15415,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "keys": [
+        "status",
+        "message",
+        "enable_ssl",
+        "auto_definition",
+        "enable_adaptive",
+        "video_id",
+        "video_duration",
+        "media_type",
+        "big_thumbs",
+        "video_list",
+        "dynamic_video",
+        "volume",
+        "popularity_level",
+        "has_embedded_subtitle",
+        "title_info",
+        "video_speed",
+        "user_id",
+        "validate",
+        "poster_url",
+        "key_seed",
+        "optimal_decoding_mode"
+      ],
+      "rows": [
+        {
+          "path": "data.dynamic_video.dynamic_video_list[0]",
+          "quality": "adapt",
+          "size": 23122377,
+          "file_id": "3195cf99c33f474ca7c173f4b1894ef6",
+          "file_hash": "75600cbd0adce49b3077e2a79d21ead4",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "bytevc1",
+          "vtype": "dash",
+          "bitrate": 430537,
+          "definition": "540p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_video_list[1]",
+          "quality": "adapt_lowest",
+          "size": 26767687,
+          "file_id": "bd04eb771c3545b9a290187da846c3b3",
+          "file_hash": "2845dd22cfa6d0b1d2d3d5e9b2fba2ce",
+          "vwidth": 1108,
+          "vheight": 720,
+          "codec_type": "bytevc1",
+          "vtype": "dash",
+          "bitrate": 498492,
+          "definition": "720p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_video_list[2]",
+          "quality": "adapt_lowest",
+          "size": 35121739,
+          "file_id": "1cf22ce86a9143048b879567494d18f2",
+          "file_hash": "6447dab469357c98cd8c6f60bb9fb309",
+          "vwidth": 1662,
+          "vheight": 1080,
+          "codec_type": "bytevc1",
+          "vtype": "dash",
+          "bitrate": 651659,
+          "definition": "1080p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_video_list[3]",
+          "quality": "adapt_lowest",
+          "size": 71322384,
+          "file_id": "9f5cce9c232e485890ecfec0f5a356c1",
+          "file_hash": "1d646582fe53d31b1da171bf1804a71a",
+          "vwidth": 1920,
+          "vheight": 1248,
+          "codec_type": "bytevc1",
+          "vtype": "dash",
+          "bitrate": 1279355,
+          "definition": "1440p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_audio_list[0]",
+          "quality": "adapt",
+          "size": 2974768,
+          "file_id": "",
+          "file_hash": "67083cf6bb779e142a63b3059204754d",
+          "vwidth": 0,
+          "vheight": 0,
+          "codec_type": "bytevc1",
+          "vtype": "dash",
+          "bitrate": 54838,
+          "definition": ""
+        }
+      ],
+      "identity_matches": true,
+      "original_rows": 0,
+      "model_valid": true
+    },
+    {
+      "case": "770719-current",
+      "work": "7707196543073275177",
+      "requested_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "method": "GET",
+      "host": "vod-urls.bytedanceapi.com",
+      "parameter_subset": {
+        "format_type": "dash",
+        "codec_type": "3"
+      },
+      "full_app_replay": false,
+      "http": 200,
+      "bytes": 9862,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "keys": [
+        "status",
+        "message",
+        "enable_ssl",
+        "auto_definition",
+        "enable_adaptive",
+        "video_id",
+        "video_duration",
+        "media_type",
+        "video_list",
+        "dynamic_video",
+        "volume",
+        "popularity_level",
+        "has_embedded_subtitle",
+        "title_info",
+        "user_id",
+        "validate",
+        "poster_url",
+        "key_seed",
+        "optimal_decoding_mode"
+      ],
+      "rows": [
+        {
+          "path": "data.dynamic_video.dynamic_video_list[0]",
+          "quality": "low",
+          "size": 27769362,
+          "file_id": "5fd4e819016f41b18c0c5c918cb322ea",
+          "file_hash": "150aca6dcd350555b813e03d79ca083f",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 838944,
+          "definition": "540p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_video_list[1]",
+          "quality": "low",
+          "size": 32180517,
+          "file_id": "b3ed6655c8bf429aa8c227c40244cb51",
+          "file_hash": "dcf162bfd71421878d14d96ac873937d",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 988454,
+          "definition": "720p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_audio_list[0]",
+          "quality": "low",
+          "size": 1949715,
+          "file_id": "",
+          "file_hash": "b9cd4c3ea257a566864b558d321ba891",
+          "vwidth": 0,
+          "vheight": 0,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 49041,
+          "definition": ""
+        }
+      ],
+      "identity_matches": true,
+      "original_rows": 0,
+      "model_valid": true
+    },
+    {
+      "case": "770719-embedded",
+      "work": "7707196543073275177",
+      "requested_vid": "v02033g10000dbpkhdnog65u9q5nd820",
+      "method": "GET",
+      "host": "vod-urls.bytedanceapi.com",
+      "parameter_subset": {
+        "format_type": "dash",
+        "codec_type": "3"
+      },
+      "full_app_replay": false,
+      "http": 200,
+      "bytes": 5875,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbpkhdnog65u9q5nd820",
+      "keys": [
+        "status",
+        "message",
+        "enable_ssl",
+        "auto_definition",
+        "enable_adaptive",
+        "video_id",
+        "video_duration",
+        "media_type",
+        "url_expire",
+        "video_list",
+        "volume",
+        "popularity_level",
+        "has_embedded_subtitle",
+        "user_id",
+        "validate",
+        "poster_url",
+        "key_seed",
+        "optimal_decoding_mode"
+      ],
+      "rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "normal",
+          "size": 36153126,
+          "file_id": "acd86dbd1ad14da793248198f8c0747f",
+          "file_hash": "e050f8be8915a2b4ea7de381939e8aa9",
+          "vwidth": 540,
+          "vheight": 962,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 934071,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "normal",
+          "size": 57651328,
+          "file_id": "987aa917d9464e2d989c9d12e76050d3",
+          "file_hash": "34c1614a212475882eec27f6664552c7",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1489510,
+          "definition": "720p"
+        }
+      ],
+      "identity_matches": true,
+      "original_rows": 0,
+      "model_valid": true
+    },
+    {
+      "case": "770467-current",
+      "work": "7704677676878925119",
+      "requested_vid": "v02033g10000dbm873fog65puos79er0",
+      "method": "GET",
+      "host": "vod-urls.bytedanceapi.com",
+      "parameter_subset": {
+        "format_type": "dash",
+        "codec_type": "3"
+      },
+      "full_app_replay": false,
+      "http": 200,
+      "bytes": 9889,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbm873fog65puos79er0",
+      "keys": [
+        "status",
+        "message",
+        "enable_ssl",
+        "auto_definition",
+        "enable_adaptive",
+        "video_id",
+        "video_duration",
+        "media_type",
+        "video_list",
+        "dynamic_video",
+        "volume",
+        "popularity_level",
+        "has_embedded_subtitle",
+        "title_info",
+        "user_id",
+        "validate",
+        "poster_url",
+        "key_seed",
+        "optimal_decoding_mode"
+      ],
+      "rows": [
+        {
+          "path": "data.dynamic_video.dynamic_video_list[0]",
+          "quality": "low",
+          "size": 40956930,
+          "file_id": "2ed50b4862fb48b1a59cc3a1625d7bd1",
+          "file_hash": "36f9a44e00c2e23d3822f207cb394337",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 1306587,
+          "definition": "540p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_video_list[1]",
+          "quality": "low",
+          "size": 46132820,
+          "file_id": "5ddb2e809753438994a2e6d2ba0ebef1",
+          "file_hash": "56c53b77285346f56e448f72a3d80ea8",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 1459632,
+          "definition": "720p"
+        },
+        {
+          "path": "data.dynamic_video.dynamic_audio_list[0]",
+          "quality": "low",
+          "size": 1775952,
+          "file_id": "",
+          "file_hash": "7c02a84e8ee845d711342be0c40d741e",
+          "vwidth": 0,
+          "vheight": 0,
+          "codec_type": "h264",
+          "vtype": "dash",
+          "bitrate": 52810,
+          "definition": ""
+        }
+      ],
+      "identity_matches": true,
+      "original_rows": 0,
+      "model_valid": true
+    },
+    {
+      "case": "770467-embedded",
+      "work": "7704677676878925119",
+      "requested_vid": "v02033g10000dbl8qbnog65viomj0nc0",
+      "method": "GET",
+      "host": "vod-urls.bytedanceapi.com",
+      "parameter_subset": {
+        "format_type": "dash",
+        "codec_type": "3"
+      },
+      "full_app_replay": false,
+      "http": 200,
+      "bytes": 5883,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbl8qbnog65viomj0nc0",
+      "keys": [
+        "status",
+        "message",
+        "enable_ssl",
+        "auto_definition",
+        "enable_adaptive",
+        "video_id",
+        "video_duration",
+        "media_type",
+        "url_expire",
+        "video_list",
+        "volume",
+        "popularity_level",
+        "has_embedded_subtitle",
+        "user_id",
+        "validate",
+        "poster_url",
+        "key_seed",
+        "optimal_decoding_mode"
+      ],
+      "rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "normal",
+          "size": 54305669,
+          "file_id": "533148311fd646fa82a47f45b3ad3c94",
+          "file_hash": "d0582380a95138a5540b97abc44f2955",
+          "vwidth": 540,
+          "vheight": 960,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1630103,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "normal",
+          "size": 81999228,
+          "file_id": "7679355d7ed84322aaf77abaf28ae7bd",
+          "file_hash": "4989d51ed3c41bf39050b9d41a533486",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 2461385,
+          "definition": "720p"
+        }
+      ],
+      "identity_matches": true,
+      "original_rows": 0,
+      "model_valid": true
+    }
+  ],
+  "saved_fplay_refresh": [
+    {
+      "case": "positive",
+      "work": "7695305664234589459",
+      "expected_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "saved_model_reused": true,
+      "selector_changed": false,
+      "http": 200,
+      "bytes": 39362,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "adapt_lowest",
+          "size": 15707987,
+          "file_id": "3258b00eaf36484592c9aa613fce2ce2",
+          "file_hash": "fb76d9523eb0102f68a26c55b546faff",
+          "vwidth": 830,
+          "vheight": 540,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 258385,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_5",
+          "quality": "adapt",
+          "size": 26317464,
+          "file_id": "a70e4122b1ae4cdf81e32d9ccf48531d",
+          "file_hash": "aa3c8c3b2e09769b47817d55dec3f7fc",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 432904,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_10",
+          "quality": "adapt_lowest",
+          "size": 29962774,
+          "file_id": "ed173868894c4e5c9ad2f13472170922",
+          "file_hash": "56c69e44895ebc179e7a5cd800c20652",
+          "vwidth": 1108,
+          "vheight": 720,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 492868,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_11",
+          "quality": "normal",
+          "size": 87098787,
+          "file_id": "9da2868d8d394c2f801280a32b687bc5",
+          "file_hash": "dae911a47c6897eedf129b11b260b26a",
+          "vwidth": 1662,
+          "vheight": 1080,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1432716,
+          "definition": "1080p"
+        },
+        {
+          "path": "data.video_list.video_4",
+          "quality": "adapt_lower",
+          "size": 22580610,
+          "file_id": "8a71e49f6880491386e2b675a4e4b68f",
+          "file_hash": "2f95e82510a6cdf2ec5c4153ae25f476",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 371435,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_7",
+          "quality": "low",
+          "size": 55936004,
+          "file_id": "c14b9157f66744d89e45c963e3b47ea7",
+          "file_hash": "e555ea202eb639379b694ccdcffb8c9a",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 920109,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_8",
+          "quality": "normal",
+          "size": 67139544,
+          "file_id": "5838ce0fa24f4bf5a3bfb0a846b11f9f",
+          "file_hash": "0f853bea90ced75f0a9fb00d7af6f128",
+          "vwidth": 1108,
+          "vheight": 720,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1104400,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_6",
+          "quality": "adapt_low",
+          "size": 35803087,
+          "file_id": "b9f0e4880fc64ab8a76e8331bf0d05c5",
+          "file_hash": "d92e2c6d6cf46a5fdf320a476d8c63f8",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 588936,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_3",
+          "quality": "lower",
+          "size": 44529694,
+          "file_id": "78345abc21f24e189695456022ab427b",
+          "file_hash": "8ecd2394b28fc266d3d0d215c4565ca4",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 732483,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_13",
+          "quality": "adapt_lowest",
+          "size": 74517471,
+          "file_id": "ac04bfbbdc5345f1b1d841361b2bb7ff",
+          "file_hash": "79912ac3de7e40e1df96fb2669250042",
+          "vwidth": 1920,
+          "vheight": 1248,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 1225764,
+          "definition": "1440p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "normal",
+          "size": 74188075,
+          "file_id": "42597dd32d58421e89b2d16316e596d4",
+          "file_hash": "94ce83780ed9431878f45c2914f07339",
+          "vwidth": 886,
+          "vheight": 576,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1220344,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_9",
+          "quality": "low",
+          "size": 60102425,
+          "file_id": "cc31656e14cb42e8a17eb1666e17fb98",
+          "file_hash": "97a0f39d966fb4355bba91b761343df8",
+          "vwidth": 1108,
+          "vheight": 720,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 988644,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_12",
+          "quality": "adapt_lowest",
+          "size": 38316826,
+          "file_id": "bc080307f5ac4f6dbd221215f8de8bad",
+          "file_hash": "717235780d5dbb643e568ae765690330",
+          "vwidth": 1662,
+          "vheight": 1080,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 630287,
+          "definition": "1080p"
+        }
+      ],
+      "valid": true
+    },
+    {
+      "case": "770719",
+      "work": "7707196543073275177",
+      "expected_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "saved_model_reused": true,
+      "selector_changed": false,
+      "http": 200,
+      "bytes": 22235,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "rows": [
+        {
+          "path": "data.video_list.video_4",
+          "quality": "adapt_low",
+          "size": 20977320,
+          "file_id": "b98c3a24fe2849cfae714d00305b05be",
+          "file_hash": "3f9fd3417c44aad82f707e05a3be9e6e",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 541981,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_6",
+          "quality": "adapt_lowest",
+          "size": 21881031,
+          "file_id": "0fefbde246ab4cd285e259fd2f52672d",
+          "file_hash": "9c84e10bb210b5c628030bfb2795f4d8",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 565330,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_3",
+          "quality": "low",
+          "size": 29859610,
+          "file_id": "7d0bc2533ff440348f8a7721cbcfbd16",
+          "file_hash": "44b4b803b02e81060ee054c889d281b6",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 771468,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_1",
+          "quality": "normal",
+          "size": 36153126,
+          "file_id": "1c9177de0d1745e797f9e420187e6556",
+          "file_hash": "e050f8be8915a2b4ea7de381939e8aa9",
+          "vwidth": 540,
+          "vheight": 962,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 934071,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "adapt_lower",
+          "size": 16187693,
+          "file_id": "67f5ede08c014bdb8055636487477d39",
+          "file_hash": "73bfc056a1f9b4361394ed96339f8802",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 418233,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_5",
+          "quality": "adapt",
+          "size": 18992672,
+          "file_id": "e7c41be01c4d44c28e85a0400cdaf62e",
+          "file_hash": "ab7f55d1fb98d16fc1b59c3c8f7758d6",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 490704,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_8",
+          "quality": "low",
+          "size": 34270717,
+          "file_id": "d8000926ba1d4d1da87384601507cb6a",
+          "file_hash": "62f0a2fc6b9e15e18dc2f4eb85e3513a",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 885436,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_7",
+          "quality": "normal",
+          "size": 57651328,
+          "file_id": "82ae4218ceaa4193947da577a2a509e6",
+          "file_hash": "34c1614a212475882eec27f6664552c7",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1489510,
+          "definition": "720p"
+        }
+      ],
+      "valid": true
+    },
+    {
+      "case": "770467",
+      "work": "7704677676878925119",
+      "expected_vid": "v02033g10000dbm873fog65puos79er0",
+      "saved_model_reused": true,
+      "selector_changed": false,
+      "http": 200,
+      "bytes": 22268,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbm873fog65puos79er0",
+      "rows": [
+        {
+          "path": "data.video_list.video_7",
+          "quality": "adapt_lowest",
+          "size": 32811564,
+          "file_id": "facce010bab545388ced3d04061b0ab3",
+          "file_hash": "2e2ff7e972df70b6e979cce06d32daab",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 984836,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_1",
+          "quality": "low",
+          "size": 42831969,
+          "file_id": "248ba71a76a14d2fae028b73ee40dc60",
+          "file_hash": "252e15a3ef3b04d53f51092215ca8df0",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1285598,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_3",
+          "quality": "adapt_low",
+          "size": 30297915,
+          "file_id": "71b113d447ce4f7b9557d19919c6caaa",
+          "file_hash": "39aceb3d057864ed7d3a78b11853e1d2",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 909389,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_8",
+          "quality": "normal",
+          "size": 81999228,
+          "file_id": "57084ed11fd447568e30be1286adb985",
+          "file_hash": "4989d51ed3c41bf39050b9d41a533486",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 2461385,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_6",
+          "quality": "low",
+          "size": 48007371,
+          "file_id": "1b561ca093f5471b894052344ef6e877",
+          "file_hash": "47294bd88c58e43d6bcbc32f62ab1487",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1440937,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_5",
+          "quality": "normal",
+          "size": 54305669,
+          "file_id": "029b38be9a0a43b89a035abd77d15412",
+          "file_hash": "d0582380a95138a5540b97abc44f2955",
+          "vwidth": 540,
+          "vheight": 960,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1630103,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_4",
+          "quality": "adapt",
+          "size": 27184562,
+          "file_id": "f167606d00084d4ab2fd2cb94b57288d",
+          "file_hash": "58ea69ff08b8b7aeb6ab19f92762eb0c",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 815942,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "adapt_lower",
+          "size": 23609365,
+          "file_id": "5676e7f433f64b81bba98d7aaea38e87",
+          "file_hash": "225beca08798b4c0c0212b75b4e22565",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 708633,
+          "definition": "540p"
+        }
+      ],
+      "valid": true
+    }
+  ],
+  "exact_inherited_fid": [
+    {
+      "case": "positive",
+      "work": "7695305664234589459",
+      "expected_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "selected_fid": "v0200fg10000db5jd27og65gafbkjltg",
+      "stream_type": "source",
+      "codec_type": [
+        "5"
+      ],
+      "reference_identity_used": false,
+      "http": 200,
+      "bytes": 5945,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "identity_matches": true,
+      "rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "original",
+          "size": 528422694,
+          "file_id": "v0200fg10000db5jd27og65gafbkjltg",
+          "file_hash": "",
+          "vwidth": 1920,
+          "vheight": 1248,
+          "codec_type": "hevc",
+          "vtype": "mp4",
+          "bitrate": 8692207,
+          "definition": "1440p"
+        }
+      ],
+      "original_rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "original",
+          "size": 528422694,
+          "file_id": "v0200fg10000db5jd27og65gafbkjltg",
+          "file_hash": "",
+          "vwidth": 1920,
+          "vheight": 1248,
+          "codec_type": "hevc",
+          "vtype": "mp4",
+          "bitrate": 8692207,
+          "definition": "1440p"
+        }
+      ]
+    },
+    {
+      "case": "770719",
+      "work": "7707196543073275177",
+      "expected_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "selected_fid": "v02033g10000dbpkhdnog65u9q5nd820",
+      "stream_type": "source",
+      "codec_type": [
+        "5"
+      ],
+      "reference_identity_used": false,
+      "http": 200,
+      "bytes": 21915,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbqncrvog65l6dmpd7rg",
+      "identity_matches": true,
+      "rows": [
+        {
+          "path": "data.video_list.video_5",
+          "quality": "adapt",
+          "size": 18992672,
+          "file_id": "e7c41be01c4d44c28e85a0400cdaf62e",
+          "file_hash": "ab7f55d1fb98d16fc1b59c3c8f7758d6",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 490704,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_7",
+          "quality": "normal",
+          "size": 57651328,
+          "file_id": "82ae4218ceaa4193947da577a2a509e6",
+          "file_hash": "34c1614a212475882eec27f6664552c7",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1489510,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_1",
+          "quality": "normal",
+          "size": 36153126,
+          "file_id": "1c9177de0d1745e797f9e420187e6556",
+          "file_hash": "e050f8be8915a2b4ea7de381939e8aa9",
+          "vwidth": 540,
+          "vheight": 962,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 934071,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_3",
+          "quality": "low",
+          "size": 29859610,
+          "file_id": "7d0bc2533ff440348f8a7721cbcfbd16",
+          "file_hash": "44b4b803b02e81060ee054c889d281b6",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 771468,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_4",
+          "quality": "adapt_low",
+          "size": 20977320,
+          "file_id": "b98c3a24fe2849cfae714d00305b05be",
+          "file_hash": "3f9fd3417c44aad82f707e05a3be9e6e",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 541981,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "adapt_lower",
+          "size": 16187693,
+          "file_id": "67f5ede08c014bdb8055636487477d39",
+          "file_hash": "73bfc056a1f9b4361394ed96339f8802",
+          "vwidth": 576,
+          "vheight": 1026,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 418233,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_8",
+          "quality": "low",
+          "size": 34270717,
+          "file_id": "d8000926ba1d4d1da87384601507cb6a",
+          "file_hash": "62f0a2fc6b9e15e18dc2f4eb85e3513a",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 885436,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_6",
+          "quality": "adapt_lowest",
+          "size": 21881031,
+          "file_id": "0fefbde246ab4cd285e259fd2f52672d",
+          "file_hash": "9c84e10bb210b5c628030bfb2795f4d8",
+          "vwidth": 720,
+          "vheight": 1282,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 565330,
+          "definition": "720p"
+        }
+      ],
+      "original_rows": []
+    },
+    {
+      "case": "770467",
+      "work": "7704677676878925119",
+      "expected_vid": "v02033g10000dbm873fog65puos79er0",
+      "selected_fid": "v02033g10000dbl8qbnog65viomj0nc0",
+      "stream_type": "source",
+      "codec_type": [
+        "5"
+      ],
+      "reference_identity_used": false,
+      "http": 200,
+      "bytes": 21946,
+      "code": 0,
+      "status": 10,
+      "response_vid": "v02033g10000dbm873fog65puos79er0",
+      "identity_matches": true,
+      "rows": [
+        {
+          "path": "data.video_list.video_1",
+          "quality": "low",
+          "size": 42831969,
+          "file_id": "248ba71a76a14d2fae028b73ee40dc60",
+          "file_hash": "252e15a3ef3b04d53f51092215ca8df0",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1285598,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_3",
+          "quality": "adapt_low",
+          "size": 30297915,
+          "file_id": "71b113d447ce4f7b9557d19919c6caaa",
+          "file_hash": "39aceb3d057864ed7d3a78b11853e1d2",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 909389,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_8",
+          "quality": "normal",
+          "size": 81999228,
+          "file_id": "57084ed11fd447568e30be1286adb985",
+          "file_hash": "4989d51ed3c41bf39050b9d41a533486",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 2461385,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_5",
+          "quality": "normal",
+          "size": 54305669,
+          "file_id": "029b38be9a0a43b89a035abd77d15412",
+          "file_hash": "d0582380a95138a5540b97abc44f2955",
+          "vwidth": 540,
+          "vheight": 960,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1630103,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_4",
+          "quality": "adapt",
+          "size": 27184562,
+          "file_id": "f167606d00084d4ab2fd2cb94b57288d",
+          "file_hash": "58ea69ff08b8b7aeb6ab19f92762eb0c",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 815942,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_2",
+          "quality": "adapt_lower",
+          "size": 23609365,
+          "file_id": "5676e7f433f64b81bba98d7aaea38e87",
+          "file_hash": "225beca08798b4c0c0212b75b4e22565",
+          "vwidth": 576,
+          "vheight": 1024,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 708633,
+          "definition": "540p"
+        },
+        {
+          "path": "data.video_list.video_6",
+          "quality": "low",
+          "size": 48007371,
+          "file_id": "1b561ca093f5471b894052344ef6e877",
+          "file_hash": "47294bd88c58e43d6bcbc32f62ab1487",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "h264",
+          "vtype": "mp4",
+          "bitrate": 1440937,
+          "definition": "720p"
+        },
+        {
+          "path": "data.video_list.video_7",
+          "quality": "adapt_lowest",
+          "size": 32811564,
+          "file_id": "facce010bab545388ced3d04061b0ab3",
+          "file_hash": "2e2ff7e972df70b6e979cce06d32daab",
+          "vwidth": 720,
+          "vheight": 1280,
+          "codec_type": "bytevc1",
+          "vtype": "mp4",
+          "bitrate": 984836,
+          "definition": "720p"
+        }
+      ],
+      "original_rows": []
+    }
+  ],
+  "media_metadata": [
+    {
+      "case": "770719-current",
+      "index": 0,
+      "file_hash": "150aca6dcd350555b813e03d79ca083f",
+      "quality": "low",
+      "declared_size": 27769362,
+      "http_requests": 3,
+      "bytes_read": 985,
+      "actual_size": 27769362,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 961,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.6,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1026,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": false
+      }
+    },
+    {
+      "case": "770719-current",
+      "index": 1,
+      "file_hash": "dcf162bfd71421878d14d96ac873937d",
+      "quality": "low",
+      "declared_size": 32180517,
+      "http_requests": 3,
+      "bytes_read": 985,
+      "actual_size": 32180517,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 961,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.6,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1282,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": false
+      }
+    },
+    {
+      "case": "770719-current",
+      "index": 2,
+      "file_hash": "b9cd4c3ea257a566864b558d321ba891",
+      "quality": "low",
+      "declared_size": 1949715,
+      "http_requests": 3,
+      "bytes_read": 858,
+      "actual_size": 1949715,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 834,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": false,
+        "has_audio": true
+      }
+    },
+    {
+      "case": "770719-embedded",
+      "index": 0,
+      "file_hash": "e050f8be8915a2b4ea7de381939e8aa9",
+      "quality": "normal",
+      "declared_size": 36153126,
+      "http_requests": 3,
+      "bytes_read": 336775,
+      "actual_size": 36153126,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 336751,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbpkhdnog65u9q5nd820"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "width": 540,
+            "height": 962,
+            "type": "vide",
+            "codec": "avc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      }
+    },
+    {
+      "case": "770467-current",
+      "index": 0,
+      "file_hash": "36f9a44e00c2e23d3822f207cb394337",
+      "quality": "low",
+      "declared_size": 40956930,
+      "http_requests": 0,
+      "bytes_read": 0,
+      "error_type": "ConnectTimeout"
+    },
+    {
+      "case": "770467-current",
+      "index": 1,
+      "file_hash": "56c53b77285346f56e448f72a3d80ea8",
+      "quality": "low",
+      "declared_size": 46132820,
+      "http_requests": 0,
+      "bytes_read": 0,
+      "error_type": "ConnectionError"
+    },
+    {
+      "case": "770467-current",
+      "index": 2,
+      "file_hash": "7c02a84e8ee845d711342be0c40d741e",
+      "quality": "low",
+      "declared_size": 1775952,
+      "http_requests": 0,
+      "bytes_read": 0,
+      "error_type": "ConnectTimeout"
+    },
+    {
+      "case": "770467-embedded",
+      "index": 0,
+      "file_hash": "d0582380a95138a5540b97abc44f2955",
+      "quality": "normal",
+      "declared_size": 54305669,
+      "http_requests": 3,
+      "bytes_read": 440015,
+      "actual_size": 54305669,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 439991,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbl8qbnog65viomj0nc0"
+      ],
+      "media": {
+        "duration_seconds": 266.514,
+        "tracks": [
+          {
+            "width": 540,
+            "height": 960,
+            "type": "vide",
+            "codec": "avc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      }
+    },
+    {
+      "case": "770467-current-backup",
+      "index": 0,
+      "file_hash": "36f9a44e00c2e23d3822f207cb394337",
+      "declared_size": 40956930,
+      "http_requests": 3,
+      "bytes_read": 983,
+      "used_address": "backup_url_1",
+      "actual_size": 40956930,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 959,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": false
+      }
+    },
+    {
+      "case": "770467-current-backup",
+      "index": 1,
+      "file_hash": "56c53b77285346f56e448f72a3d80ea8",
+      "declared_size": 46132820,
+      "http_requests": 3,
+      "bytes_read": 983,
+      "used_address": "backup_url_1",
+      "actual_size": 46132820,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 959,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1280,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": false
+      }
+    },
+    {
+      "case": "770467-current-backup",
+      "index": 2,
+      "file_hash": "7c02a84e8ee845d711342be0c40d741e",
+      "declared_size": 1775952,
+      "http_requests": 3,
+      "bytes_read": 858,
+      "used_address": "backup_url_1",
+      "actual_size": 1775952,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 36,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 834,
+          "offset": 36
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.514,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": false,
+        "has_audio": true
+      }
+    },
+    {
+      "case": "770719",
+      "index": 0,
+      "file_hash": "3f9fd3417c44aad82f707e05a3be9e6e",
+      "quality": "adapt_low",
+      "declared_size": 20977320,
+      "http_requests": 3,
+      "bytes_read": 255652,
+      "attempts": [],
+      "actual_size": 20977320,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 255628,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 576,
+            "height": 1026,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770719",
+      "index": 1,
+      "file_hash": "9c84e10bb210b5c628030bfb2795f4d8",
+      "quality": "adapt_lowest",
+      "declared_size": 21881031,
+      "http_requests": 3,
+      "bytes_read": 256240,
+      "attempts": [],
+      "actual_size": 21881031,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 256216,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1282,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770719",
+      "index": 2,
+      "file_hash": "44b4b803b02e81060ee054c889d281b6",
+      "quality": "low",
+      "declared_size": 29859610,
+      "http_requests": 3,
+      "bytes_read": 255597,
+      "attempts": [],
+      "actual_size": 29859610,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 255573,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 576,
+            "height": 1026,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770719",
+      "index": 4,
+      "file_hash": "73bfc056a1f9b4361394ed96339f8802",
+      "quality": "adapt_lower",
+      "declared_size": 16187693,
+      "http_requests": 3,
+      "bytes_read": 256240,
+      "attempts": [],
+      "actual_size": 16187693,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 256216,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1026,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770719",
+      "index": 5,
+      "file_hash": "ab7f55d1fb98d16fc1b59c3c8f7758d6",
+      "quality": "adapt",
+      "declared_size": 18992672,
+      "http_requests": 3,
+      "bytes_read": 256240,
+      "attempts": [],
+      "actual_size": 18992672,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 256216,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1026,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770719",
+      "index": 6,
+      "file_hash": "62f0a2fc6b9e15e18dc2f4eb85e3513a",
+      "quality": "low",
+      "declared_size": 34270717,
+      "http_requests": 3,
+      "bytes_read": 255549,
+      "attempts": [],
+      "actual_size": 34270717,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 255525,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbqncrvog65l6dmpd7rg"
+      ],
+      "media": {
+        "duration_seconds": 309.639,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 720,
+            "height": 1282,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 0,
+      "file_hash": "2e2ff7e972df70b6e979cce06d32daab",
+      "quality": "adapt_lowest",
+      "declared_size": 32811564,
+      "http_requests": 3,
+      "bytes_read": 223771,
+      "attempts": [],
+      "actual_size": 32811564,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 223747,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1280,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 1,
+      "file_hash": "252e15a3ef3b04d53f51092215ca8df0",
+      "quality": "low",
+      "declared_size": 42831969,
+      "http_requests": 3,
+      "bytes_read": 222119,
+      "attempts": [],
+      "actual_size": 42831969,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 222095,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 2,
+      "file_hash": "39aceb3d057864ed7d3a78b11853e1d2",
+      "quality": "adapt_low",
+      "declared_size": 30297915,
+      "http_requests": 3,
+      "bytes_read": 222310,
+      "attempts": [],
+      "actual_size": 30297915,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 222286,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 4,
+      "file_hash": "47294bd88c58e43d6bcbc32f62ab1487",
+      "quality": "low",
+      "declared_size": 48007371,
+      "http_requests": 3,
+      "bytes_read": 221631,
+      "attempts": [],
+      "actual_size": 48007371,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 32,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 221607,
+          "offset": 32
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 720,
+            "height": 1280,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 6,
+      "file_hash": "58ea69ff08b8b7aeb6ab19f92762eb0c",
+      "quality": "adapt",
+      "declared_size": 27184562,
+      "http_requests": 3,
+      "bytes_read": 223771,
+      "attempts": [],
+      "actual_size": 27184562,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 223747,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    },
+    {
+      "case": "770467",
+      "index": 7,
+      "file_hash": "225beca08798b4c0c0212b75b4e22565",
+      "quality": "adapt_lower",
+      "declared_size": 23609365,
+      "http_requests": 3,
+      "bytes_read": 223771,
+      "attempts": [],
+      "actual_size": 23609365,
+      "atoms": [
+        {
+          "kind": "ftyp",
+          "size": 28,
+          "offset": 0
+        },
+        {
+          "kind": "moov",
+          "size": 223747,
+          "offset": 28
+        }
+      ],
+      "embedded_vids": [
+        "v02033g10000dbm873fog65puos79er0"
+      ],
+      "media": {
+        "duration_seconds": 266.534,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "used_address": "main_url"
+    }
+  ],
+  "metadata_totals": {
+    "new_objects_successful": 20,
+    "bytes_read": 3655333,
+    "successful_range_requests": 60,
+    "initial_connection_failures_recovered_by_issued_backup": 3,
+    "additional_known_largest_normals_from_prior_evidence": 2,
+    "new_vid_beyond_current_and_known_embedded": false
+  },
+  "configured_login_context_available": false,
+  "parallel_audits": {
+    "web_player": "round8-20261116/web-player/FINDINGS.md",
+    "dcar_scope": "round8-20261116/dcar-scope/FINDINGS.md",
+    "metadata_auth": "round8-20261116/auth-context/FINDINGS.md"
+  }
+}

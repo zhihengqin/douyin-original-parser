@@ -4,6 +4,7 @@ import concurrent.futures
 import hashlib
 import io
 import json
+import os
 import struct
 import tempfile
 import time
@@ -12,7 +13,9 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
-from original_parser.client import (OriginalParser, ParseError, id_from_url, load_credentials,
+from original_parser.client import (EXTERNAL_ASSET_PROVENANCE, OFFICIAL_PROVENANCE, OriginalParser,
+                                    ParseError, _read_original_records, _remember_original_record,
+                                    _valid_original_record, id_from_url, load_credentials,
                                     signed_headers, signed_query)
 from original_parser import guest
 from original_parser.codec import decode_url
@@ -289,6 +292,24 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(request.call_count, 2)
         decode.assert_not_called()
 
+    def test_hdr_source_work_reports_platform_not_listing_original(self):
+        response = payload()
+        row = response["video_info"]["data"]["video_list"]["video_1"]
+        row.update({"quality": "normal", "vwidth": 720, "vheight": 1280})
+        row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
+        for flag, expected in ((1, True), (0, False), (None, False)):
+            work = detail()
+            work["video"]["is_source_HDR"] = flag
+            with self.subTest(flag=flag), OriginalParser(auto_guest=False) as parser:
+                with patch.object(parser, "_json", return_value=response):
+                    with self.assertRaises(ParseError) as caught:
+                        parser.source_streams(work)
+            message = str(caught.exception)
+            self.assertEqual(caught.exception.code, "source_unavailable")
+            self.assertIn("未返回 original/source 原画档位", message)
+            self.assertEqual("is_source_HDR=1" in message, expected)
+
     def test_source_failure_diagnostics_distinguish_selection_and_address_failures(self):
         cases = {
             "empty": (None, "未返回有效的视频档位"),
@@ -427,6 +448,169 @@ class ParserTests(unittest.TestCase):
         get.assert_not_called()
         self.assertEqual(caught.exception.code, "source_unavailable")
 
+    def test_external_asset_provenance_is_opt_in_only(self):
+        """外部资产哈希来源无法由作品 ID 推出，默认不得参与生产取址。"""
+        record = {
+            "aweme_id": AWEME, "video_id": VID, "file_id": VID,
+            "file_hash": "b" * 32, "size": 123456,
+            "width": 1920, "height": 1080, "duration_seconds": 175.148,
+            "verified_by": EXTERNAL_ASSET_PROVENANCE,
+        }
+        body = b"\x00\x00\x00\x10ftypisom0000"
+        dispatch = Response(body, status=206, url="https://v11.douyinvod.com/original.mp4",
+                            headers={"Content-Range": "bytes 0-15/123456"})
+        normal = payload()
+        normal_row = normal["video_info"]["data"]["video_list"]["video_1"]
+        normal_row.update({"quality": "normal", "size": 60000000})
+        normal_row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
+
+        # 默认关闭：真实读取函数必须丢弃该记录，且不触发分发请求。
+        with patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": ""}):
+            self.assertFalse(_valid_original_record(record))
+            with tempfile.TemporaryDirectory() as folder:
+                path = Path(folder) / "metadata.json"
+                path.write_text(json.dumps({"version": 1, "records": [record]}), encoding="utf-8")
+                with patch("original_parser.client._original_metadata_path", return_value=path):
+                    self.assertEqual(_read_original_records(path), {})
+            with OriginalParser(auto_guest=False) as parser, \
+                    patch.object(parser, "_json", return_value=normal), \
+                    patch.object(parser, "_get") as get:
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail())
+            get.assert_not_called()
+            self.assertEqual(caught.exception.code, "source_unavailable")
+
+        # 显式开启后可用，但仍须通过官方分发与媒体校验。
+        with patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": "1"}):
+            self.assertTrue(_valid_original_record(record))
+            with OriginalParser(auto_guest=False) as parser, \
+                    patch("original_parser.client._read_original_records",
+                          return_value={AWEME: record}), \
+                    patch.object(parser, "_json", return_value=normal), \
+                    patch.object(parser, "_get", return_value=dispatch) as get:
+                _, candidates = parser.source_streams(detail())
+        self.assertEqual(candidates[0]["source_evidence"], "official_play_hash")
+        get.assert_called_once()
+
+        # 任意自定义 verified_by 一律拒绝，与开关无关。
+        with patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": "1"}):
+            self.assertFalse(_valid_original_record(dict(record, verified_by="handwritten_note")))
+
+    def test_allow_external_flag_replaces_env_and_hints_when_blocked(self):
+        """实例参数也能放行；未放行时失败原因必须告诉调用方怎么取到。"""
+        record = {
+            "aweme_id": AWEME, "video_id": VID, "file_id": VID,
+            "file_hash": "b" * 32, "size": 123456,
+            "width": 1920, "height": 1080, "duration_seconds": 175.148,
+            "verified_by": EXTERNAL_ASSET_PROVENANCE,
+        }
+        dispatch = Response(b"\x00\x00\x00\x10ftypisom0000", status=206,
+                            url="https://v11.douyinvod.com/original.mp4",
+                            headers={"Content-Range": "bytes 0-15/123456"})
+        normal = payload()
+        normal_row = normal["video_info"]["data"]["video_list"]["video_1"]
+        normal_row.update({"quality": "normal", "size": 60000000})
+        normal_row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51-ce/")
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "metadata.json"
+            path.write_text(json.dumps({"version": 1, "records": [record]}), encoding="utf-8")
+            with patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": ""}), \
+                    patch("original_parser.client._original_metadata_path", return_value=path):
+                # 实例参数放行，不依赖环境变量
+                with OriginalParser(auto_guest=False,
+                                    allow_external_asset_recovery=True) as parser, \
+                        patch.object(parser, "_json", return_value=normal), \
+                        patch.object(parser, "_get", return_value=dispatch) as get:
+                    _, candidates = parser.source_streams(detail())
+                self.assertEqual(candidates[0]["source_evidence"], "official_play_hash")
+                get.assert_called_once()
+
+                # 默认不放行：失败原因要给出可执行提示，且不触发分发请求
+                with OriginalParser(auto_guest=False) as parser, \
+                        patch.object(parser, "_json", return_value=normal), \
+                        patch.object(parser, "_get") as get:
+                    with self.assertRaises(ParseError) as caught:
+                        parser.source_streams(detail())
+                get.assert_not_called()
+                self.assertIn("--allow-external", str(caught.exception))
+                self.assertIn("原片身份记录", str(caught.exception))
+
+                # 显式 False 的优先级高于环境变量
+                with patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": "1"}):
+                    with OriginalParser(auto_guest=False,
+                                        allow_external_asset_recovery=False) as parser, \
+                            patch.object(parser, "_json", return_value=normal), \
+                            patch.object(parser, "_get") as get:
+                        with self.assertRaises(ParseError):
+                            parser.source_streams(detail())
+                get.assert_not_called()
+
+    def test_remember_original_record_keeps_external_rows_on_write(self):
+        """写新记录不能把默认被策略挡住的外部来源记录一起丢掉。"""
+        external = {
+            "aweme_id": "7707993970332290314", "video_id": VID, "file_id": VID,
+            "file_hash": "b" * 32, "size": 123456, "width": 720, "height": 1280,
+            "duration_seconds": 326.937, "verified_by": EXTERNAL_ASSET_PROVENANCE,
+        }
+        incoming = {
+            "aweme_id": AWEME, "video_id": VID, "file_id": VID,
+            "file_hash": "c" * 32, "size": 654321, "width": 1920, "height": 1080,
+            "duration_seconds": 175.148, "verified_by": OFFICIAL_PROVENANCE,
+        }
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.dict(os.environ, {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": ""}):
+            path = Path(folder) / "metadata.json"
+            path.write_text(json.dumps({"version": 1, "records": [external]}), encoding="utf-8")
+            with patch("original_parser.client._original_metadata_path", return_value=path):
+                self.assertEqual(_read_original_records(path), {})
+                _remember_original_record(incoming)
+                rows = json.loads(path.read_text(encoding="utf-8"))["records"]
+                keep = _read_original_records(path, allow_external=True)
+                blocked = _read_original_records(path)
+            self.assertEqual({row["aweme_id"] for row in rows},
+                             {external["aweme_id"], incoming["aweme_id"]})
+            self.assertEqual(keep[external["aweme_id"]]["file_hash"], external["file_hash"])
+            self.assertEqual(keep[incoming["aweme_id"]]["file_hash"], incoming["file_hash"])
+            self.assertNotIn(external["aweme_id"], blocked)
+            self.assertEqual(blocked[incoming["aweme_id"]]["file_hash"], incoming["file_hash"])
+
+    def test_register_rejects_platform_transcode_address(self):
+        """登记只接受原片：大小等于详情里的转码档时必须拒绝。"""
+        custom = {"aweme_id": AWEME, "video": {
+            "play_addr": {"uri": VID, "data_size": 60000000}, "duration": 175148}}
+        media = {"duration_seconds": 175.148, "has_video": True, "has_audio": True,
+                 "tracks": [{"type": "vide", "width": 1920, "height": 1080, "codec": "avc1"}]}
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser, "detail", return_value=custom), \
+                patch.object(parser, "_media_head",
+                             return_value=(60000000, "https://v11.douyinvod.com/x.mp4", None)), \
+                patch("original_parser.client.inspect_mp4", return_value=media):
+            with self.assertRaises(ParseError) as caught:
+                parser.register_external_original(f"https://www.douyin.com/video/{AWEME}",
+                                                  "https://v11.douyinvod.com/x.mp4")
+        self.assertEqual(caught.exception.code, "identity_mismatch")
+        self.assertIn("转码档", str(caught.exception))
+
+    def test_register_rejects_duration_mismatch(self):
+        """时长与作品详情对不上的地址不是该作品的原片。"""
+        custom = {"aweme_id": AWEME, "video": {
+            "play_addr": {"uri": VID, "data_size": 60000000}, "duration": 175148}}
+        media = {"duration_seconds": 300.0, "has_video": True, "has_audio": True,
+                 "tracks": [{"type": "vide", "width": 1920, "height": 1080, "codec": "avc1"}]}
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser, "detail", return_value=custom), \
+                patch.object(parser, "_media_head",
+                             return_value=(99000000, "https://v11.douyinvod.com/x.mp4", None)), \
+                patch("original_parser.client.inspect_mp4", return_value=media):
+            with self.assertRaises(ParseError) as caught:
+                parser.register_external_original(f"https://www.douyin.com/video/{AWEME}",
+                                                  "https://v11.douyinvod.com/x.mp4")
+        self.assertEqual(caught.exception.code, "identity_mismatch")
+        self.assertIn("时长", str(caught.exception))
+
     def test_source_diagnostics_do_not_expose_upstream_secrets(self):
         markers = ("secret-query-token", "secret-key-seed", "secret-quality-value")
         for fields in ({"main_url": "https://untrusted.example/video?token=" + markers[0]},
@@ -526,6 +710,100 @@ class ParserTests(unittest.TestCase):
                     parser.download(stale, Path(folder) / "video.mp4")
                     resolve.assert_called_once_with(AWEME)
                     self.assertEqual(download.call_args.args[0], fresh)
+
+
+def detail_with_gears(duration_ms=2000):
+    """带转码档位尺寸的详情：默认档探测靠这些尺寸判定返回的是不是原片。"""
+    item = detail()
+    item["video"].update({
+        "duration": duration_ms,
+        "is_source_HDR": 1,
+        "play_addr": {"uri": VID, "data_size": 45992041},
+        "bit_rate": [{"play_addr": {"data_size": 45992041}},
+                     {"play_addr": {"data_size": 68568404}}],
+        "download_addr": {"data_size": 68568404},
+    })
+    return item
+
+
+def play_default_response(size=140778272, *, status=206):
+    url = ("https://v95-aw-chd.douyinvod.com/x/tos-cn-v-0051/key/"
+           "?mime_type=video_mp4&x-expires=1794813615")
+    headers = {"Content-Range": f"bytes 0-15/{size}"} if status == 206 else {}
+    return Response(b"\x00\x00\x00\x10ftypisom0000", status=status, headers=headers, url=url)
+
+
+class PlayDefaultTests(unittest.TestCase):
+    """官方 play 默认档：平台登记了默认档时，只凭 video_id 就能拿到上传原片。"""
+
+    def _fail_twice(self, parser):
+        """fplay 两次都只返回转码档（和真机 HDR 作品一致）。"""
+        response = payload()
+        row = response["video_info"]["data"]["video_list"]["video_1"]
+        row.update({"quality": "normal", "size": 68568404, "vwidth": 1280, "vheight": 720})
+        row["main_url"] = FIXTURE["decoded_url"].replace(
+            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51/")
+        return patch.object(parser, "_json", side_effect=[response, copy.deepcopy(response)])
+
+    def test_default_ratio_resolves_original_without_any_file_hash(self):
+        with OriginalParser(auto_guest=False) as parser:
+            with self._fail_twice(parser), \
+                    patch.object(parser, "_get", return_value=play_default_response()) as get:
+                _, candidates = parser.source_streams(detail_with_gears())
+        candidate = candidates[0]
+        self.assertEqual(candidate["size"], 140778272)
+        self.assertEqual(candidate["source_evidence"], "official_play_default")
+        self.assertEqual(candidate["official_quality"], "original")
+        self.assertEqual((candidate["width"], candidate["height"]), (0, 0))
+        params = parse_qs(urlsplit(get.call_args.args[0]).query)
+        self.assertEqual(urlsplit(get.call_args.args[0]).netloc, "www.douyin.com")
+        self.assertEqual(params["video_id"], [VID])
+        self.assertEqual(params["ratio"], ["default"])
+        self.assertEqual(params["source"], ["PackSourceEnum_PUBLISH"])
+        self.assertEqual(params["is_play_url"], ["1"])
+        self.assertTrue(params["a_bogus"][0])
+
+    def test_default_ratio_rejects_transcode_sized_payload(self):
+        with OriginalParser(auto_guest=False) as parser:
+            with self._fail_twice(parser), \
+                    patch.object(parser, "_get", return_value=play_default_response(68568404)):
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail_with_gears())
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        self.assertIn("与某个转码档字节数完全相同", str(caught.exception))
+
+    def test_default_ratio_absent_reports_404_in_diagnostics(self):
+        with OriginalParser(auto_guest=False) as parser:
+            with self._fail_twice(parser), \
+                    patch.object(parser, "_get", return_value=play_default_response(status=404)):
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail_with_gears())
+        message = str(caught.exception)
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        self.assertIn("未返回 original/source 原画档位", message)
+        self.assertIn("默认档接口返回 HTTP 404", message)
+
+    def test_default_ratio_is_skipped_when_transcode_sizes_are_unknown(self):
+        with OriginalParser(auto_guest=False) as parser:
+            with self._fail_twice(parser), patch.object(parser, "_get") as get:
+                with self.assertRaises(ParseError) as caught:
+                    parser.source_streams(detail())
+        get.assert_not_called()
+        self.assertIn("默认档无法判定", str(caught.exception))
+
+    def test_probe_backfills_geometry_for_unlabelled_original(self):
+        content = mp4()
+        candidate = {"urls": ["https://v11.douyinvod.com/original"], "size": len(content),
+                     "width": 0, "height": 0, "duration_seconds": 2}
+
+        def get(url, *, headers):
+            start, end = map(int, headers["Range"][6:].split("-"))
+            return Response(content[start:end + 1], status=206, url=url,
+                            headers={"Content-Range": f"bytes {start}-{end}/{len(content)}"})
+
+        with OriginalParser() as parser, patch.object(parser, "_get", side_effect=get):
+            parser.probe(candidate)
+        self.assertEqual((candidate["width"], candidate["height"]), (1920, 1080))
 
 
 class MediaTests(unittest.TestCase):

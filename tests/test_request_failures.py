@@ -5,6 +5,8 @@ import types
 import unittest
 from unittest.mock import MagicMock, patch
 
+import requests
+
 from original_parser import browser_detail, client
 from original_parser.client import OriginalParser, ParseError, resolve_id_local
 
@@ -39,6 +41,32 @@ class HttpResponse:
 
 
 class RequestFailureTests(unittest.TestCase):
+    def test_streaming_json_failure_reports_network_error_without_guest_refresh(self):
+        # requests can return HTTP 200 before a timeout or broken chunk occurs
+        # during iter_content. A partial JSON body is not an empty response.
+        for error_type in (requests.ConnectionError, requests.ReadTimeout,
+                           requests.exceptions.ChunkedEncodingError):
+            with self.subTest(error_type=error_type.__name__), \
+                    OriginalParser(cookies={"UIFID_TEMP": "visitor"}) as parser:
+                response = HttpResponse(200, b"")
+                failure = error_type("private signed URL and credentials")
+
+                def broken_body(_):
+                    yield b'{"aweme_detail":'
+                    raise failure
+
+                response.iter_content = broken_body
+                with patch.object(parser, "_get", return_value=response) as request, \
+                        patch.object(client, "get_guest") as refresh:
+                    with self.assertRaises(ParseError) as caught:
+                        parser.detail(AWEME)
+                self.assertEqual(caught.exception.code, "network_error")
+                self.assertIs(caught.exception.__cause__, failure)
+                self.assertNotIn("private", str(caught.exception))
+                self.assertEqual(request.call_count, 1)
+                refresh.assert_not_called()
+                self.assertTrue(response.closed)
+
     def test_upstream_http_failures_keep_distinct_circuit_breaker_codes(self):
         cases = (
             (200, b"", "upstream_empty_response"),

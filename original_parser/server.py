@@ -22,7 +22,8 @@ def public_result(result: dict) -> dict:
 
 
 def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
-          detail_mode="http", browser_profile="windows", guard_config=None):
+          detail_mode="http", browser_profile="windows", guard_config=None,
+          allow_external_asset_recovery=None):
     if not 1 <= max_concurrent <= 32:
         raise ValueError("同时受理的 HTTP 请求数必须在 1 到 32 之间")
     if detail_mode not in ("http", "browser") or browser_profile not in ("current", "native", "windows"):
@@ -105,7 +106,8 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                     with OriginalParser(cookies=cookies, user_agent=user_agent,
                                         auto_guest=cookie_file is None,
                                         detail_mode=detail_mode, browser_profile=browser_profile,
-                                        refresh_guest_on_rejection=False) as parser:
+                                        refresh_guest_on_rejection=False,
+                                        allow_external_asset_recovery=allow_external_asset_recovery) as parser:
                         return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
 
                 result = guard.run(key, parse_once, force_refresh=force_refresh)
@@ -128,6 +130,8 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
             print(f"原画解析服务：http://{host}:{port}，最多受理 {max_concurrent} 个请求，上游串行，按 Ctrl+C 停止", flush=True)
             logger.info("detail_mode=%s browser_profile=%s credential_mode=%s", detail_mode, browser_profile,
                         "external_file" if cookie_file else "auto_guest")
+            logger.info("external_asset_recovery=%s",
+                        "env" if allow_external_asset_recovery is None else allow_external_asset_recovery)
             logger.info("protection interval=%s-%ss cache_ttl=%ss pending=%s wait=%ss threshold=%s cooldown=%ss",
                         config.interval_range[0], config.interval_range[1],
                         config.cache_ttl, config.max_pending,

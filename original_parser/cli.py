@@ -33,8 +33,15 @@ def main(argv=None):
     ap.add_argument("--json", type=Path, dest="json_path", help="保存完整解析结果")
     ap.add_argument("--url-only", action="store_true", help="仅在控制台输出播放地址")
     ap.add_argument("--no-probe", action="store_true", help="跳过远程 MP4 大小和轨道校验")
+    ap.add_argument("--allow-external", action="store_true", dest="allow_external",
+                    help="允许使用本地已核对过的外部来源原片身份（仍需官方分发重签与媒体校验）；"
+                         "等价于设置 DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1")
     ap.add_argument("--cookie-file", type=Path,
                     help="Cookie 文件或 dtk-parse credentials.json（当前抖音接口需要 UIFID_TEMP）")
+    ap.add_argument("--register-original", metavar="原片直链",
+                    help="把一条已有的原片直链核验后登记为本地原片身份记录：核对它是完整 MP4、"
+                         "时长与作品详情一致、不是平台转码档，再用整文件 MD5 打官方分发确认平台认可。"
+                         "登记后属于外部来源，仍需 --allow-external 才参与取址")
     ap.add_argument("--detail-mode", choices=("http", "browser"), default="http",
                     help="详情获取方式；升级时保持原服务使用的模式")
     ap.add_argument("--browser-profile", choices=("current", "native", "windows"), default="windows")
@@ -68,7 +75,8 @@ def main(argv=None):
             if args.cookie_file:
                 load_credentials(args.cookie_file)
             serve(args.host, args.port, max_concurrent=args.max_concurrent, cookie_file=args.cookie_file,
-                  detail_mode=args.detail_mode, browser_profile=args.browser_profile, guard_config=config)
+                  detail_mode=args.detail_mode, browser_profile=args.browser_profile, guard_config=config,
+                  allow_external_asset_recovery=args.allow_external or None)
             return 0
         except (ParseError, OSError, ValueError) as exc:
             print(json.dumps({"code": getattr(exc, "code", "local_error"), "msg": str(exc), "data": None},
@@ -78,11 +86,24 @@ def main(argv=None):
         ap.error("请提供视频链接，或使用 --serve 启动本地服务")
     if args.reference and not args.download:
         ap.error("--reference 需要同时指定 --download，完整下载后才能验证文件一致性")
+    if args.register_original and (args.download or args.reference or args.json_path or args.no_probe):
+        ap.error("--register-original 只做身份登记，不能与 --download/--reference/--json/--no-probe 同用")
     try:
         cookies, user_agent = load_credentials(args.cookie_file) if args.cookie_file else ({}, None)
         with OriginalParser(cookies=cookies if args.cookie_file else None, user_agent=user_agent,
                             auto_guest=args.cookie_file is None, detail_mode=args.detail_mode,
-                            browser_profile=args.browser_profile) as parser:
+                            browser_profile=args.browser_profile,
+                            allow_external_asset_recovery=args.allow_external or None) as parser:
+            if args.register_original:
+                outcome = parser.register_external_original(args.url, args.register_original)
+                record = outcome["record"]
+                print(f"已登记原片身份：{record['aweme_id']}")
+                print(f"大小：{record['size']:,} 字节（{record['size']/1_000_000:.2f} MB），"
+                      f"{record['width']}×{record['height']}，{record['duration_seconds']:.3f} 秒")
+                print(f"整文件 MD5：{record['file_hash']}")
+                print("官方分发复核：通过（用该 MD5 重签，返回同大小可读 MP4）")
+                print("来源标记：外部资产（默认策略不参与取址；加 --allow-external 后该作品可直接取到原画）")
+                return 0
             result = parser.parse(args.url, with_probe=not args.no_probe)
             if args.download:
                 parser.download(result, args.download, reference=args.reference)

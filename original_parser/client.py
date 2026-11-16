@@ -26,6 +26,30 @@ MAX_JSON_BYTES = 8 * 1024 * 1024
 logger = logging.getLogger(__name__)
 GUEST_RETRY_CODES = frozenset(("credentials_required", "credentials_rejected",
                                "upstream_empty_response", "upstream_non_json"))
+# 可信原片记录的来源标记。两种都必须已完成官方入口分发确认与 MP4 媒体校验：
+#   official_fplay_and_mp4_probe          官方 fplay 直接下发 original/source 档位
+#                                         （身份由平台自己给出，默认参与生产）
+#   official_play_hash_from_verified_asset 外部资产哈希经官方分发重签并核对
+#                                         （仅历史补救用，默认不参与，需显式开启；
+#                                          它无法由作品 ID 自身推出，不属于首次发现）
+OFFICIAL_PROVENANCE = "official_fplay_and_mp4_probe"
+EXTERNAL_ASSET_PROVENANCE = "official_play_hash_from_verified_asset"
+# 官方 /aweme/v1/play/ 的默认档（ratio=default）直接 302 到上传原片，
+# 只需作品自己的 video_id，不需要任何整文件哈希。
+PLAY_DEFAULT_PROVENANCE = "official_play_default_and_mp4_probe"
+VERIFIED_PROVENANCE = frozenset((OFFICIAL_PROVENANCE, EXTERNAL_ASSET_PROVENANCE, PLAY_DEFAULT_PROVENANCE))
+PLAY_URL = "https://www.douyin.com/aweme/v1/play/"
+
+
+def _external_asset_recovery_enabled(allow_external: bool | None = None) -> bool:
+    """外部资产哈希恢复默认关闭，避免把非平台下发的身份当常规取址。
+
+    allow_external 为 True/False 时按调用方显式选择；None 时跟随环境变量。
+    """
+    if allow_external is not None:
+        return bool(allow_external)
+    return os.environ.get("DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY", "").strip().lower() in (
+        "1", "true", "yes")
 _ORIGINAL_METADATA_LOCK = threading.Lock()
 _DEFAULT_ORIGINAL_METADATA = Path(__file__).resolve().parents[1] / "original_metadata.json"
 PLATFORM_HOSTS = ("douyin.com", "iesdouyin.com")
@@ -59,7 +83,7 @@ def _original_metadata_path() -> Path:
     return Path(configured).expanduser() if configured else _DEFAULT_ORIGINAL_METADATA
 
 
-def _valid_original_record(record: object) -> bool:
+def _valid_original_record(record: object, allow_external: bool | None = None) -> bool:
     if not isinstance(record, dict):
         return False
     if not re.fullmatch(r"\d{15,22}", str(record.get("aweme_id") or "")):
@@ -70,7 +94,10 @@ def _valid_original_record(record: object) -> bool:
         return False
     if not re.fullmatch(r"[a-zA-Z0-9_-]{10,128}", str(record.get("file_id") or "")):
         return False
-    if record.get("verified_by") != "official_fplay_and_mp4_probe":
+    provenance = record.get("verified_by")
+    if provenance not in VERIFIED_PROVENANCE:
+        return False
+    if provenance == EXTERNAL_ASSET_PROVENANCE and not _external_asset_recovery_enabled(allow_external):
         return False
     try:
         size = int(record.get("size") or 0)
@@ -82,7 +109,8 @@ def _valid_original_record(record: object) -> bool:
     return size > 0 and width > 0 and height > 0 and duration > 0
 
 
-def _read_original_records(path: Path | None = None) -> dict[str, dict]:
+def _read_original_records(path: Path | None = None,
+                           allow_external: bool | None = None) -> dict[str, dict]:
     paths = [path] if path is not None else [_DEFAULT_ORIGINAL_METADATA]
     configured = _original_metadata_path()
     if configured not in paths:
@@ -96,17 +124,20 @@ def _read_original_records(path: Path | None = None) -> dict[str, dict]:
         rows = raw.get("records") if isinstance(raw, dict) else raw
         if isinstance(rows, list):
             records.update({str(row["aweme_id"]): dict(row)
-                            for row in rows if _valid_original_record(row)})
+                            for row in rows if _valid_original_record(row, allow_external)})
     return records
 
 
-def _remember_original_record(record: dict, path: Path | None = None) -> None:
+def _remember_original_record(record: dict, path: Path | None = None,
+                              allow_external: bool | None = None) -> None:
     """保存已完成官方媒体校验的原画元数据，不保存临时签名 URL。"""
-    if not _valid_original_record(record):
+    if not _valid_original_record(record, allow_external):
         return
     path = path or _original_metadata_path()
     with _ORIGINAL_METADATA_LOCK:
-        rows = _read_original_records(path)
+        # 重写整个文件时必须把所有已存记录都读出来（含默认被策略挡住的外部来源记录），
+        # 否则一次写入会把它们悄悄丢掉。
+        rows = _read_original_records(path, allow_external=True)
         rows[str(record["aweme_id"])] = dict(record)
         payload = {"version": 1, "records": sorted(rows.values(), key=lambda row: row["aweme_id"])}
         temporary = None
@@ -211,13 +242,19 @@ class OriginalParser:
     def __init__(self, *, timeout: float = 20, cookies: dict | None = None,
                  user_agent: str | None = None, auto_guest: bool = True,
                  detail_mode: str = "http", browser_profile: str = "windows",
-                 refresh_guest_on_rejection: bool = True):
+                 refresh_guest_on_rejection: bool = True,
+                 allow_external_asset_recovery: bool | None = None):
         if detail_mode not in ("http", "browser"):
             raise ValueError("detail_mode 必须是 http 或 browser")
         if browser_profile not in ("current", "native", "windows"):
             raise ValueError("browser_profile 必须是 current、native 或 windows")
         if detail_mode == "browser" and (cookies is not None or not auto_guest):
             raise ValueError("浏览器页面解析模式仅支持自动访客，不能同时指定外部 Cookie 或关闭自动访客")
+        self.allow_external_asset_recovery = allow_external_asset_recovery
+        self.catalog_blocked_external = False
+        self.play_default_note = ""
+        self._signer = None
+        self._signer_ua = None
         self.timeout = timeout
         self.detail_mode = detail_mode
         self.browser_profile = browser_profile
@@ -276,11 +313,16 @@ class OriginalParser:
             if response.status_code != 200:
                 raise ParseError("upstream_error", f"{stage}返回 HTTP {response.status_code}")
             chunks, size = [], 0
-            for chunk in response.iter_content(65536):
-                size += len(chunk)
-                if size > MAX_JSON_BYTES:
-                    raise ParseError("upstream_error", "平台 JSON 响应过大")
-                chunks.append(chunk)
+            try:
+                for chunk in response.iter_content(65536):
+                    size += len(chunk)
+                    if size > MAX_JSON_BYTES:
+                        raise ParseError("upstream_error", "平台 JSON 响应过大")
+                    chunks.append(chunk)
+            except requests.RequestException as exc:
+                # stream=True 时，HTTP 200 之后仍可能读取超时或连接中断。
+                # 丢弃不完整正文；不把网络故障当作访客失效或原画缺失。
+                raise ParseError("network_error", f"{stage}响应读取失败：{type(exc).__name__}") from exc
             raw = b"".join(chunks)
             try:
                 data = json.loads(raw)
@@ -351,6 +393,124 @@ class OriginalParser:
             raise ParseError("detail_unavailable", "平台未返回该作品详情，作品可能不可见")
         return detail
 
+    def _a_bogus_signer(self):
+        """按当前 UA 取（并缓存）a_bogus 签名器；UA 变了必须重建。"""
+        signer = self._signer
+        if signer is None or self._signer_ua != self.user_agent:
+            try:
+                from .abogus import ABogus
+            except ImportError as exc:  # gmssl 未安装
+                raise ParseError(
+                    "source_unavailable",
+                    "缺少 a_bogus 签名依赖 gmssl，请执行 pip install -r requirements.txt") from exc
+            signer = ABogus(user_agent=self.user_agent)
+            self._signer, self._signer_ua = signer, self.user_agent
+        return signer
+
+    def _a_bogus_query(self, params: dict) -> str:
+        """给 www.douyin.com 的 play 接口请求签名，返回完整查询串。"""
+        query = urlencode(params)
+        signed, _ab, _ua, _body = self._a_bogus_signer().generate_abogus(query, "")
+        return signed
+
+    @staticmethod
+    def _transcode_sizes(video: dict) -> set[int]:
+        """收集详情里已知的转码档位字节数，用于判定 default 档是不是原片。"""
+        sizes: set[int] = set()
+
+        def add(value) -> None:
+            try:
+                size = int(value or 0)
+            except (TypeError, ValueError, OverflowError):
+                return
+            if size > 0:
+                sizes.add(size)
+
+        rows = video.get("bit_rate")
+        if isinstance(rows, list):
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                add(row.get("data_size"))
+                add(row.get("size"))
+                for key in ("play_addr", "play_addr_265", "play_addr_h264"):
+                    addr = row.get(key)
+                    if isinstance(addr, dict):
+                        add(addr.get("data_size"))
+        for key in ("play_addr", "play_addr_265", "play_addr_h264", "download_addr"):
+            addr = video.get(key)
+            if isinstance(addr, dict):
+                add(addr.get("data_size"))
+        return sizes
+
+    def _play_default_candidate(self, detail: dict, video_id: str) -> dict | None:
+        """官方 /aweme/v1/play/ 的 ratio=default：平台按 video_id 直接 302 到上传原片。
+
+        这是唯一不需要任何整文件哈希的原片入口，但只在平台为该作品登记了默认档时
+        生效（未登记一律 404），且必须自己排掉"default 档其实是某个转码"的情况。
+        返回 None 表示该作品没有可用的默认档，失败原因写进 self.play_default_note。
+        """
+        self.play_default_note = ""
+        video = detail.get("video") or {}
+        transcode_sizes = self._transcode_sizes(video)
+        if not transcode_sizes:
+            # 详情没给任何转码档尺寸时无法判定 default 档是原片还是转码，不猜。
+            self.play_default_note = "；平台默认档无法判定（详情未给出任何转码档位尺寸）"
+            return None
+        try:
+            duration = int(video.get("duration") or 0) / 1000
+        except (TypeError, ValueError, OverflowError):
+            duration = 0.0
+        if duration <= 0:
+            self.play_default_note = "；平台默认档无法判定（详情未给出作品时长）"
+            return None
+        params = {"video_id": video_id, "ratio": "default", "line": "0",
+                  "is_play_url": "1", "watermark": "0",
+                  "source": "PackSourceEnum_PUBLISH"}
+        url = PLAY_URL + "?" + self._a_bogus_query(params)
+        headers = {"Range": "bytes=0-15", "Accept-Encoding": "identity",
+                   "Referer": f"https://www.douyin.com/video/{detail.get('aweme_id', '')}"}
+        try:
+            with self._get(url, headers=headers) as response:
+                status = response.status_code
+                if status == 404:
+                    self.play_default_note = "；平台默认档接口返回 HTTP 404（该作品未登记默认原片）"
+                    return None
+                if status == 403:
+                    raise ParseError("upstream_forbidden", "官方播放接口拒绝了默认档请求（HTTP 403）")
+                if status == 429:
+                    raise ParseError("upstream_rate_limited", "官方播放接口返回 HTTP 429，请稍后重试")
+                if status not in (200, 206):
+                    raise ParseError("upstream_error", f"官方播放接口返回 HTTP {status}")
+                match = re.fullmatch(r"bytes 0-15/(\d+)", response.headers.get("Content-Range", ""))
+                first = response.raw.read(16, decode_content=False)
+                if status != 206 or not match or first[4:8] != b"ftyp":
+                    self.play_default_note = "；平台默认档不是可校验的完整 MP4"
+                    return None
+                size = int(match.group(1))
+                final_url = response.url
+                check_url(final_url, MEDIA_HOSTS)
+        except (requests.RequestException, OSError) as exc:
+            raise ParseError("network_error", "官方播放接口请求失败：" + type(exc).__name__) from exc
+        if size in transcode_sizes:
+            # 平台把某个转码档登记成了默认档：不能当原片。
+            self.play_default_note = "；平台默认档与某个转码档字节数完全相同"
+            return None
+        query = parse_qs(urlsplit(final_url).query)
+        expires_at = next((query.get(key, [None])[0] for key in
+                           ("x-expires", "expires", "x-tos-expires", "url_expire", "expire", "dy_q")
+                           if query.get(key, [None])[0]), None)
+        return {
+            "url": final_url, "urls": [final_url],
+            "quality": "source", "level": "原画（官方默认档）",
+            "official_quality": "original", "file_id": video_id,
+            "size": size, "source_evidence": "official_play_default",
+            # 原片分辨率不一定等于详情里转码档的分辨率，交给 probe 从 moov 回填。
+            "width": 0, "height": 0, "bit_rate": 0,
+            "codec": None, "fps": None, "file_hash": None,
+            "expires_at": expires_at, "duration_seconds": duration,
+        }
+
     def source_streams(self, detail: dict) -> tuple[dict, list[dict]]:
         video = detail.get("video") or {}
         model = video.get("video_model")
@@ -402,15 +562,33 @@ class OriginalParser:
             catalog_data = {"status": 10, "video_id": video_id,
                             "video_duration": catalog_candidate["duration_seconds"]}
             return catalog_data, [catalog_candidate]
+        # 再试官方 play 默认档：平台登记了默认档的作品，光凭 video_id 就能拿到
+        # 上传原片，完全不需要整文件哈希。未登记的一律 404，落到下面的失败分支。
+        play_default = self._play_default_candidate(detail, video_id)
+        if play_default is not None:
+            return ({"status": 10, "video_id": video_id,
+                     "video_duration": play_default["duration_seconds"]}, [play_default])
         if last_error is None:
             last_error = ParseError("source_unavailable", "官方接口未返回可用原画")
-        raise ParseError("source_unavailable", f"获取原画失败：{last_error}") from last_error
+        # 2026-11-16 实测：HDR 源作品（is_source_HDR=1）的 fplay 回包只有转码档，
+        # 原片档位不下发；把这项证据写进失败原因，避免把它当成参数问题继续排查。
+        hdr_note = ("（详情标记 is_source_HDR=1，即 HDR 源作品；"
+                    "平台未下发原片档位）"
+                    if str(video.get("is_source_HDR")) in ("1", "True") else "")
+        blocked_note = ("（本地已有该作品经官方重签与媒体校验的原片身份记录，"
+                        "外部来源默认屏蔽；加 --allow-external 或设置 "
+                        "DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1 即可取到原画）"
+                        if self.catalog_blocked_external else "")
+        raise ParseError("source_unavailable",
+                         f"获取原画失败：{last_error}{hdr_note}{self.play_default_note}"
+                         f"{blocked_note}") from last_error
 
-    def _catalog_original_candidate(self, detail: dict, video_id: str) -> dict | None:
-        aweme_id = str(detail.get("aweme_id") or "")
-        record = _read_original_records().get(aweme_id)
-        if record is None or record.get("video_id") != video_id:
-            return None
+    def _dispatch_official_original(self, record: dict) -> str | None:
+        """用记录里的整文件 file_hash 打官方原片分发，返回通过大小校验的最终地址。
+
+        返回 None 表示官方不认这个哈希（404、非 MP4 或大小对不上），调用方应继续失败。
+        """
+        video_id = str(record.get("video_id") or "")
         file_id = str(record.get("file_id") or video_id)
         params = {
             "video_id": video_id,
@@ -442,12 +620,147 @@ class OriginalParser:
                     return None
                 size = int(match.group(1))
                 if size != int(record["size"]):
-                    logger.info("original_metadata_rejected aweme_id=%s reason=size_mismatch", aweme_id)
+                    logger.info("original_metadata_rejected aweme_id=%s reason=size_mismatch",
+                                record.get("aweme_id"))
                     return None
                 final_url = response.url
                 check_url(final_url, MEDIA_HOSTS)
+                return final_url
         except (requests.RequestException, OSError, ValueError) as exc:
             raise ParseError("network_error", "官方原片分发接口请求失败：" + type(exc).__name__) from exc
+
+    def _media_head(self, url: str) -> tuple[int, str, str | None]:
+        """读媒体首 16 字节：返回（总字节数、最终地址、响应头里的 Content-MD5）。"""
+        with self._get(url, headers={"Range": "bytes=0-15", "Accept-Encoding": "identity"}) as response:
+            if response.status_code != 206:
+                raise ParseError("probe_failed", "该地址不支持有效的范围读取")
+            match = re.fullmatch(r"bytes 0-15/(\d+)", response.headers.get("Content-Range", ""))
+            if not match:
+                raise ParseError("probe_failed", "该地址的 Content-Range 不符合单文件语义")
+            size = int(match.group(1))
+            first = response.raw.read(16, decode_content=False)
+            if first[4:8] != b"ftyp":
+                raise ParseError("identity_mismatch", "该地址响应不是 MP4 文件")
+            final_url = response.url
+            check_url(final_url, MEDIA_HOSTS)
+            return size, final_url, response.headers.get("Content-MD5")
+
+    def _hash_media(self, url: str, size: int) -> str:
+        """流式读完整文件计算 MD5，用于缺少 Content-MD5 响应的边缘。"""
+        digest = hashlib.md5()
+        received = 0
+        with self._get(url, headers={"Accept-Encoding": "identity"}) as response:
+            if response.status_code != 200:
+                raise ParseError("probe_failed", f"下载媒体返回 HTTP {response.status_code}")
+            for chunk in response.iter_content(1 << 20):
+                digest.update(chunk)
+                received += len(chunk)
+        if received != size:
+            raise ParseError("size_mismatch", "下载字节数与声明大小不一致")
+        return digest.hexdigest()
+
+    def register_external_original(self, text: str, media_url: str) -> dict:
+        """把一条一次性原片直链核验后登记为本地原片身份记录。
+
+        只做三件事：核验该地址是完整 MP4 且与作品详情对得上、取整文件 MD5、
+        用该 MD5 打官方原片分发确认平台认可。登记后仍按外部来源对待，
+        默认策略不参与取址（需要 --allow-external）。
+        """
+        aweme_id = self.resolve_id(text)
+        check_url(media_url, MEDIA_HOSTS)
+        detail = self.detail(aweme_id)
+        video = detail.get("video") or {}
+        addr = video.get("play_addr") or {}
+        video_id = str(addr.get("uri") or "")
+        if not video_id:
+            raise ParseError("source_unavailable", "作品详情缺少视频标识，无法登记原片身份")
+        expected_duration = int(video.get("duration") or 0) / 1000
+        size, final_url, header_md5 = self._media_head(media_url)
+        logger.info("register_original_head aweme_id=%s size=%d", aweme_id, size)
+
+        def read_at(offset, count):
+            with self._get(final_url, headers={"Range": f"bytes={offset}-{offset + count - 1}"}) as r:
+                expected = f"bytes {offset}-{offset + count - 1}/{size}"
+                if r.status_code != 206 or r.headers.get("Content-Range") != expected:
+                    raise ParseError("probe_failed", "登记校验时范围读取响应不一致")
+                return r.raw.read(count, decode_content=False)
+
+        media = inspect_mp4(read_at, size)
+        if not media["has_video"] or not media["has_audio"]:
+            raise ParseError("incomplete_media", "该地址不是同时包含音视频轨道的完整 MP4")
+        video_track = next(track for track in media["tracks"] if track.get("type") == "vide")
+        if expected_duration and abs(media["duration_seconds"] - expected_duration) > 1:
+            raise ParseError("identity_mismatch",
+                             f"该地址时长 {media['duration_seconds']:.3f} 秒与作品详情 "
+                             f"{expected_duration:.3f} 秒不一致")
+        width, height = int(video_track["width"]), int(video_track["height"])
+
+        # 防止把平台自己的转码档当原片登记：转码档尺寸在详情里都是已知的。
+        declared = {int(addr.get("data_size") or 0)}
+        for gear in (video.get("play_addr_h264"), video.get("play_addr_265")):
+            declared.add(int((gear or {}).get("data_size") or 0))
+        for gear in (video.get("bit_rate") or []):
+            declared.add(int((gear.get("play_addr") or {}).get("data_size") or 0))
+        declared.discard(0)
+        if size in declared:
+            raise ParseError("identity_mismatch",
+                             f"{size:,} 字节正是详情里已有的转码档大小，该地址不是原片")
+
+        if header_md5:
+            try:
+                md5_hex = base64.b64decode(header_md5).hex()
+            except (ValueError, TypeError):
+                md5_hex = self._hash_media(final_url, size)
+        else:
+            md5_hex = self._hash_media(final_url, size)
+        if not re.fullmatch(r"[a-fA-F0-9]{32}", md5_hex):
+            raise ParseError("probe_failed", "无法取得该媒体的整文件 MD5")
+
+        record = {
+            "aweme_id": aweme_id,
+            "video_id": video_id,
+            "file_id": video_id,
+            "file_hash": md5_hex.lower(),
+            "size": size,
+            "width": width,
+            "height": height,
+            "duration_seconds": round(float(media["duration_seconds"]), 3),
+            "bit_rate": round(size * 8 / media["duration_seconds"]),
+            "codec": (video_track.get("codec") or "").lower() or None,
+            "fps": None,
+            "verified_by": EXTERNAL_ASSET_PROVENANCE,
+            "registered_from": urlsplit(final_url).netloc,
+            "registered_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        relay_url = self._dispatch_official_original(record)
+        if relay_url is None:
+            raise ParseError("source_unavailable",
+                             "官方原片分发接口不认这个整文件 MD5（未返回同大小 MP4）；"
+                             "该地址不是平台可重签的原片对象")
+        record["relay_verified"] = True
+        _remember_original_record(record, allow_external=True)
+        logger.info("register_original_saved aweme_id=%s size=%d", aweme_id, size)
+        return {"record": record, "relay_url": relay_url, "media": media}
+
+    def _catalog_original_candidate(self, detail: dict, video_id: str) -> dict | None:
+        aweme_id = str(detail.get("aweme_id") or "")
+        self.catalog_blocked_external = False
+        record = _read_original_records(
+            allow_external=self.allow_external_asset_recovery).get(aweme_id)
+        if record is None:
+            # 只在策略把已有记录挡掉时才多读一次，用于给调用方可执行的提示；
+            # 诊断/对照流程重写本方法后不会触碰 catalog。
+            if not _external_asset_recovery_enabled(self.allow_external_asset_recovery):
+                blocked = _read_original_records(allow_external=True).get(aweme_id)
+                self.catalog_blocked_external = bool(
+                    blocked is not None and blocked.get("video_id") == video_id)
+            return None
+        if record is None or record.get("video_id") != video_id:
+            return None
+        file_id = str(record.get("file_id") or video_id)
+        final_url = self._dispatch_official_original(record)
+        if final_url is None:
+            return None
         query = parse_qs(urlsplit(final_url).query)
         expires_at = next((query.get(key, [None])[0] for key in
                            ("x-expires", "expires", "url_expire", "dy_q")
@@ -601,8 +914,15 @@ class OriginalParser:
                         abs(media["duration_seconds"] - expected_duration) > 1):
                     raise ParseError("identity_mismatch", "实际 MP4 时长与视频元数据不一致")
                 video_track = next(t for t in media["tracks"] if t.get("type") == "vide")
-                if (video_track.get("width"), video_track.get("height")) != (candidate["width"], candidate["height"]):
-                    raise ParseError("identity_mismatch", "实际 MP4 分辨率与视频元数据不一致")
+                declared = (candidate.get("width"), candidate.get("height"))
+                if declared[0] and declared[1]:
+                    if (video_track.get("width"), video_track.get("height")) != declared:
+                        raise ParseError("identity_mismatch", "实际 MP4 分辨率与视频元数据不一致")
+                else:
+                    # 默认档原片的分辨率不是平台声明值，只能从 moov 回填；
+                    # 身份仍由"作品时长一致 + 字节数与转码档不同"保证。
+                    candidate["width"] = int(video_track.get("width") or 0)
+                    candidate["height"] = int(video_track.get("height") or 0)
                 candidate["url"] = final_url
                 return {"ok": True, "actual_size": size, **media}
             except (ParseError, ValueError, requests.RequestException, OSError) as exc:
@@ -646,7 +966,8 @@ class OriginalParser:
             })
         ordered = [selected] + [c for c in candidates if c is not selected]
         evidence = selected.get("source_evidence") or ""
-        message = ("原画解析成功" if evidence in ("official_quality", "official_play_hash") else
+        message = ("原画解析成功" if evidence in ("official_quality", "official_play_hash",
+                                                 "official_play_default") else
                    f"按原片桶识别为原画：{selected['level']}")
         return {"code": 0, "msg": message, "data": {
             "aweme_id": aweme_id, "desc": detail.get("desc", ""),
