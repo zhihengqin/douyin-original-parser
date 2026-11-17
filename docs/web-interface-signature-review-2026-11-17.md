@@ -13,7 +13,7 @@
 | 同样请求发两次，变则有时间/随机，不变则纯参数派生 | 只能提供线索。变化还可能来自会话、计数器、前置响应令牌；不变可能来自缓存或时间窗口。要先确认方法、原始 query/body、UA 与会话一致，再单变量改变输入。 |
 | 用 XHR/fetch URL 断点定位生成位置 | 是有效入口，但停住的是请求发起位置。Chrome 文档明确 XHR 在 `send()` 调用行暂停；签名可能已经在异步任务、SDK、Worker 或前一响应中生成，应继续追参数的写入点和来源。 |
 | 搜参数名，或搜 `headers[`、`Object.assign` | 参数名可能被动态拼接；通用赋值语句命中过宽。先确定字段位于 URL、header 还是 body，再搜索实际写入路径。 |
-| Hook `setRequestHeader` 与 `fetch` | 前者只覆盖 XHR 请求头，不能定位 URL 中的 `a_bogus`。`fetch` 可接收 `Request` 对象，也存在于 Worker；仅修改 `window.fetch` 或在 SDK 已缓存函数引用之后挂 hook 可能漏掉请求。 |
+| Hook `setRequestHeader` 与 `fetch` | 前者只能直接观察 XHR 请求头，不能直接捕获 URL 中的 `a_bogus`，其调用栈可辅助追踪请求构造位置。`fetch` 可接收 `Request` 对象，也存在于 Worker；仅修改 `window.fetch` 或在 SDK 已缓存函数引用之后挂 hook 可能漏掉请求。 |
 | 翻译为 Python/Go，或直接执行原 JS | 两条路线都可行，但必须先确定完整输入。跨语言要处理 UTF-8/UTF-16、32 位位运算、溢出、URL 编码、JSON 序列化、重复参数和顺序等差异。 |
 | 补几个 `window/navigator/document` 属性 | 只适合已查清依赖的代码。jsdom 不是完整 Chromium；代码不再报错不能证明时间、指纹、会话、WebCrypto 或其他环境语义一致。 |
 | 跟浏览器输出一致才算完成 | 字节比较要求相同算法版本、输入字节、时间、随机输入和环境。两个随机化签名可能不同但都被接受；反之，字节一致也不保证会话未过期、业务成功或返回原片。 |
