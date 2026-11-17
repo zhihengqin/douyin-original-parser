@@ -1,6 +1,7 @@
 """Regression checks for upstream restriction reporting and request reduction."""
 
 import io
+import ssl
 import types
 import unittest
 from unittest.mock import MagicMock, patch
@@ -66,6 +67,59 @@ class RequestFailureTests(unittest.TestCase):
                 self.assertEqual(request.call_count, 1)
                 refresh.assert_not_called()
                 self.assertTrue(response.closed)
+
+    def test_ssl_failure_is_classified_and_does_not_expose_signed_request(self):
+        secret = "token=private-signed-value"
+        failure = requests.exceptions.SSLError(
+            "HTTPSConnectionPool(host='www.douyin.com', port=443): "
+            "Max retries exceeded with url: /aweme/detail/?" + secret +
+            " (Caused by SSLError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed'))"
+        )
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser.session, "get", side_effect=failure) as request:
+            with self.assertRaises(ParseError) as caught:
+                parser._get("https://www.douyin.com/aweme/detail/?" + secret)
+        self.assertEqual(caught.exception.code, "network_tls_error")
+        self.assertIn("证书校验失败", str(caught.exception))
+        self.assertIn("CA", str(caught.exception))
+        self.assertNotIn(secret, str(caught.exception))
+        self.assertIs(caught.exception.__cause__, failure)
+        request.assert_called_once()
+
+    def test_streaming_ssl_failure_keeps_tls_code_and_closes_response(self):
+        response = HttpResponse(200, b"")
+        failure = requests.exceptions.SSLError(
+            "[SSL: WRONG_VERSION_NUMBER] wrong version number; token=private-signed-value"
+        )
+
+        def broken_body(_):
+            yield b'{"aweme_detail":'
+            raise failure
+
+        response.iter_content = broken_body
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser, "_get", return_value=response) as request:
+            with self.assertRaises(ParseError) as caught:
+                parser._json(client.DETAIL_URL, stage="作品详情接口")
+        self.assertEqual(caught.exception.code, "network_tls_error")
+        self.assertIn("TLS 协议与代理或对端不匹配", str(caught.exception))
+        self.assertNotIn("private-signed-value", str(caught.exception))
+        self.assertIs(caught.exception.__cause__, failure)
+        self.assertEqual(request.call_count, 1)
+        self.assertTrue(response.closed)
+
+    def test_direct_ssl_error_is_classified_at_connection_boundary(self):
+        secret = "token=private-signed-value"
+        failure = ssl.SSLError("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed")
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser.session, "get", side_effect=failure) as request:
+            with self.assertRaises(ParseError) as caught:
+                parser._get("https://www.douyin.com/aweme/detail/?" + secret)
+        self.assertEqual(caught.exception.code, "network_tls_error")
+        self.assertIn("证书校验失败", str(caught.exception))
+        self.assertNotIn(secret, str(caught.exception))
+        self.assertIs(caught.exception.__cause__, failure)
+        request.assert_called_once()
 
     def test_upstream_http_failures_keep_distinct_circuit_breaker_codes(self):
         cases = (

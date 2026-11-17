@@ -32,7 +32,10 @@ HTTP 200 空正文、非 JSON、HTTP 403/444、HTTP 429、缺失或被拒绝的�
 
 ## 升级已有的 04 服务
 
-把 `douyin-original-parser-protection-20260928.tar.gz` 上传到 04 的 `/tmp`。沿用已安装的依赖和 Chromium，无需重新运行安装脚本。以下以 root 执行，目录为 `/opt/software/python`，systemd 服务名为 `douyin-original-parser`。
+下面保留 2026-09-28 请求保护包的手动升级示例。当前版本请优先使用部署包中的
+`deploy.sh` 或 `upgrade.sh`，它们会同步服务虚拟环境的依赖并检查签名功能。
+手动更新也必须同步 `requirements.txt`，仅替换源码可能遗漏新增的 `gmssl`。
+以下以 root 执行，目录为 `/opt/software/python`，systemd 服务名为 `douyin-original-parser`。
 
 先确认压缩包可读：
 
@@ -49,6 +52,8 @@ tar -czf "$backup_path" original_parser run.py deploy/linux/start.sh
 echo "源码备份：$backup_path"
 systemctl stop douyin-original-parser
 tar -xzf /tmp/douyin-original-parser-protection-20260928.tar.gz --strip-components=1 -C /opt/software/python
+.venv/bin/python -m pip install -r requirements.txt || exit 1
+.venv/bin/python -m pip check || exit 1
 install -D -m 644 deploy/linux/request-protection.conf /etc/systemd/system/douyin-original-parser.service.d/90-request-protection.conf
 systemctl daemon-reload
 systemctl start douyin-original-parser

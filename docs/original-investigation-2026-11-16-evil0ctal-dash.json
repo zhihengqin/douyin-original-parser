@@ -1,0 +1,379 @@
+{
+  "captured_at": "2026-11-16T15:48:50.137755+00:00",
+  "scope": "Current public main and v4 source, exact consumers, and offline synthetic parser replay.",
+  "repository": "Evil0ctal/Douyin_TikTok_Download_API",
+  "main_version": "5.1.11",
+  "revisions": {
+    "main": {
+      "commit": "3c045e11aecd58ab076562f1246931b9dd5d909b",
+      "committed_at": "2026-11-09T05:34:48-08:00",
+      "tracked_changes": "",
+      "local_directory": "output/research-astar-user-hints/evil0ctal/current-source",
+      "fresh_public_clone": true
+    },
+    "v4": {
+      "commit": "42784ffc83a72a516bfe952153ad7e2a3998d16c",
+      "committed_at": "2025-10-12T15:30:31Z",
+      "tracked_changes": "",
+      "local_directory": "output/research-astar-user-hints/evil0ctal/v4-source",
+      "fresh_public_clone": true
+    }
+  },
+  "douyin_official_api_requests_by_this_branch": 0,
+  "media_requests_by_this_branch": 0,
+  "third_party_parser_service_requests": 0,
+  "production_modified": false,
+  "unknown_original_hashes_guessed": false,
+  "external_original_catalog_used": false,
+  "source_scan": {
+    "main": {
+      "directories": [
+        "src/dtk/platforms/douyin",
+        "src/dtk/media",
+        "docker/downloader"
+      ],
+      "extensions": [
+        ".py",
+        ".go"
+      ],
+      "files_scanned": 22,
+      "case_sensitive_substring_occurrences": {
+        "tos-cn-v-0051": 0,
+        "video_model": 0,
+        "dash_sep": 0,
+        "audio_list": 0,
+        "file_id": 0,
+        "file_hash": 0
+      },
+      "is_exhaustive_platform_api_audit": false
+    },
+    "v4": {
+      "directories": [
+        "crawlers/douyin"
+      ],
+      "extensions": [
+        ".py",
+        ".go"
+      ],
+      "files_scanned": 6,
+      "case_sensitive_substring_occurrences": {
+        "tos-cn-v-0051": 0,
+        "video_model": 0,
+        "dash_sep": 0,
+        "audio_list": 0,
+        "file_id": 0,
+        "file_hash": 0
+      },
+      "is_exhaustive_platform_api_audit": false
+    }
+  },
+  "findings": {
+    "detail_path": "/aweme/v1/web/aweme/detail/",
+    "aid": "6383",
+    "channel": "channel_pc_web",
+    "main_reads_media_fields": [
+      "video.play_addr",
+      "video.bit_rate[].play_addr",
+      "video.download_addr"
+    ],
+    "main_preserves_raw_detail": true,
+    "main_include_raw_can_expose_unmodeled_upstream_fields": true,
+    "main_douyin_dash_demux_or_merge_implemented": false,
+    "main_generates_0051_object_keys": false,
+    "main_derives_original_file_id_or_hash_from_vid": false,
+    "main_queries_supplemental_playback_directory": false,
+    "main_requires_original_or_source_label_to_select_url": false,
+    "main_plan_flattens_different_gears_into_fallback_mirrors": true,
+    "main_downloader_digest_is_computed_after_download": true,
+    "v4_raw_passthrough": true,
+    "v4_minimal_uri_maps_to_video_id_parameter": true,
+    "v4_minimal_ratio": "1080p",
+    "v4_minimal_hq_is_first_play_addr_with_playwm_replaced": true,
+    "v4_explicit_dash_and_mux_branch_platform": "bilibili",
+    "user_observed_0051_output_possible_via_raw_passthrough": true,
+    "user_observed_response_reproduced_live_in_this_branch": false,
+    "labels_can_be_absent_without_proving_not_original": true,
+    "unlabelled_source_proven_by_this_audit": false
+  },
+  "synthetic_replay": {
+    "upstream_commit": "3c045e11aecd58ab076562f1246931b9dd5d909b",
+    "unmodified_upstream_modules_executed": [
+      "src/dtk/platforms/douyin/parser.py",
+      "src/dtk/media/plan.py"
+    ],
+    "network_requests": 0,
+    "real_target_api_requests": 0,
+    "live_dash_or_original_verification": false,
+    "replay_python_version": "3.14.6",
+    "replay_pydantic_version": "2.14.3",
+    "full_upstream_app_or_supported_python_matrix_tested": false,
+    "cases": [
+      {
+        "case": "embedded_dash_model_beside_progressive_play_addr",
+        "kind": "synthetic_only_not_live_evidence",
+        "normalized_video_present": true,
+        "normalized_video_keys": [
+          "bitrate",
+          "format",
+          "height",
+          "size_bytes",
+          "url",
+          "urls",
+          "watermark",
+          "width"
+        ],
+        "normalized_stream_count": 0,
+        "plan_item_kinds": [
+          "video"
+        ],
+        "plan_mirror_count": 1,
+        "selected_progressive": true,
+        "selected_synthetic_dash_video": false,
+        "selected_synthetic_audio": false,
+        "embedded_model_preserved_exactly_in_raw": true,
+        "unmodeled_identity_fields_preserved_in_raw": true,
+        "original_source_labels_present": false
+      },
+      {
+        "case": "dash_shaped_url_in_play_addr_no_original_label",
+        "kind": "synthetic_only_not_live_evidence",
+        "normalized_video_present": true,
+        "normalized_video_keys": [
+          "bitrate",
+          "format",
+          "height",
+          "size_bytes",
+          "url",
+          "urls",
+          "watermark",
+          "width"
+        ],
+        "normalized_stream_count": 0,
+        "plan_item_kinds": [
+          "video"
+        ],
+        "plan_mirror_count": 1,
+        "selected_progressive": false,
+        "selected_synthetic_dash_video": true,
+        "selected_synthetic_audio": false,
+        "embedded_model_preserved_exactly_in_raw": true,
+        "unmodeled_identity_fields_preserved_in_raw": true,
+        "original_source_labels_present": false
+      }
+    ],
+    "limits": [
+      "Synthetic fixture additions test code paths only, not whether the platform currently returns these fields.",
+      "A DASH-shaped string accepted by the planner is not a media-byte or track validation.",
+      "No source hash, catalog, user credential, or third-party parser service was used."
+    ]
+  },
+  "next_steps": [
+    "Preserve response JSON paths and decode bounded JSON/base64 model fields before normalization loses them.",
+    "Build exact work_id to VID to representation/file_id/hash to bucket/object mappings from actual returned data only.",
+    "Treat separate audio/video tracks as related representations, not interchangeable mirrors.",
+    "Validate container, codec, media tracks, timebase and object identity for each candidate, even without original/source labels.",
+    "Compare unlabeled candidates with independently established official source evidence; unknown label remains unknown provenance.",
+    "Do not infer an undisclosed source object key by changing bucket or stripping a media-video suffix.",
+    "A stream-copy remux proves no additional encoding, not identity with an uploader original file."
+  ],
+  "evidence": [
+    {
+      "branch": "main",
+      "label": "detail_endpoint",
+      "path": "src/dtk/platforms/douyin/endpoints.py",
+      "first_line": 104,
+      "last_line": 104,
+      "sha256": "2e1dc1a1768ca39225a12d0c93222d5db96ae42807e637e3b6e3b34fd766f40a",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/endpoints.py#L104"
+    },
+    {
+      "branch": "main",
+      "label": "detail_endpoint_binding",
+      "path": "src/dtk/platforms/douyin/endpoints.py",
+      "first_line": 275,
+      "last_line": 282,
+      "sha256": "2e1dc1a1768ca39225a12d0c93222d5db96ae42807e637e3b6e3b34fd766f40a",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/endpoints.py#L275"
+    },
+    {
+      "branch": "main",
+      "label": "common_and_detail_query",
+      "path": "src/dtk/platforms/douyin/params.py",
+      "first_line": 104,
+      "last_line": 163,
+      "sha256": "b3c50be15e2e08a50989fdb72681d0ad01b9e0b6bb3dd318f117c372916c70f3",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/params.py#L104"
+    },
+    {
+      "branch": "main",
+      "label": "identity_fingerprint",
+      "path": "src/dtk/platforms/douyin/params.py",
+      "first_line": 66,
+      "last_line": 98,
+      "sha256": "b3c50be15e2e08a50989fdb72681d0ad01b9e0b6bb3dd318f117c372916c70f3",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/params.py#L66"
+    },
+    {
+      "branch": "main",
+      "label": "session_token_and_request_signing",
+      "path": "src/dtk/signing/native/signer.py",
+      "first_line": 185,
+      "last_line": 201,
+      "sha256": "e5f0d1e7dff69e27974fbbdc82861013960c902351471dbd9ad9493df8a3d4e6",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/signing/native/signer.py#L185"
+    },
+    {
+      "branch": "main",
+      "label": "same_visitor_web_signature",
+      "path": "src/dtk/signing/native/signer.py",
+      "first_line": 314,
+      "last_line": 343,
+      "sha256": "e5f0d1e7dff69e27974fbbdc82861013960c902351471dbd9ad9493df8a3d4e6",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/signing/native/signer.py#L314"
+    },
+    {
+      "branch": "main",
+      "label": "normalized_stream_fields",
+      "path": "src/dtk/platforms/douyin/parser.py",
+      "first_line": 224,
+      "last_line": 264,
+      "sha256": "92fa2214bac96a755caf0632415b22c1fea6ef5fb50b0eb5cbc22c4c40337d5c",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/parser.py#L224"
+    },
+    {
+      "branch": "main",
+      "label": "douyin_media_mapping",
+      "path": "src/dtk/platforms/douyin/parser.py",
+      "first_line": 306,
+      "last_line": 334,
+      "sha256": "92fa2214bac96a755caf0632415b22c1fea6ef5fb50b0eb5cbc22c4c40337d5c",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/parser.py#L306"
+    },
+    {
+      "branch": "main",
+      "label": "untouched_raw_detail",
+      "path": "src/dtk/platforms/douyin/parser.py",
+      "first_line": 403,
+      "last_line": 417,
+      "sha256": "92fa2214bac96a755caf0632415b22c1fea6ef5fb50b0eb5cbc22c4c40337d5c",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/parser.py#L403"
+    },
+    {
+      "branch": "main",
+      "label": "no_followup_request",
+      "path": "src/dtk/platforms/douyin/adapter.py",
+      "first_line": 64,
+      "last_line": 71,
+      "sha256": "d3e1e90a0af7652854c27dffccc5fe20a6aed73ae186e717d8869dc2ab1b53fd",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/platforms/douyin/adapter.py#L64"
+    },
+    {
+      "branch": "main",
+      "label": "raw_response_switch",
+      "path": "src/dtk/services/fetch.py",
+      "first_line": 950,
+      "last_line": 956,
+      "sha256": "2d0455bdc280c583294c3bc605df7e373d942dbddba49f310c77bd0e7d32f478",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/services/fetch.py#L950"
+    },
+    {
+      "branch": "main",
+      "label": "stream_contract",
+      "path": "src/dtk/models/content.py",
+      "first_line": 40,
+      "last_line": 48,
+      "sha256": "dc5f4d618d7b64a9e6c2936f3e4bddff62689addd8789ef2d6decb0262d91e09",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/models/content.py#L40"
+    },
+    {
+      "branch": "main",
+      "label": "preserve_stream_order",
+      "path": "src/dtk/media/plan.py",
+      "first_line": 178,
+      "last_line": 192,
+      "sha256": "5c0adeb3b526aebb2944e6b215c30532454d9eaac40c58bb72d4df1fe10068d6",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/media/plan.py#L178"
+    },
+    {
+      "branch": "main",
+      "label": "flatten_gears_as_mirrors",
+      "path": "src/dtk/media/plan.py",
+      "first_line": 220,
+      "last_line": 240,
+      "sha256": "5c0adeb3b526aebb2944e6b215c30532454d9eaac40c58bb72d4df1fe10068d6",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/src/dtk/media/plan.py#L220"
+    },
+    {
+      "branch": "main",
+      "label": "first_successful_download",
+      "path": "docker/downloader/download.go",
+      "first_line": 143,
+      "last_line": 164,
+      "sha256": "1e4d5a2784934d34dee8821ab986be5ec946aaadc6986cc100ef6c834d5653d1",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/docker/downloader/download.go#L143"
+    },
+    {
+      "branch": "main",
+      "label": "post_download_digest",
+      "path": "docker/downloader/download.go",
+      "first_line": 187,
+      "last_line": 213,
+      "sha256": "1e4d5a2784934d34dee8821ab986be5ec946aaadc6986cc100ef6c834d5653d1",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/3c045e11aecd58ab076562f1246931b9dd5d909b/docker/downloader/download.go#L187"
+    },
+    {
+      "branch": "v4",
+      "label": "detail_fetch_and_return",
+      "path": "crawlers/douyin/web/web_crawler.py",
+      "first_line": 88,
+      "last_line": 110,
+      "sha256": "584a54e6aeebd72afc458ca0f28708271128536e897d74ff1a9a75a2c40183d2",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/crawlers/douyin/web/web_crawler.py#L88"
+    },
+    {
+      "branch": "v4",
+      "label": "raw_api_passthrough",
+      "path": "app/api/endpoints/douyin_web.py",
+      "first_line": 37,
+      "last_line": 41,
+      "sha256": "1f9899aa864712e7abdfe0b359327fa6156cdfcd7cd919ae5a61a6ba94049c9d",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/app/api/endpoints/douyin_web.py#L37"
+    },
+    {
+      "branch": "v4",
+      "label": "nonminimal_passthrough",
+      "path": "crawlers/hybrid/hybrid_crawler.py",
+      "first_line": 69,
+      "last_line": 103,
+      "sha256": "b674fb9f3d32870a54c1e0821122ba7f4ffd598dd8078846bcd098c1ae6a2f70",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/crawlers/hybrid/hybrid_crawler.py#L69"
+    },
+    {
+      "branch": "v4",
+      "label": "douyin_uri_and_url_selection",
+      "path": "crawlers/hybrid/hybrid_crawler.py",
+      "first_line": 166,
+      "last_line": 189,
+      "sha256": "b674fb9f3d32870a54c1e0821122ba7f4ffd598dd8078846bcd098c1ae6a2f70",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/crawlers/hybrid/hybrid_crawler.py#L166"
+    },
+    {
+      "branch": "v4",
+      "label": "bilibili_only_dash_branch",
+      "path": "crawlers/hybrid/hybrid_crawler.py",
+      "first_line": 254,
+      "last_line": 285,
+      "sha256": "b674fb9f3d32870a54c1e0821122ba7f4ffd598dd8078846bcd098c1ae6a2f70",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/crawlers/hybrid/hybrid_crawler.py#L254"
+    },
+    {
+      "branch": "v4",
+      "label": "bilibili_only_audio_video_merge",
+      "path": "app/api/endpoints/download.py",
+      "first_line": 192,
+      "last_line": 213,
+      "sha256": "eaa896fb3cdb8bf6224e709e57552d8a40dfdd88868db1a9190458f4939aa4a7",
+      "public_permalink": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API/blob/42784ffc83a72a516bfe952153ad7e2a3998d16c/app/api/endpoints/download.py#L192"
+    }
+  ]
+}

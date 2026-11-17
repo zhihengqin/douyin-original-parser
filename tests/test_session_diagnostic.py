@@ -1,11 +1,15 @@
+import io
 import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from original_parser.client import ParseError
 from tools.compare_original_sessions import (
     CONTROL, DiagnosticParser, analyze_detail, comparison,
 )
+from tools import capture_login_cookies
 
 WORK = "7707196543073275177"
 VID = "v02033g10000dbqncrvog65l6dmpd7rg"
@@ -59,6 +63,46 @@ class SessionDiagnosticTests(unittest.TestCase):
         self.assertTrue(result["original_verified"])
         self.assertNotIn(SECRET, json.dumps(result))
 
+    def test_missing_source_url_records_each_requested_directory_only_once(self):
+        response = normal_payload()
+        data = response["video_info"]["data"]
+        data["video_duration"] = 2
+        data["video_list"]["video_1"].update(
+            quality="original", main_url="", vtype="mp4", vwidth=720, vheight=1280)
+        with patch.object(DiagnosticParser, "_json", return_value=response), \
+                patch.object(DiagnosticParser, "_dispatch_official_original", return_value=None), \
+                patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
+            result = analyze_detail(WORK, detail(), {}, "test")
+        self.assertEqual(result["error_code"], "source_unavailable")
+        self.assertEqual([row["selector"] for row in result["directories"]], ["original", "source"])
+        self.assertEqual(result["availability"], "inconclusive")
+        self.assertNotIn(SECRET, json.dumps(result))
+
+    def test_inline_directory_has_its_own_label_and_keeps_selector_comparison(self):
+        response = normal_payload()
+        work = detail()
+        model = json.loads(work["video"]["video_model"])
+        model.update(status=10, video_list=[{"video_meta": {"quality": "normal", "size": 123}}])
+        work["video"]["video_model"] = json.dumps(model)
+        with patch.object(DiagnosticParser, "_json", return_value=response), \
+                patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
+            result = analyze_detail(WORK, work, {}, "test")
+        self.assertEqual([row["selector"] for row in result["directories"]], ["inline", "original", "source"])
+        self.assertEqual(result["directories"][0]["rows"][0]["quality"], "normal")
+        self.assertEqual(result["availability"], "valid_directory_without_original")
+
+    def test_unusable_inline_original_is_not_reported_as_original_absent(self):
+        work = detail()
+        model = json.loads(work["video"]["video_model"])
+        model.update(status=10, video_duration=2, video_list=[{"video_meta": {
+            "quality": "original", "size": 123, "vtype": "mp4", "vwidth": 720, "vheight": 1280}}])
+        work["video"]["video_model"] = json.dumps(model)
+        with patch.object(DiagnosticParser, "_json", return_value=normal_payload()), \
+                patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
+            result = analyze_detail(WORK, work, {}, "test")
+        self.assertEqual(result["error_code"], "source_unavailable")
+        self.assertEqual(result["availability"], "inconclusive")
+
     def test_all_candidate_probe_failures_remain_inconclusive(self):
         with patch.object(DiagnosticParser, "source_streams", return_value=({}, [{}])), \
                 patch.object(DiagnosticParser, "probe", side_effect=ParseError("probe_failed", SECRET)):
@@ -96,6 +140,35 @@ class SessionDiagnosticTests(unittest.TestCase):
         phases = {"anonymous_before": phase(), "session_after_login": phase(True, session=False),
                   "anonymous_after": phase()}
         self.assertEqual(comparison(phases, [WORK])["targets"][0]["interpretation"], "inconclusive")
+
+
+class LoginCaptureTests(unittest.TestCase):
+    def test_capture_preserves_new_session_fields_and_creates_parent_directory(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch("playwright.sync_api.sync_playwright") as factory, \
+                patch("sys.stdout", new_callable=io.StringIO) as stdout:
+            output = Path(directory) / "new" / "session.json"
+            browser = factory.return_value.__enter__.return_value.chromium.launch.return_value
+            context = browser.new_context.return_value
+            context.cookies.return_value = [{"name": "sessionid", "value": SECRET},
+                                            {"name": "sid_guard", "value": "new-field-value"}]
+            self.assertEqual(capture_login_cookies.main(["capture", str(output), "1"]), 0)
+            data = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(data["cookies"], {"sessionid": SECRET, "sid_guard": "new-field-value"})
+            context.cookies.assert_called_once_with("https://www.douyin.com/")
+            self.assertNotIn(SECRET, stdout.getvalue())
+            self.assertNotIn("new-field-value", stdout.getvalue())
+            browser.close.assert_called_once()
+
+    def test_existing_credentials_are_not_overwritten_or_browser_launched(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch("playwright.sync_api.sync_playwright") as factory, \
+                patch("sys.stdout", new_callable=io.StringIO):
+            output = Path(directory) / "session.json"
+            output.write_text("keep-existing", encoding="utf-8")
+            self.assertEqual(capture_login_cookies.main(["capture", str(output)]), 2)
+            self.assertEqual(output.read_text(encoding="utf-8"), "keep-existing")
+            factory.assert_not_called()
 
 
 if __name__ == "__main__":

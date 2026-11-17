@@ -86,3 +86,42 @@ codec_type=5 或 8
 已用目标链接从新匿名会话运行上述命令，9 个 MP4 元数据读取和两个 SDK 目录都完成，重现相同两个 VID，仍无原片。回归用例覆盖不读取 catalog、结果不泄漏签名地址、拒绝大小变化/非 206/过大 moov、SDK 主机允许及外部跳转拒绝。全套检查为 `101 passed, 108 subtests passed`。
 
 当前没有通过验证的新原片候选可接入生产。缺口仍是目标自己的原片身份首次发现；现有参考资产的官方重签能力不能替代这个步骤。
+
+## 后续：PC 网页真实请求与精选移动 SSR
+
+本次继续独立研究，没有向用户索取或使用第三方解析接口信息。仅使用作品链接、官方页面正常发出的请求，以及这些响应自己包含的 VID。脱敏结果保存在 [PC 上下文证据](original-investigation-2026-11-16-pc-context-evidence.json)。
+
+此前 `browser_detail.py` 中的手动 `fetch` 固定使用 `aid=392139`，不能用它代表已经检查过 PC 自己的 `aid=6383` 请求。本次用新的匿名 Chromium 上下文正常打开目标作品页，等待页面实际初始化，捕获自然发出的 `/aweme/v1/web/aweme/detail/`：HTTP 200、status 0、作品 ID 和当前 VID 均匹配，确实使用 `aid=6383`。页面最终正常播放，实测视频为 576×1024、326.936961 秒的已知转码对象。
+
+| 同一 PC 会话 | 详情模型 | 详情码率项 |
+| --- | --- | --- |
+| 阳性 7695305664234589459 | `video_model` 空 | 27 项，没有 original/source |
+| 目标 7707993970332290314 | `video_model` 空 | 12 项：8 个普通 MP4、4 个普通 DASH，没有 original/source |
+
+因此“PC 比已有 fplay 返回更多码率项”不等于发现原片；阳性在 PC 详情中也没有原片行。目标 PC 的 MP4 均是此前已知的普通档。此前未读的两个 DASH 对象分别为 31,917,292 和 20,021,334 字节；各读取 32 KiB 样本后解析 moov，均只有 `avc1` 视频轨，没有音频轨，内嵌 VID 仍为当前 VID，没有新素材身份。样本包含首个媒体分片的一小部分，不是整文件下载或整文件哈希核验。
+
+另外，以 iPhone UA 打开官方精选移动页 `jingxuan.douyin.com/m/video/<作品ID>?app=yumme`，取得匹配目标 `gid` 和 VID 的 `_SSR_DATA` 播放模型。原样请求其 fallback 成功，但仍只有同一组 9 个普通档；没有额外原片候选。桌面 UA 会跳回普通 PC 页，不能把桌面重定向结果算作移动 SSR 测试。
+
+对页面实际加载的 99 份官方 JS 继续追踪，发现模块 `491328` 的下载处理器会以 `origin_type=download_video` 重取详情；请求模块 `529599`、包装器 `674462`、参数模块 `566538` 与来源枚举 `976619` 给出了实际调用依据。随后在新的匿名官方页面中，通过该页面已加载的原始 `g8` 包装器，分别对阳性和目标执行只读详情 GET，使用其正常 `aid=6383`、`request_source=600` 及下载来源枚举；没有伪造账号状态或更改签名算法。
+
+两份响应均 status 0、作品 ID 匹配，但 `video_model` 仍为空。目标仍是同样 12 项，`download_addr.data_size=52,471,983`，没有新增原片身份。两者 `allow_download=false`；目标明确返回 `download_info.fail_info.reason=aigc_forbidden`。网页下载入口会先要求登录，并在 `allowDownload=false` 时停止下载。本次只读详情响应不证明登录后的下载行为，也不把这个下载限制认定为 fplay 未列原片的原因。模块源码的官方 URL、SHA-256 及脱敏响应都已加入 PC 上下文证据。
+
+## 后续：补齐 codec8 的实际覆盖与结果分类
+
+`probe_codec_sweep.py` 的旧扫描跳过了 8，不能称为全值域覆盖。本次只做有既往公开实现和阳性结果依据的小范围对照，没有继续排列任意参数组合：
+
+| 请求 | 阳性 | 目标当前 VID | 目标容器观察 VID |
+| --- | --- | --- | --- |
+| 本轮网页签发 fallback，只改 `codec_type=8` | HTTP 200、status 10，528,422,694 字节 original | HTTP 200、根/内层 code 1、status 2002，无档位 | 未替换目标签名路径的 VID |
+| APK VID-only builder 加 `codec_type=8` | HTTP 200、status 10，同一 original | HTTP 200、根/内层 code 1、status 2002，无档位 | HTTP 200、根/内层 code 1、status 2002，无档位 |
+| 精选移动 SSR 自己下发的 fallback，只改 `codec_type=8` | 本轮未重复 | HTTP 200、根/内层 code 1、status 2002，无档位 | 未替换目标签名路径的 VID |
+
+这里的 codec8 仅是已验证可处理的研究输入，没有找到官方 consumer 解释枚举值的含义，不能把它命名为“官方原画/HDR/AV1 编码”。目标的 2002 与其他选择器下 status 10、仅有转码档是不同结果；该差异不能确定拒绝原因，也不证明全部官方路径都拒绝原片。
+
+对目标当前 VID 和从其 MP4 观察到的 VID，另检查已有 `ratio=default` 发布源分发；两个均 HTTP 404。阳性该路径先 302 到 `n98-v-ncdncold.douyinvod.com`，再 302 到生产白名单外的 `4b19a02d-9.sjxydc.com`，请求在此停止。因此这组默认档对照没有完成阳性媒体校验，没有把该白名单错误写成源文件不存在，也没有为此扩大生产媒体主机范围。
+
+## 诊断限额的正确性修复
+
+审查发现新 lineage 工具达到 20 对象或 4 VID 限额后，仍可能对部分扫描报告 `audit_complete=true`。现已补充 `object_limit_reached/objects_omitted`、`vid_limit_reached/vids_omitted`，按唯一身份计数；任何截断都令 `audit_complete=false`、退出码为 2。离线用例验证了恰好达到上限、超过上限以及重复身份，截断计数不会追加网络请求。
+
+该诊断修复不等于修复目标原片取址。目标实际只有 9 个媒体对象和 2 个 VID，未触发限额；本次新增官方实验也没有产生可接入生产的原片。修改后项目现有全套检查为 `108 passed, 112 subtests passed`。

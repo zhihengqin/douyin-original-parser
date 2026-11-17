@@ -1,0 +1,1083 @@
+{
+  "record_date": "2026-11-16",
+  "report_kind": "completed_bounded_experiments_with_open_target_goal",
+  "overall_goal_complete": false,
+  "original_goal": "Discover and verify original video from the work link without external original identity input.",
+  "all_douyin_interfaces_exhaustively_tested": false,
+  "desktop_target_detail_verification": {
+    "state": "real_business_ui_and_get_bridge_verified",
+    "target_aweme_id": "7708319942491344154",
+    "matching_target_detail_observed": true,
+    "five_target_original_discovery_fixed": false,
+    "original_existence_conclusion": null
+  },
+  "privacy": {
+    "credential_values_included": false,
+    "request_signature_values_included": false,
+    "complete_network_urls_included": false,
+    "raw_runtime_account_content_included": false,
+    "artifact_references_are_repository_relative": true
+  },
+  "request_integrity": {
+    "network_requests": 0,
+    "signer_executions": 0,
+    "historical_cases": 4,
+    "historical_statuses": [
+      0,
+      0,
+      8,
+      8
+    ],
+    "all_prepared_once": true,
+    "all_same_object_at_sign_and_adapter": true,
+    "all_inputs_reproduced": true,
+    "all_input_headers_unchanged": true,
+    "only_expected_host_header_added": true,
+    "all_output_header_names_disjoint_from_inputs": true,
+    "synthetic_cookiejar_mutation_preserved_prepared_request": {
+      "prepare_count": 1,
+      "cookie_value_at_send_equals_signed_input": true,
+      "new_jar_cookie_not_inserted_into_signed_request": true,
+      "same_prepared_object": true
+    },
+    "sdk_time_minus_query_seconds": [
+      1,
+      2,
+      1,
+      2
+    ],
+    "response_time_minus_sdk_seconds": [
+      4.0,
+      3.0,
+      4.0,
+      3.0
+    ],
+    "limits": [
+      "Historical actual wire bytes were not recorded; offline replay cannot retroactively prove them.",
+      "SDK-produced signature values are reused only offline; no network replay or authentication test occurred.",
+      "In-memory HTTP serialization checks header/request-target bytes, not TLS handshake identity or server behavior."
+    ],
+    "evidence": "output/research-astar-resumed/request-integrity/integrity-report.json"
+  },
+  "sdk_session_experiment": {
+    "official_app_version": "41.1.0",
+    "official_version_code": "410101",
+    "official_session_field_name": "sessionid",
+    "official_setter_operation": 33554436,
+    "official_call_branch_has_runtime_conditions": true,
+    "original_harness_missing_session_setter": true,
+    "isolated_harness_changed": true,
+    "original_harness_changed": false,
+    "production_changed_by_experiment": false,
+    "fresh_login_requested": false,
+    "endpoint_path": "/aweme/v1/series/aweme/detail/",
+    "network_requests": 4,
+    "media_requests": 0,
+    "network_rows": [
+      {
+        "role": "positive",
+        "aweme_id": "7698054262056552561",
+        "mode": "baseline",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true,
+        "session_id_update_requested": false,
+        "session_id_update_completed": false,
+        "actual_response_request_is_signed_object": true,
+        "sent_integrity": {
+          "same_prepared_object": true,
+          "url_equals_signing_input": true,
+          "input_headers_unchanged": true,
+          "signature_headers_unchanged": true,
+          "unexpected_added_header_names": [],
+          "body_empty": true,
+          "redirects_disabled": true
+        }
+      },
+      {
+        "role": "positive",
+        "aweme_id": "7698054262056552561",
+        "mode": "sdk_session",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true,
+        "session_id_update_requested": true,
+        "session_id_update_completed": true,
+        "actual_response_request_is_signed_object": true,
+        "sent_integrity": {
+          "same_prepared_object": true,
+          "url_equals_signing_input": true,
+          "input_headers_unchanged": true,
+          "signature_headers_unchanged": true,
+          "unexpected_added_header_names": [],
+          "body_empty": true,
+          "redirects_disabled": true
+        }
+      },
+      {
+        "role": "current",
+        "aweme_id": "7708319942491344154",
+        "mode": "baseline",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true,
+        "session_id_update_requested": false,
+        "session_id_update_completed": false,
+        "actual_response_request_is_signed_object": true,
+        "sent_integrity": {
+          "same_prepared_object": true,
+          "url_equals_signing_input": true,
+          "input_headers_unchanged": true,
+          "signature_headers_unchanged": true,
+          "unexpected_added_header_names": [],
+          "body_empty": true,
+          "redirects_disabled": true
+        }
+      },
+      {
+        "role": "current",
+        "aweme_id": "7708319942491344154",
+        "mode": "sdk_session",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true,
+        "session_id_update_requested": true,
+        "session_id_update_completed": true,
+        "actual_response_request_is_signed_object": true,
+        "sent_integrity": {
+          "same_prepared_object": true,
+          "url_equals_signing_input": true,
+          "input_headers_unchanged": true,
+          "signature_headers_unchanged": true,
+          "unexpected_added_header_names": [],
+          "body_empty": true,
+          "redirects_disabled": true
+        }
+      }
+    ],
+    "local_only_initialization_failures": 1,
+    "local_failure_cause": "Isolated copy initially lacked the unchanged external license file used by the original harness.",
+    "resumption_repeated_prior_http_request": false,
+    "sessions_recreated_after_local_failure": true,
+    "treatment_cases_shared_new_session": true,
+    "baseline_live_connection_lifecycle_fully_controlled": false,
+    "server_accepted_login_in_this_experiment": false,
+    "historical_positive_control_worked_in_this_experiment": false,
+    "cause_of_historical_status_change_established": false,
+    "source_existence_inference_supported": false,
+    "evidence": "output/research-astar-resumed/request-integrity/session-binding-report.json"
+  },
+  "desktop_static": {
+    "source": "Official Douyin download-page full Windows ia32 package",
+    "package_filename": "douyin-v8.8.0-win32-ia32-douyin.exe",
+    "package_bytes": 265324480,
+    "package_sha256": "f05cf9c2f8e1ef24f81f7f9855daf631ac943737f89224d11538d763a2f62037",
+    "installer_authenticode_result": "Valid",
+    "official_signer_name": "Douyin Vision Co., Ltd.",
+    "installer_executed": false,
+    "extracted_payload_files": 1025,
+    "extracted_asar_archives": 3,
+    "app_version": "8.8.0",
+    "build_id": "540056698",
+    "electron_embedded_build_identifier": "39.5.1-rs.35.release.pgo.0",
+    "chromium_embedded_build_identifier": "142.0.7444.48",
+    "separate_cronet_identifier": "Chrome/73.0.3683.86",
+    "version_basis": "Static PE resources and embedded build strings, not a runtime version API.",
+    "separate_cef_runtime_identified": false,
+    "native_addon_certificate_table_check": {
+      "asar_declared_size": 356352,
+      "actual_size": 368504,
+      "delta": 12152,
+      "certificate_table_exactly_explains_delta": true,
+      "certificate_table_ends_at_eof": true,
+      "signer_matches_official_installer_certificate": true,
+      "cms_signed_attributes_signature_verified": true,
+      "cms_content_digest_verified": true,
+      "authenticode_pe_digest_verified": true,
+      "online_revocation_checked": false,
+      "windows_trust_validation_reperformed": false
+    },
+    "readable_route_string_count": 193,
+    "route_inventory_is_execution_count": false,
+    "verified_consumer_source_excerpt_count": 9,
+    "verified_context": {
+      "security_sdk_aid": 6383,
+      "common_query": {
+        "device_platform": "webapp",
+        "aid": 6383,
+        "channel": "channel_pc_web"
+      },
+      "http_method_bridge": "GET",
+      "bridge_api": "window.TTE_ENV.bridge.invoke",
+      "credentials": true,
+      "work_detail_path": "/aweme/v1/web/aweme/detail/",
+      "work_detail_business_query": [
+        "aweme_id"
+      ],
+      "wallpaper_list_path": "/aweme/v1/web/wallpaper/item/"
+    },
+    "download_consumer": {
+      "media_url_source": "video.download_addr.url_list[0]",
+      "hash_source": "video.download_addr.file_hash",
+      "playback_url_source": "video.play_addr.url_list",
+      "bridge_method": "DOWNLOAD_WALLPAPER",
+      "bridge_data_keys": [
+        "wallpaperInfo",
+        "waitUtilDownloaded",
+        "version"
+      ],
+      "original_source_metadata_discovery_observed": false
+    },
+    "main_process_full_handlers_recovered": false,
+    "main_handler_boundary": "Native .link wrappers; readable source does not reveal the complete handler.",
+    "local_player_is_online_original_fetch_route": false,
+    "download_bridge_executed_by_static_audit": false,
+    "evidence": [
+      "output/research-astar-resumed/desktop-client/verified-consumers.json",
+      "output/research-astar-resumed/desktop-client/version-audit/client-runtime-versions.json",
+      "output/research-astar-resumed/desktop-client/full-client-signature.json"
+    ]
+  },
+  "desktop_initial_runtime": {
+    "client_launched_by_root": true,
+    "first_run_logs": [
+      {
+        "name": "stdout.private.log",
+        "bytes": 18817,
+        "lines": 496
+      },
+      {
+        "name": "stderr.private.log",
+        "bytes": 722918,
+        "lines": 6145
+      }
+    ],
+    "renderer_page_path": "/jingxuan",
+    "first_screen_time_event_local": "2026-11-16T23:17:54.186+08:00",
+    "javascript_execution_observed": true,
+    "target_playback_verified_from_logs": false,
+    "devtools_listening_event_observed": false,
+    "remote_debugging_arguments_are_listener_proof": false,
+    "matched_target_detail_body_observed": false,
+    "cache_files_read_after_client_stop": 629,
+    "cache_read_failures_after_stop": 0,
+    "cache_plaintext_marker_matching_files": 0,
+    "complete_cache_body_reconstruction_or_decompression_performed": false,
+    "cache_absence_proves_no_encoded_response": false,
+    "side_effect_snapshot": {
+      "captured_at": "2026-11-16T23:23:56.1850266+08:00",
+      "default_roaming_profile_existed_before": false,
+      "default_roaming_profile_exists_at_snapshot": false,
+      "default_local_profile_existed_before": false,
+      "default_local_profile_exists_at_snapshot": false,
+      "douyin_run_value_count_before": 0,
+      "douyin_run_value_count_at_snapshot": 0,
+      "douyin_run_change_count": 0,
+      "owned_processes_at_snapshot": 0,
+      "audit_performed_mutation": false,
+      "entire_system_side_effect_audit": false,
+      "applies_to_later_diagnostic_runs": false
+    },
+    "evidence": [
+      "output/research-astar-resumed/desktop-client/RUNTIME-LOG-FINDINGS.md",
+      "output/research-astar-resumed/desktop-client/runtime/side-effects-snapshot.json"
+    ]
+  },
+  "android_runtime_inventory": {
+    "adb_version": "37.0.1-15733141",
+    "connected_devices": 0,
+    "adb_server_started_by_listing": true,
+    "device_commands_sent": 0,
+    "ready_installed_emulator_found_in_scoped_checks": false,
+    "disk_everywhere_search_claimed": false,
+    "hypervisor_present": true,
+    "vbs_running": true,
+    "memory_integrity_running": true,
+    "firmware_virtualization_disabled_established": false,
+    "whp_enabled": false,
+    "virtual_machine_platform_enabled": false,
+    "wsl_enabled": false,
+    "system_features_changed": false,
+    "emulator_installers_executed": false,
+    "arm64_target_app_execution_verified": false,
+    "evidence": "output/research-astar-resumed/runtime/FINDINGS.md"
+  },
+  "desktop_dynamic": {
+    "scope": "Official desktop 8.8.0 business UI and GET bridge, observed through a temporary diagnostic ASAR prefix.",
+    "client_package_unmodified_during_experiment": false,
+    "diagnostic_patch": {
+      "prefix_bytes": 124,
+      "original_loader_bytes": 166,
+      "original_loader_suffix_identical": true,
+      "original_sha256": "fde20fce17eeb52b2533e40fef9887965338589b0a7e38e90775811304b52708",
+      "patched_sha256": "e505d6616e554dd44b66654a2e17716434b48d8ec85676142e4adc420c505b78",
+      "verification": {
+        "packed_identical": 2401,
+        "unpacked_preserved": 525,
+        "directories_preserved": 468,
+        "links_preserved": 0
+      },
+      "node_inspector_disabled": true,
+      "empty_precreated_targets_closed": 2,
+      "repl_timeout_and_owned_runtime_restart_occurred": true,
+      "official_business_ui_and_get_signing_retained": true
+    },
+    "session_observation": {
+      "avatar_and_notification_ui_observed": true,
+      "credentials_manually_imported_for_this_runtime": false,
+      "anonymous_context_claimed": false,
+      "exact_session_origin_established": false
+    },
+    "observed_page_detail_requests": [
+      {
+        "n": 1,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7698054262056552561",
+        "at": "2026-11-16T15:30:11.528Z",
+        "bytes": 92688,
+        "business_status": 0,
+        "returned_aweme": "7698054262056552561"
+      },
+      {
+        "n": 2,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7698054262056552561",
+        "at": "2026-11-16T15:30:11.532Z",
+        "bytes": 92654,
+        "business_status": 0,
+        "returned_aweme": "7698054262056552561"
+      },
+      {
+        "n": 3,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7698054262056552561",
+        "at": "2026-11-16T15:30:11.673Z",
+        "bytes": 92653,
+        "business_status": 0,
+        "returned_aweme": "7698054262056552561"
+      },
+      {
+        "n": 4,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7708319942491344154",
+        "at": "2026-11-16T15:30:43.446Z",
+        "bytes": 37202,
+        "business_status": 0,
+        "returned_aweme": "7708319942491344154"
+      },
+      {
+        "n": 5,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7708319942491344154",
+        "at": "2026-11-16T15:30:43.671Z",
+        "bytes": 37202,
+        "business_status": 0,
+        "returned_aweme": "7708319942491344154"
+      },
+      {
+        "n": 6,
+        "path": "/aweme/v1/web/aweme/detail/",
+        "status": 200,
+        "aid": "6383",
+        "aweme_id": "7708319942491344154",
+        "at": "2026-11-16T15:30:43.867Z",
+        "bytes": 37202,
+        "business_status": 0,
+        "returned_aweme": "7708319942491344154"
+      }
+    ],
+    "bridge_detail_results": [
+      {
+        "id": "7698054262056552561",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 10,
+        "model": false
+      },
+      {
+        "id": "7708319942491344154",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 4,
+        "model": false
+      },
+      {
+        "id": "7708052871413075238",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 11,
+        "model": false
+      },
+      {
+        "id": "7707993970332290314",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 12,
+        "model": false
+      },
+      {
+        "id": "7707964786692083007",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 8,
+        "model": false
+      },
+      {
+        "id": "7706218040236444937",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 5,
+        "model": false
+      }
+    ],
+    "download_scenario_detail_results": [
+      {
+        "id": "7698054262056552561",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 10,
+        "model": false
+      },
+      {
+        "id": "7708319942491344154",
+        "http": 200,
+        "status": 0,
+        "matched": true,
+        "tiers": 4,
+        "model": false
+      }
+    ],
+    "source_selector_results": [
+      {
+        "id": "7698054262056552561",
+        "mode": "source",
+        "http": 200,
+        "outer": 0,
+        "inner": 0,
+        "status": 10,
+        "gears": 1,
+        "original_rows": [
+          {
+            "quality": "original",
+            "size": 40087514,
+            "file_id": "v2700fgi0000dbafjefog65itefi9evg"
+          }
+        ]
+      },
+      {
+        "id": "7698054262056552561",
+        "mode": "codec8",
+        "http": 200,
+        "outer": 0,
+        "inner": 0,
+        "status": 10,
+        "gears": 1,
+        "original_rows": [
+          {
+            "quality": "original",
+            "size": 40087514,
+            "file_id": "v2700fgi0000dbafjefog65itefi9evg"
+          }
+        ]
+      },
+      {
+        "id": "7708319942491344154",
+        "mode": "source",
+        "http": 200,
+        "outer": 0,
+        "inner": 0,
+        "status": 10,
+        "gears": 4,
+        "original_rows": []
+      },
+      {
+        "id": "7708319942491344154",
+        "mode": "codec8",
+        "http": 200,
+        "outer": 1,
+        "inner": 1,
+        "status": 2002,
+        "gears": 0,
+        "original_rows": []
+      }
+    ],
+    "positive_source_media_probe": {
+      "id": "7698054262056552561",
+      "source": "native_bridge_fplay_source",
+      "quality": "source",
+      "size": 40087514,
+      "probe": {
+        "ok": true,
+        "actual_size": 40087514,
+        "duration_seconds": 46.249,
+        "tracks": [
+          {
+            "width": 1080,
+            "height": 1920,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "http_requests": 6
+    },
+    "positive_source_evidence_limit": "Official source declaration plus bounded container/media metadata validation; no full-file comparison with an uploader-owned original.",
+    "default_play_results": [
+      {
+        "id": "7698054262056552561",
+        "vid": "v2700fgi0000dbafjefog65itefi9evg",
+        "http": 206,
+        "content_range": "bytes 0-15/40087514",
+        "content_type": "video/mp4"
+      },
+      {
+        "id": "7708319942491344154",
+        "vid": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "http": 404,
+        "content_type": "application/json; charset=utf-8"
+      },
+      {
+        "id": "7708052871413075238",
+        "vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+        "http": 404,
+        "content_type": "application/json; charset=utf-8"
+      },
+      {
+        "id": "7707993970332290314",
+        "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+        "http": 404,
+        "content_type": "application/json; charset=utf-8"
+      },
+      {
+        "id": "7707964786692083007",
+        "vid": "v28033gi0000dbs329vog65m4ip4vss0",
+        "http": 404,
+        "content_type": "application/json; charset=utf-8"
+      },
+      {
+        "id": "7706218040236444937",
+        "vid": "v0d033g10000dbovp17og65v1kcfouhg",
+        "http": 404,
+        "content_type": "application/json; charset=utf-8"
+      }
+    ],
+    "default_route_requires_original_source_label": false,
+    "positive_default_limit": "HTTP206 and first16bytes; total40087514 matches independently probed source but does not itself prove full-file byte equality.",
+    "target_results": [
+      {
+        "aweme_id": "7708319942491344154",
+        "detail_http": 200,
+        "detail_status": 0,
+        "detail_matches_work": true,
+        "detail_bit_rate_count": 4,
+        "detail_video_model_present": false,
+        "independent_video_file_identity_groups": 4,
+        "new_media_objects_vs_prior_evidence": 0,
+        "default_play_http": 404,
+        "original_discovery_fixed": false,
+        "absence_of_original_source_label_used_as_rejection": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "detail_http": 200,
+        "detail_status": 0,
+        "detail_matches_work": true,
+        "detail_bit_rate_count": 11,
+        "detail_video_model_present": false,
+        "independent_video_file_identity_groups": 11,
+        "new_media_objects_vs_prior_evidence": 3,
+        "default_play_http": 404,
+        "original_discovery_fixed": false,
+        "absence_of_original_source_label_used_as_rejection": false
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "detail_http": 200,
+        "detail_status": 0,
+        "detail_matches_work": true,
+        "detail_bit_rate_count": 12,
+        "detail_video_model_present": false,
+        "independent_video_file_identity_groups": 12,
+        "new_media_objects_vs_prior_evidence": 4,
+        "default_play_http": 404,
+        "original_discovery_fixed": false,
+        "absence_of_original_source_label_used_as_rejection": false
+      },
+      {
+        "aweme_id": "7707964786692083007",
+        "detail_http": 200,
+        "detail_status": 0,
+        "detail_matches_work": true,
+        "detail_bit_rate_count": 8,
+        "detail_video_model_present": false,
+        "independent_video_file_identity_groups": 8,
+        "new_media_objects_vs_prior_evidence": 3,
+        "default_play_http": 404,
+        "original_discovery_fixed": false,
+        "absence_of_original_source_label_used_as_rejection": false
+      },
+      {
+        "aweme_id": "7706218040236444937",
+        "detail_http": 200,
+        "detail_status": 0,
+        "detail_matches_work": true,
+        "detail_bit_rate_count": 5,
+        "detail_video_model_present": false,
+        "independent_video_file_identity_groups": 5,
+        "new_media_objects_vs_prior_evidence": 0,
+        "default_play_http": 404,
+        "original_discovery_fixed": false,
+        "absence_of_original_source_label_used_as_rejection": false
+      }
+    ],
+    "candidate_audit": {
+      "captured_json_files": 24,
+      "network_requests": 0,
+      "catalog_used": false,
+      "external_reference_used": false,
+      "latest_target_matches_all_four_prior_objects": true,
+      "new_target_vids": [],
+      "labels_are_not_exclusion_evidence": true
+    },
+    "new_object_metadata_probes": {
+      "object_count": 10,
+      "http_attempts": 40,
+      "response_body_bytes_consumed": 19332,
+      "mdat_downloaded": false,
+      "full_file_hashes_recomputed": false,
+      "new_vids": [],
+      "stable_path_summary": {
+        "buckets": [
+          "tos-cn-v-0051",
+          "tos-cn-v-0051-ce"
+        ],
+        "terminal_segments": [
+          "media-video-avc1"
+        ],
+        "all_rows_declared_dash": true,
+        "all_have_mvex_trex": true,
+        "all_video_codec_avc1": true,
+        "all_have_audio_file_binding": true,
+        "base_object_key_to_original_mapping": "not established by the observed response or container metadata"
+      },
+      "objects": [
+        {
+          "aweme_id": "7707964786692083007",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 14565754,
+          "actual_size": 14565754,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 145.367,
+            "tracks": [
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707964786692083007",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 12635419,
+          "actual_size": 12635419,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 145.367,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707964786692083007",
+          "quality": [
+            "adapt_low"
+          ],
+          "declared_size": 8655635,
+          "actual_size": 8655635,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 145.367,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707993970332290314",
+          "quality": [
+            "normal"
+          ],
+          "declared_size": 39056996,
+          "actual_size": 39056996,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 326.934,
+            "tracks": [
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707993970332290314",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 31917292,
+          "actual_size": 31917292,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 326.934,
+            "tracks": [
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707993970332290314",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 28420558,
+          "actual_size": 28420558,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 326.934,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7707993970332290314",
+          "quality": [
+            "adapt_low"
+          ],
+          "declared_size": 20021334,
+          "actual_size": 20021334,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 326.934,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7708052871413075238",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 41979651,
+          "actual_size": 41979651,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7708052871413075238",
+          "quality": [
+            "low"
+          ],
+          "declared_size": 36785796,
+          "actual_size": 36785796,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        },
+        {
+          "aweme_id": "7708052871413075238",
+          "quality": [
+            "adapt_low"
+          ],
+          "declared_size": 25811549,
+          "actual_size": 25811549,
+          "metadata_complete": true,
+          "metadata_probe_completed": true,
+          "dimensions_match": true,
+          "duration_matches": true,
+          "official_row_media_format": "dash",
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": false
+          },
+          "mvex_present": true,
+          "trex_present": true,
+          "encoder_markers": [
+            "mdtaencoder",
+            "Lavf58.76.100"
+          ],
+          "audio_file_binding_present": true,
+          "original_identity_established": false
+        }
+      ],
+      "limitations": [
+        "Only ftyp/box headers/moov were inspected; mdat was not downloaded.",
+        "Byte count measures response bodies consumed by Python, not network/TLS overhead.",
+        "Official file_hash values were not recomputed from entire media files.",
+        "Complete metadata and normal/low stream labels do not establish an original upload.",
+        "moov was re-read once per new object to retain encoder/fragmentation evidence; the cumulative per-object request/byte limits still apply."
+      ]
+    },
+    "after_ui_1080_selection": {
+      "ui_label_contains_1080": true,
+      "video_elements_safe_metadata": [
+        {
+          "w": 720,
+          "h": 1280,
+          "duration": 348.666667,
+          "ready": 4
+        },
+        {
+          "w": 0,
+          "h": 0,
+          "duration": null,
+          "ready": 0
+        }
+      ],
+      "active_video_matches_captured_prior_object": true,
+      "active_video_matches_round4": true,
+      "active_quality": "adapt_lowest",
+      "active_declared_file_bytes": 44695234,
+      "original_established": false
+    },
+    "cleanup": {
+      "captured_at": "2026-11-16T23:55:11.2024170+08:00",
+      "owned_process_count": 0,
+      "default_roaming_profile_exists": false,
+      "default_local_profile_exists": false,
+      "douyin_run_entry_count": 0,
+      "asar_original_sha256_restored": true,
+      "asar_sha256": "fde20fce17eeb52b2533e40fef9887965338589b0a7e38e90775811304b52708",
+      "fallback_browser_research_cache_index_exclusive_open": true,
+      "claims_all_system_chrome_processes_absent": false,
+      "scope": "Owned runtime processes, named default profile directories, Douyin HKCU Run values, archive hash and the named research cache index only.",
+      "evidence": "output/research-astar-resumed/desktop-client/runtime/final-cleanup-summary.json"
+    },
+    "evidence_directory": "output/research-astar-resumed/desktop-client/runtime"
+  },
+  "remaining_goal": "Find and independently verify the original/source identity for the five targets; inspected routes and candidates did not resolve it.",
+  "related_bucket_report": "docs/original-investigation-2026-11-16-bucket-algorithms.json"
+}

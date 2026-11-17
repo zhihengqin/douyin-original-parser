@@ -1,0 +1,1141 @@
+{
+  "date": "2026-11-16",
+  "scope": "official Jingxuan41.1 static audit and bounded two-work native-context comparison",
+  "apk": {
+    "bytes": 226303823,
+    "sha256": "2d5b700502900e353cb1d070a1abc5c66a8619df276a47e0a520ceda3a7e2eda",
+    "resumed_once": true,
+    "verified_overlap_bytes": 1048576,
+    "resume_elapsed_seconds": 34.0
+  },
+  "manifest": {
+    "package": "com.ss.android.yumme.video",
+    "version_code": "410101",
+    "version_name": "41.1.0",
+    "metadata": {
+      "SS_VERSION_CODE": "410100",
+      "UPDATE_VERSION_CODE": "41109900",
+      "wbsdk_version_code": "2310",
+      "com.hihonor.push.app_id": "104409777",
+      "com.vivo.push.app_id": "105626649",
+      "MIPUSH_SDK_VERSION_CODE": "70092"
+    },
+    "certificate_md5": [
+      "aea615ab910015038f73c47e45d21466"
+    ],
+    "dex_files": 46
+  },
+  "registration": {
+    "operation": "single_anonymous_yumme_device_registration",
+    "aid": 568863,
+    "app_name": "douyin_select",
+    "package": "com.ss.android.yumme.video",
+    "version_code": 410101,
+    "payload_bytes": 646,
+    "encrypt_roundtrip": true,
+    "metasec_signing": "none",
+    "signature_context_claimed": false,
+    "http": 200,
+    "body_bytes": 1688,
+    "content_type": "application/json",
+    "status_code": null,
+    "issued_identity": true,
+    "root_keys": [
+      "server_time",
+      "device_id",
+      "install_id",
+      "klink_egdi",
+      "new_user",
+      "device_id_str",
+      "install_id_str",
+      "ssid",
+      "device_token",
+      "dtrait_pk1",
+      "dtrait_pk2",
+      "dtrait_pk1_version",
+      "dtrait_pk2_version",
+      "dtrait_version",
+      "bind_dtrait"
+    ],
+    "channel": "official",
+    "channel_limit": "initial registration and unsigned baseline used an assumed generic channel before actual APK meta_channel was resolved"
+  },
+  "signer": {
+    "compiled": true,
+    "package": "com.ss.android.yumme.video",
+    "app_id": 568863,
+    "certificate_md5": "aea615ab910015038f73c47e45d21466",
+    "license_characters": 328,
+    "jni_dispatch_class": "ms/bd/c/w3",
+    "collect_mode": 810,
+    "collect_mode_basis": "DmtSec default appListCollectMinimize=2; runtime flags unobserved",
+    "libraries": {
+      "libmetasec_ml.so": {
+        "bytes": 3496424,
+        "sha256": "a8ec8a89be17b46bce896a1e396fc05bea7f1a7a2a771f305eac4eb25b71f519"
+      },
+      "libc++_shared.so": {
+        "bytes": 919888,
+        "sha256": "56585249b76a3f2f3412477c569a6e19a3cccfa4ff6f1a829135ff966c9f605f"
+      }
+    },
+    "full_android_runtime_reproduced": false
+  },
+  "config": {
+    "app_id": 568863,
+    "app_name": "douyin_select",
+    "host": "aweme.snssdk.com",
+    "channel": "49862221a",
+    "app_context_evidence": "classes42.dex AppContextManagerIniter$init$appInfoBuilder$1.invoke and AwemeApplicationImpl.LJ",
+    "channel_evidence": "APK Walle meta_channel -> AppContextManager.internalInit -> channel/tweakedChannel"
+  },
+  "unsigned": {
+    "registered_aid": 568863,
+    "app_name": "douyin_select",
+    "version_code": 410101,
+    "metasec_signing": "none",
+    "official_registration_succeeded": true,
+    "catalog_used": false,
+    "reference_used": false,
+    "channel": "official",
+    "channel_limit": "initial registration and unsigned baseline used an assumed generic channel before actual APK meta_channel was resolved",
+    "works": [
+      {
+        "aweme_id": "7698054262056552561",
+        "fplay": [],
+        "http": 200,
+        "bytes": 72459,
+        "status_code": 0,
+        "matching_work": true,
+        "vid": "v2700fgi0000dbafjefog65itefi9evg",
+        "model_keys": [],
+        "need_set_token": false,
+        "is_source_HDR": 0,
+        "candidate_count": 9,
+        "nodes_visited": 298,
+        "filter_reason": null,
+        "explicit_original_candidates": 0
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "fplay": [],
+        "http": 200,
+        "bytes": 299,
+        "status_code": 0,
+        "matching_work": false,
+        "filter_reason": "series_control_filter"
+      }
+    ]
+  },
+  "signed": {
+    "aid": 568863,
+    "app_name": "douyin_select",
+    "channel": "49862221a",
+    "channel_evidence": "APK Walle meta_channel -> AppContextManager.internalInit -> channel/tweakedChannel",
+    "signature_context": "official_Jingxuan_library_package_license_certificate_in_isolated_harness",
+    "complete_native_runtime_claimed": false,
+    "catalog_used": false,
+    "reference_used": false,
+    "certificate_limit": "harness uses APK v2 certificate; v3 certificate differs; Android13 callback selection unverified",
+    "login_acceptance": "supplied main-Douyin cookies did not establish accepted Jingxuan series session: positive and target status8",
+    "routes": [
+      {
+        "aweme_id": "7698054262056552561",
+        "context": "anonymous",
+        "route": "detail",
+        "path": "/aweme/v1/aweme/detail/",
+        "http": 200,
+        "bytes": 72271,
+        "status_code": 0,
+        "filter_reason": null,
+        "local_signer_initialized": true,
+        "matching_work": true,
+        "analysis": {
+          "aweme_id": "7698054262056552561",
+          "vid": "v2700fgi0000dbafjefog65itefi9evg",
+          "model_keys": [],
+          "fplay": [],
+          "nodes_visited": 298,
+          "candidate_count": 9,
+          "explicit_original_candidates": 0
+        }
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "context": "anonymous",
+        "route": "detail",
+        "path": "/aweme/v1/aweme/detail/",
+        "http": 200,
+        "bytes": 299,
+        "status_code": 0,
+        "filter_reason": "series_control_filter",
+        "local_signer_initialized": true,
+        "matching_work": false
+      },
+      {
+        "aweme_id": "7698054262056552561",
+        "context": "supplied_login",
+        "route": "detail",
+        "path": "/aweme/v1/aweme/detail/",
+        "http": 200,
+        "bytes": 72465,
+        "status_code": 0,
+        "filter_reason": null,
+        "local_signer_initialized": true,
+        "matching_work": true,
+        "analysis": {
+          "aweme_id": "7698054262056552561",
+          "vid": "v2700fgi0000dbafjefog65itefi9evg",
+          "model_keys": [],
+          "fplay": [],
+          "nodes_visited": 298,
+          "candidate_count": 9,
+          "explicit_original_candidates": 0
+        }
+      },
+      {
+        "aweme_id": "7698054262056552561",
+        "context": "supplied_login",
+        "route": "series",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "bytes": 106,
+        "status_code": 8,
+        "filter_reason": null,
+        "local_signer_initialized": true,
+        "matching_work": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "context": "supplied_login",
+        "route": "detail",
+        "path": "/aweme/v1/aweme/detail/",
+        "http": 200,
+        "bytes": 299,
+        "status_code": 0,
+        "filter_reason": "series_control_filter",
+        "local_signer_initialized": true,
+        "matching_work": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "context": "supplied_login",
+        "route": "series",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "bytes": 106,
+        "status_code": 8,
+        "filter_reason": null,
+        "local_signer_initialized": true,
+        "matching_work": false
+      }
+    ]
+  },
+  "detail_method_annotations": [
+    {
+      "dex": "classes10.dex",
+      "class": "Lcom/ss/android/ugc/aweme/payment/api/PaymentApi;",
+      "method": "queryMultiAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lretrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes14.dex",
+      "class": "Lcom/ss/android/ugc/aweme/ml/video/api/LongVideoApi$Api;",
+      "method": "queryAlbumByAid",
+      "routes": [
+        {
+          "type": "Lretrofit2/http/GET;",
+          "values": {
+            "value": "/aweme/v1/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "aweme_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "is_story"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "tab_index"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "aweme_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "recommend_collect_feedback"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lretrofit2/http/Query;",
+            "values": {
+              "value": "item_level"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes16.dex",
+      "class": "Lcom/ss/android/ugc/aweme/feed/search_article/api/FeedLongArticleDetailApi;",
+      "method": "fetchArticleDetail",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/GET;",
+          "values": {
+            "value": "/aweme/v1/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "aweme_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "offset"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "count"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "initOlympicAwemes",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "card_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/GET;",
+          "values": {
+            "value": "/aweme/v1/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "aweme_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "is_story"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "aweme_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "recommend_collect_feedback"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "item_level"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "sub_scene"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "group_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/GET;",
+          "values": {
+            "value": "/aweme/v1/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "aweme_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "is_story"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "tab_index"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "aweme_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "recommend_collect_feedback"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "item_level"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "sub_scene"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "group_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryBatchAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "card_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "cids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "selected_co_id"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "verification_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryBatchAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "card_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "item_level"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryBatchAwemeWithPushIds",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "meta_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "card_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "from_push"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "item_level"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/detail/api/DetailApi$IDetailApi;",
+      "method": "queryVideoDiaryAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "origin_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "push_params"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "card_type"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Query;",
+            "values": {
+              "value": "location_permission"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "dex": "classes36.dex",
+      "class": "Lcom/ss/android/ugc/aweme/projectscreen_impl/inner/net/CastInnerFeedApi$Api;",
+      "method": "queryMultiAweme",
+      "routes": [
+        {
+          "type": "Lcom/bytedance/retrofit2/http/FormUrlEncoded;",
+          "values": {}
+        },
+        {
+          "type": "Lcom/bytedance/retrofit2/http/POST;",
+          "values": {
+            "value": "/aweme/v1/multi/aweme/detail/"
+          }
+        }
+      ],
+      "parameters": [
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "aweme_ids"
+            }
+          }
+        ],
+        [
+          {
+            "type": "Lcom/bytedance/retrofit2/http/Field;",
+            "values": {
+              "value": "request_source"
+            }
+          }
+        ]
+      ]
+    }
+  ],
+  "selected_schema_comparison": {
+    "Lcom/ss/android/ugc/aweme/app/api/Api;": {
+      "jingxuan_field_count": 0,
+      "main_field_count": 0,
+      "jingxuan_only": [],
+      "main_only": []
+    },
+    "Lcom/ss/android/ugc/aweme/feed/model/Video;": {
+      "jingxuan_field_count": 72,
+      "main_field_count": 72,
+      "jingxuan_only": [],
+      "main_only": []
+    },
+    "Lcom/ss/android/ugc/aweme/feed/model/VideoControl;": {
+      "jingxuan_field_count": 32,
+      "main_field_count": 32,
+      "jingxuan_only": [],
+      "main_only": []
+    },
+    "Lcom/ss/android/ugc/aweme/feed/model/VideoUrlModel;": {
+      "jingxuan_field_count": 4,
+      "main_field_count": 4,
+      "jingxuan_only": [],
+      "main_only": []
+    }
+  },
+  "consumer_findings": [
+    "getPlayAddrOrigin selects _playAddrH265 or _playAddr; name is not original-source proof",
+    "getSourceId returns internal _sourceId; no new serialized source object field found in selected models"
+  ],
+  "limits": [
+    "Local SDK initialization is not proof of server signature validation or full Android runtime reproduction.",
+    "harness uses APK v2 certificate; v3 certificate differs; Android13 callback selection unverified",
+    "collect_mode810 follows observed default appListCollectMinimize=2; runtime flags were not captured.",
+    "supplied main-Douyin cookies did not establish accepted Jingxuan series session: positive and target status8",
+    "No original object was discovered in these completed native-context requests; this does not prove original absence."
+  ],
+  "catalog_used": false,
+  "reference_source_identity_used": false,
+  "external_parser_called": false
+}

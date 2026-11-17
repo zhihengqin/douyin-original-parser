@@ -1,8 +1,14 @@
 # 抖音原画独立解析程序
 
-输入抖音链接，直接访问平台官方接口，只返回经过完整媒体校验的官方 `source/original` 原画；两个取址入口都没有原画时返回 `source_unavailable`（获取原画失败），不会把普通转码档当作成功结果。支持完整 MP4 校验、下载、与本地样本做 SHA-256 对照，以及本地 HTTP API。
+输入抖音链接，直接访问平台官方接口，优先返回经过完整媒体校验的官方 `source/original` 原画；各个取址入口都没有可用候选时返回 `source_unavailable`（获取原画失败）。支持完整 MP4 校验、下载、与本地样本做 SHA-256 对照，以及本地 HTTP API。
 
-**当前选档策略：**只接受官方 `quality=original/source` 档位，或由官方原片分发接口根据已验证 `file_hash` 重新签发并通过媒体校验的原片。普通 `normal/adapt`、网页转码、DASH 分轨以及仅凭 `tos-cn-v-*` 桶名识别的地址均返回 `source_unavailable`，不会降级。
+**2026-11-17 研究状态：**已补齐多接口模型审计、复现 Java 小帅协议，并核对实际文件及 HDR 色彩信息；部分目标的原画首次发现仍未解决。最新范围与限制见[接口覆盖复核](docs/original-investigation-2026-11-17-coverage-audit.md)和[小帅接口实测](docs/original-investigation-2026-11-17-snapany-java.md)。历史实验工具及资料的使用边界见 [tools/README.md](tools/README.md)。
+
+**2026-11-16 新一轮算法与媒体修复：**现已利用详情内嵌 `video_meta` 原画、逐路媒体校验与当前官方身份重新分发，补齐 `zjcdn.com`，并修复 QuickTime 的轨道处理器覆盖问题。作品 `7698054262056552561` 已完整下载 **40,087,514 字节 / 1080×1920 / HEVC+AAC**，MD5 与本轮官方原画回包匹配。两条重点 HDR 作品共检查204条主备地址、17个不同媒体对象，仍未恢复原片；同轮检查的 `7706218040236444937` 也仍失败。代码变化、完整下载证据、公开来源和可复现全档审计见[本轮修复与验收](docs/original-investigation-2026-11-16-astar.md)。随后新增的 `7708319942491344154` 也未取得原片，Web、精选 H5、App 专用详情与容器 VID 检查见[第三轮当前链接验收](docs/original-investigation-2026-11-16-astar-round3.md)。
+
+下载优先比较官方元数据或 CDN `Content-MD5`；平台未提供哈希时，校验实际大小、完整音视频、时长和分辨率，并计算本地 MD5/SHA-256，`download.official_hash_match` 为 `null`。存在官方哈希时必须匹配，文件完成校验后才保存到目标路径。
+
+**当前选档策略：**优先使用官方 `quality=original/source` 档位，以及由官方原片分发接口重新签发并通过媒体校验的原片。保留已有的 `ratio=default` 兼容通道（`source_evidence=official_play_default`），并排除详情与 fplay 的全部已知转码大小；这一兼容通道不等同于取得官方 `original/source` 档位声明，仅凭大小不同不能保证所有未知文件均是上传原件。普通 `normal/adapt`、DASH 分轨以及仅凭 `tos-cn-v-*` 桶名识别的地址不作为原画候选。
 
 **2026-11-16 当前链接验收：**仅输入作品 `7707993970332290314` 的链接，并禁用全部历史原片记录与参考资产后，两个官方取址分支均只返回 9 个转码档，首次原片发现仍未修复。该作品依靠已有参考资产 MD5 的官方重签成功，不属于仅链接解析成功；`DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1` 也不具备从链接发现未知哈希的能力。实际对照与补查边界见[仅输入链接的验收记录](docs/original-investigation-2026-11-16-link-only.md)。
 
@@ -118,7 +124,7 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://127.0.0.
 }
 ```
 
-HTTP 成功回包只保留最高画质链接，不再返回 `video_list`、备用地址、官方文件 MD5 和媒体探测结果；这些内容仍保留在 CLI 输出和 `--json` 结果文件中。依赖 `source_selected`、`official_quality`、`probe` 等字段的调用方需要同步调整。
+HTTP 成功回包只保留最高画质链接，不再返回 `video_list`、备用地址、官方文件 MD5 和媒体探测结果；这些内容仍保留在 CLI 输出和 `--json` 结果文件中。依赖 `source_selected`、`official_quality`、`probe` 等字段的调用方需要同步调整。NiKa 旧 Java 客户端会将这种成功响应误报为“请求异常 / ServiceException”，需同步发布兼容精简响应的 `nika-basic`，具体排查见[部署说明](deploy/README.md)。
 
 例如作品 `7704212621922159898` 缺少原画时，返回 HTTP 502，响应如下：
 
@@ -130,7 +136,7 @@ HTTP 成功回包只保留最高画质链接，不再返回 `video_list`、备�
 }
 ```
 
-成功响应只返回已验证的官方 `original/source` 档位地址。程序不会按分辨率、码率、文件大小或 CDN 桶名推断原画；`tos-cn-ve-*` 和 `tos-cn-v-*` 中未明确标为原画的对象均不会进入成功结果。
+成功响应优先返回已验证的官方 `original/source` 档位地址。当前还保留前述 `ratio=default` 兼容通道；它通过媒体完整性校验并排除已知转码大小，但不具备同等强度的官方档位声明。CLI 完整结果用 `source_evidence` 区分两者；这个精简 HTTP 响应不包含该字段，因此不能仅凭 HTTP 成功就判断上游明确声明了 `original`。CDN 桶名、分辨率和码率不单独作为原画身份证据。
 
 NiKa 的独立 `selfhosted` 渠道，页面名称为“自建原画（抖音）”，与 Snapany、muzzz 并列。Java 后端访问配置的 Python `/parse`，支持排队限流、在线检查和媒体校验。本次策略升级需更新 Python 服务并发布 NiKa 后端；旧 NiKa 后端会拒绝转码结果。已启用自建渠道的页面无需改动。部署配置和启用步骤见 [部署说明](deploy/README.md)。HTTP 示例服务不自带公网鉴权，跨机器部署时使用后端可达的内网地址。
 
@@ -138,11 +144,11 @@ NiKa 的独立 `selfhosted` 渠道，页面名称为“自建原画（抖音）�
 
 1. 提取作品 ID，支持视频链接、`modal_id`、分享文案和短链。
 2. 初始化或复用匿名访客凭据，计算 `x-secsdk-web-signature`，请求官方 Web 详情，使用 `aid=392139` 取得非空 `video_model`。普通 `aid=6383` 的 `bit_rate` 只用于此前的转码档对比，不作为本程序的原画结果。
-3. 从 `video_model.fallback_api` 读取平台签发的 `/video/fplay/1/{签名}/{video_id}` 路径。保留完整查询（包括原有 `stream_type`、`encode_user_tag` 等上下文），删除 `logo_type`，覆盖 `force_fids=Base64("original")` 与 `codec_type=5`。新选档没有可用原画时，再使用同一签名路径、保留其他签发参数并仅切换 `stream_type=source` 兼容一次；不反复重试。
-4. 校验响应的视频资源 ID，只接受 `quality=original/source` 的完整 MP4 候选。两个入口均无可用原片时，先用官方 `/aweme/v1/play/?ratio=default`（`a_bogus` 签名，只凭 `video_id`）探测平台"默认档"：命中要求 `206` + MP4 头 + 字节数不等于任何已知转码档尺寸，再由 moov 校验时长与音轨，分辨率从 moov 回填。仍无候选时，若有已验证的可信 `file_id/file_hash` 记录，则调用官方 `/aweme/v1/play/` 重新签发原片并核对精确大小、MP4 头和后续媒体轨道；没有匹配记录或分发失败时返回 `source_unavailable`。不额外请求第三方或网页转码入口。所有候选均排除媒体加密、非法域名和无效元数据。算法全貌见 `docs/original-source-algorithm-2026-11-16.md`。
+3. 先检查 `video_model.video_list` 中平铺或 `video_meta` 包装的原画候选，再按需访问 `video_model.fallback_api` 签发的 `/video/fplay/1/{签名}/{video_id}` 路径。保留完整查询（包括原有 `stream_type`、`encode_user_tag` 等上下文），删除 `logo_type`，覆盖 `force_fids=Base64("original")` 与 `codec_type=5`；随后兼容仅切换 `stream_type=source` 的入口。每一路候选均完成媒体校验，地址全部失效才继续后续路线，同一完整地址不重复探测，遇到限流停止。
+4. 校验响应的视频资源 ID、档位声明与媒体格式。上述候选均不可用时，先尝试用本次官方原画回包中的 `file_id/file_hash` 重新分发，再尝试本地可信身份记录，最后进入已有的 `ratio=default` 兼容通道。默认档要求 `206`、MP4 头、实际大小不属于详情与已观察 fplay 的转码集合，并校验时长、音视频轨道及分辨率；大小不同本身不是上传原文件的充分证明。全部取址入口均无候选时报 `source_unavailable`，曾取得原画候选但所有地址均校验失败时报 `probe_failed`。所有候选均排除媒体加密、无效地址格式和无效元数据。原画地址及其下载跳转不再限制固定 CDN 域名，仍检查 HTTP/HTTPS 地址格式；输入作品链接继续限定抖音平台域名。算法全貌见 `docs/original-source-algorithm-2026-11-16.md`。
 5. 还原播放地址。本轮格式为 Base64 后的 `a8 00 01 00` 头部加 AES-CBC 密文；响应提供 32 字节 `key_seed`。派生方式为 `SHA512(SHA512(seed) + 固定64字节常量)`，前 16 字节作为 AES key，接下来 16 字节作为 IV；按 PKCS#7 去填充得到 URL。代码在 `original_parser/codec.py`。普通 URL、普通 Base64 URL 也支持。
 6. 用 Range 请求核对真实大小并读取 MP4 moov，确认视频、音频、时长和分辨率。支持 moov 位于文件尾部；不用下载整个视频即可完成常规解析校验。
-7. 下载时核对文件大小和官方 MD5；可再与本地参考文件做 SHA-256 比较。地址过期或全部镜像下载失败会重新解析一次。
+7. 下载时核对文件大小，存在官方 MD5 时必须匹配；未提供官方哈希时，校验完整文件的音视频轨道、时长和分辨率，记录本地 MD5/SHA-256，并明确返回 `official_hash_match=null`。可再与本地参考文件做 SHA-256 比较。地址过期或全部镜像下载失败会重新解析一次。
 
 链接提取思路参考 `douyinVd`，网页签名公式参考 `dtk/signing/native/websign.py`，匿名访客初始化参考 `dtk-parse`，档位与音轨校验吸收现有项目的经验。2026-10-16 的原片选档参考 [ucmao/media-parser 的第一候选请求](https://github.com/ucmao/media-parser/blob/36e57ff489d23e1037050c9de7f0a39598f8caee/src/parsers/doubao_parser.py#L351)，并已在抖音作品和本程序默认请求头下验证；没有照搬豆包专属的查询 `key_seed` 前置条件或请求头。关键是 **保留平台取址上下文、选择原片及还原播放地址**。已有 NiKa 第三方客户端只包含调用第三方服务的鉴权与选档逻辑，没有其内部取址算法。
 

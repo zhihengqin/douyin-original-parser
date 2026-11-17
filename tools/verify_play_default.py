@@ -1,23 +1,31 @@
 """真机验证官方默认档通道：只看 play?ratio=default 能不能只凭 video_id 拿到原片。
 
-用法：python tools/verify_play_default.py <aweme_id> [<aweme_id> ...]
+用法：python tools/verify_play_default.py <aweme_id> [<aweme_id> ...] [--cookie-file 凭据文件]
 """
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
-from original_parser.client import OriginalParser, ParseError
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from original_parser.client import OriginalParser, ParseError, load_credentials
 
 
 def main(argv: list[str]) -> int:
-    ids = argv[1:]
-    if not ids:
-        print(__doc__)
-        return 2
+    cli = argparse.ArgumentParser(description=__doc__)
+    cli.add_argument("ids", nargs="+", help="要检查的作品 ID")
+    cli.add_argument("--cookie-file", type=Path, help="Cookie 和 User-Agent 凭据文件")
+    args = cli.parse_intermixed_args(argv[1:])
     lines = []
-    with OriginalParser() as parser:
-        for aweme_id in ids:
+    parser_kwargs = {}
+    if args.cookie_file:
+        cookies, user_agent = load_credentials(args.cookie_file)
+        parser_kwargs = {"cookies": cookies, "user_agent": user_agent, "auto_guest": False}
+        lines.append(f"登录态：{args.cookie_file.name}，字段 {len(cookies)} 个")
+    with OriginalParser(**parser_kwargs) as parser:
+        for aweme_id in args.ids:
             try:
                 detail = parser.detail(aweme_id)
             except ParseError as error:

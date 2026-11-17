@@ -15,6 +15,7 @@ fi
 cd "${PROJECT_ROOT}"
 export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
+"${PROJECT_ROOT}/.venv/bin/python" -m original_parser.check_runtime
 ARGS=(run.py --serve --host "${HOST_ADDRESS}" --port "${PORT}" --max-concurrent "${MAX_CONCURRENT}")
 ARGS+=(--detail-mode "${DETAIL_MODE}" --browser-profile "${BROWSER_PROFILE}")
 ARGS+=(--request-interval "${REQUEST_INTERVAL:-3-6}")

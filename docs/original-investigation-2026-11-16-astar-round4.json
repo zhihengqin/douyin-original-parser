@@ -1,0 +1,336 @@
+{
+  "date": "2026-11-16",
+  "current_aweme_id": "7708319942491344154",
+  "current_target_repaired": false,
+  "new_login_completed": true,
+  "fresh_series_baseline_accepted": true,
+  "catalog_used": false,
+  "external_asset_used": false,
+  "workspace_credentials_overwritten": false,
+  "native_routes": [
+    {
+      "role": "positive",
+      "aweme_id": "7698054262056552561",
+      "http": 200,
+      "status": 0,
+      "matching_work": true,
+      "visited_nodes": 2137,
+      "vids": [
+        "v2700fgi0000dbafjefog65itefi9evg"
+      ],
+      "model_keys": [],
+      "explicit_original_count": 0,
+      "candidate_count": 9
+    },
+    {
+      "role": "current",
+      "aweme_id": "7708319942491344154",
+      "http": 200,
+      "status": 0,
+      "matching_work": true,
+      "visited_nodes": 1218,
+      "vids": [
+        "v03033g10000dbqb7pfog65ls2ibfar0"
+      ],
+      "model_keys": [],
+      "explicit_original_count": 0,
+      "candidate_count": 3
+    }
+  ],
+  "production": {
+    "success": false,
+    "error_code": "source_unavailable"
+  },
+  "h5": {
+    "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+    "metadata_only": true,
+    "rows": [
+      {
+        "quality": "adapt",
+        "definition": "540p",
+        "size": 33785763,
+        "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+        "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+        "vwidth": 576,
+        "vheight": 1024,
+        "bitrate": 775198,
+        "codec_type": "h265"
+      },
+      {
+        "quality": "normal",
+        "definition": "540p",
+        "size": 57163128,
+        "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+        "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+        "vwidth": 540,
+        "vheight": 960,
+        "bitrate": 1311581,
+        "codec_type": "h264"
+      },
+      {
+        "quality": "adapt_lowest",
+        "definition": "720p",
+        "size": 44695234,
+        "file_id": "726bbf21e70b4b4e9a50e779b166f594",
+        "file_hash": "40b34a2cf500f9fe7bf18cbe5249bfe2",
+        "vwidth": 720,
+        "vheight": 1280,
+        "bitrate": 1025511,
+        "codec_type": "h265"
+      },
+      {
+        "quality": "normal",
+        "definition": "720p",
+        "size": 89305645,
+        "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+        "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+        "vwidth": 720,
+        "vheight": 1280,
+        "bitrate": 2049075,
+        "codec_type": "h264"
+      }
+    ],
+    "fallback_routes": [
+      {
+        "name": "codec8",
+        "changed_query_fields": {
+          "codec_type": [
+            "8"
+          ]
+        },
+        "removed_query_fields": [],
+        "code": 1,
+        "status": 2002,
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "rows": []
+      },
+      {
+        "name": "source",
+        "changed_query_fields": {
+          "stream_type": [
+            "source"
+          ]
+        },
+        "removed_query_fields": [
+          "logo_type"
+        ],
+        "code": 0,
+        "status": 10,
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "rows": [
+          {
+            "quality": "normal",
+            "definition": "720p",
+            "size": 89305645,
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "vwidth": 720,
+            "vheight": 1280,
+            "bitrate": 2049075,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt",
+            "definition": "540p",
+            "size": 33785763,
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "vwidth": 576,
+            "vheight": 1024,
+            "bitrate": 775198,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "definition": "540p",
+            "size": 57163128,
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "vwidth": 540,
+            "vheight": 960,
+            "bitrate": 1311581,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt_lowest",
+            "definition": "720p",
+            "size": 44695234,
+            "file_id": "726bbf21e70b4b4e9a50e779b166f594",
+            "file_hash": "40b34a2cf500f9fe7bf18cbe5249bfe2",
+            "vwidth": 720,
+            "vheight": 1280,
+            "bitrate": 1025511,
+            "codec_type": "bytevc1"
+          }
+        ]
+      },
+      {
+        "name": "original",
+        "changed_query_fields": {
+          "codec_type": [
+            "5"
+          ],
+          "force_fids": [
+            "b3JpZ2luYWw="
+          ]
+        },
+        "removed_query_fields": [
+          "logo_type"
+        ],
+        "code": 0,
+        "status": 10,
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "rows": [
+          {
+            "quality": "adapt_lowest",
+            "definition": "720p",
+            "size": 44695234,
+            "file_id": "726bbf21e70b4b4e9a50e779b166f594",
+            "file_hash": "40b34a2cf500f9fe7bf18cbe5249bfe2",
+            "vwidth": 720,
+            "vheight": 1280,
+            "bitrate": 1025511,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "definition": "720p",
+            "size": 89305645,
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "vwidth": 720,
+            "vheight": 1280,
+            "bitrate": 2049075,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt",
+            "definition": "540p",
+            "size": 33785763,
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "vwidth": 576,
+            "vheight": 1024,
+            "bitrate": 775198,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "definition": "540p",
+            "size": 57163128,
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "vwidth": 540,
+            "vheight": 960,
+            "bitrate": 1311581,
+            "codec_type": "h264"
+          }
+        ]
+      }
+    ]
+  },
+  "extra_tier_audit": {
+    "target_hash": "40b34a2cf500f9fe7bf18cbe5249bfe2",
+    "object": {
+      "quality": "adapt_lowest",
+      "definition": "720p",
+      "size": 44695234,
+      "file_id": "726bbf21e70b4b4e9a50e779b166f594",
+      "file_hash": "40b34a2cf500f9fe7bf18cbe5249bfe2",
+      "vwidth": 720,
+      "vheight": 1280,
+      "codec_type": "h265",
+      "http_requests": 4,
+      "bytes_read": 288835,
+      "actual_size": 44695234,
+      "media": {
+        "duration_seconds": 348.667,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1280,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "embedded_vids": [
+        "v03033g10000dbqb7pfog65ls2ibfar0"
+      ]
+    },
+    "new_embedded_vids": [],
+    "request_count": 6,
+    "original_verified": false,
+    "login_attribution": "new tier is visible anonymously with the same UA; login is not required for this observation",
+    "anonymous_same_ua_status": 0,
+    "anonymous_same_ua_target_present": true
+  },
+  "later_native_followup": {
+    "created_at": "2026-11-16T14:28:37.277638+00:00",
+    "new_session_only": true,
+    "workspace_credentials_read": false,
+    "catalog_used": false,
+    "reference_used": false,
+    "baseline": "refreshed-series-run: positive769805 and current770831 HTTP200/status0/matching",
+    "routes": [
+      {
+        "aweme_id": "7708052871413075238",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true
+      },
+      {
+        "role": "positive_control",
+        "aweme_id": "7698054262056552561",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "status": 8,
+        "response_bytes": 106,
+        "matching_work": false,
+        "local_signer_initialized": true
+      }
+    ],
+    "current_download_probes": [
+      {
+        "index": 0,
+        "host": "api-play.amemv.com",
+        "error_type": "ConnectionError",
+        "error_code": null
+      },
+      {
+        "index": 1,
+        "host": "api.amemv.com",
+        "http": 404,
+        "content_type": "application/json",
+        "body_prefix_bytes": 0,
+        "content_range": null,
+        "mp4_signature": false,
+        "redirect": false
+      }
+    ],
+    "first_target_interpretation": "770805 series status8; target versus session cause is not determined by this response",
+    "followup_control_started": true,
+    "followup_session": "new Session with identical initial configuration; prior process/Session had ended; no saved cookie was replayed",
+    "control_accepted": false,
+    "remaining_target_skip_reason": "same_followup_session_positive_control_did_not_return_status0_matching_work",
+    "current_download_declared_size": 89305645,
+    "audit_http_requests": 0,
+    "native_detail_request_count": 2,
+    "media_request_count": 2
+  },
+  "limitations": [
+    "Fresh series initially accepted both positive and current works; later positive control in a new Session returned status 8.",
+    "The cause of changed session acceptance was not established.",
+    "7707993970332290314 was skipped in the later fresh-session series follow-up.",
+    "Range/moov inspections verify container metadata, not a complete download of the fourth rendition."
+  ]
+}

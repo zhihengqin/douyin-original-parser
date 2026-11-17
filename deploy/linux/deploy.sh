@@ -5,7 +5,7 @@
 #   sudo bash deploy/linux/deploy.sh /tmp/douyin-original-parser-deploy.tar.gz
 #   sudo bash deploy/linux/deploy.sh /tmp/xxx.tar.gz --install-units --create-account
 #
-# 默认只更新源码与启动脚本，保留服务器上已有的 systemd 配置，避免覆盖端口、
+# 默认更新源码、启动脚本及虚拟环境依赖，保留服务器上已有的 systemd 配置，避免覆盖端口、
 # 并发数等本机设置。首次部署请加 --install-units 和 --create-account。
 
 set -uo pipefail
@@ -34,7 +34,10 @@ USAGE
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --target) TARGET="${2:-}"; shift 2 ;;
+    --target)
+      [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] \
+        || { echo "错误：--target 需要目录参数。" >&2; exit 2; }
+      TARGET="$2"; shift 2 ;;
     --install-units) INSTALL_UNITS=1; shift ;;
     --create-account) CREATE_ACCOUNT=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -107,7 +110,7 @@ restore_units() {
     || useradd --system --user-group --no-create-home --shell /usr/sbin/nologin "$SERVICE_USER" \
     || fail "创建服务账户失败。"
   # 目录不存在或属主不对时 Chromium 的 crashpad 会初始化失败，服务会一直返回 502。
-  install -d -m 700 -o "$SERVICE_USER" -g "$SERVICE_USER" "$SERVICE_HOME" || fail "创建家目录失败。"
+  /usr/bin/install -d -m 700 -o "$SERVICE_USER" -g "$SERVICE_USER" "$SERVICE_HOME" || fail "创建家目录失败。"
   echo "已确认账户 $SERVICE_USER 与可写家目录 $SERVICE_HOME。"
 }
 
@@ -143,6 +146,22 @@ for item in parse_links.py requirements.txt package.py README.md original_metada
 done
 chmod -R a+rX "$TARGET"
 echo "已更新：$(cd "$TARGET" && ls original_parser/*.py | wc -l) 个源码文件、deploy 目录与入口脚本。"
+
+step "同步服务虚拟环境依赖并检查签名功能"
+[ -x "$TARGET/.venv/bin/python" ] || fail "缺少服务虚拟环境，请先执行 bash $TARGET/deploy/linux/install.sh。服务尚未启动。"
+"$TARGET/.venv/bin/python" -m pip install -r "$TARGET/requirements.txt" \
+  || fail "依赖安装失败，服务尚未启动；修复安装错误后重新执行升级。"
+"$TARGET/.venv/bin/python" -m pip check \
+  || fail "虚拟环境依赖冲突，服务尚未启动。"
+(cd "$TARGET" && "$TARGET/.venv/bin/python" -m original_parser.check_runtime) \
+  || fail "运行环境检查失败，服务尚未启动。"
+# requirements 更新 Playwright 时可能需要新的 Chromium 修订；已有匹配版本则不下载。
+export PLAYWRIGHT_BROWSERS_PATH="$TARGET/.browsers"
+if ! "$TARGET/.venv/bin/python" -c 'from pathlib import Path; from playwright.sync_api import sync_playwright; p = sync_playwright().start(); ready = Path(p.chromium.executable_path).is_file(); p.stop(); raise SystemExit(0 if ready else 1)'; then
+  "$TARGET/.venv/bin/python" -m playwright install --with-deps chromium --no-shell \
+    || fail "Chromium 安装失败，服务尚未启动。"
+fi
+chmod -R a+rX "$TARGET/.browsers" || fail "无法设置 Chromium 读取权限。"
 
 if [ "$INSTALL_UNITS" = "1" ]; then
   step "安装 systemd 服务单元与请求保护配置"

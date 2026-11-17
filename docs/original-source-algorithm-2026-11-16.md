@@ -1,5 +1,7 @@
 # 只凭作品链接取抖音原片：五个开源实现的取址算法汇总与本项目落地
 
+> **后续更正与当前实现：**本页保留早期实验记录。下文关于“默认档404证明没有登记原片”“sign是必需门禁”“必须取得未知32位原片FID”的定性超出证据，已被后续单变量实验纠正。当前代码新增内嵌模型选档、逐路媒体校验、即时原画身份重新分发，并修复QuickTime校验和默认档下载；真实恢复样本与仍失败的目标请以[最新修复验收](original-investigation-2026-11-16-astar.md)为准。
+
 记录日期：2026-11-16。适用范围：`douyin-original-parser` 的取址层（`original_parser/client.py`）。
 本文只收**官方接口**路线；所有结论都在本机真机上跑过，命令与原始输出见第 8 节和 `output/play-*.txt`。
 
@@ -63,7 +65,7 @@
 | App 侧 host | `aweme.snssdk.com`、`api-play.amemv.com`、`api.amemv.com` × `default/1080p` + `aid=1128` | 全 404（连 1080p 都 404） | 该 VID 在 play 服务上不是按 ratio 键注册的 |
 | 详情其它 uri | `play_addr` / `play_addr_h264` / `play_addr_265` / `download_addr` 四个 uri 分别当 `video_id` | 四个 uri 完全相同，全 404 | 无第二条注册键 |
 | 详情找 `play_addr_hdr` / original vid | 遍历 `video` 全部键 | 无 `play_addr_hdr`、无 original vid 字段 | 平台不下发该身份 |
-| VOD `GetPlayInfo`（`video.token_auth.play_auth_token`） | `/video/openapi/v1/` + AWS4 query、POST JSON、raw token 当 `Authorization`、`api-play.amemv.com` 同路径 | `100013 AccessDenied` / `100010 SignatureDoesNotMatch` / `10408 Missing Authorization header` | 接口形态确定，`Authorization` 由客户端原生层生成，密钥不在 APK 明文常量 |
+| VOD `GetPlayInfo`（`video.token_auth.play_auth_token`） | `/video/openapi/v1/` + AWS4 query、POST JSON、raw token 当 `Authorization`、`api-play.amemv.com` 同路径 | `100013 AccessDenied` / `100010 SignatureDoesNotMatch` / `10408 Missing Authorization header` | 这些请求未建立有效消费基线；“缺 native Authorization”的推断已撤回，见[真实消费链审计](original-investigation-2026-11-16-auth-consumer-audit.md) |
 | 登录态 | — | 本机无可用 Cookie 文件，未验证 | 待用户提供登录 Cookie 后复测 P3 |
 
 追加一轮（第三个 HDR 作品 `7707964786692083007`，VID `v28033gi0000dbs329vog65m4ip4vss0`，145.381 s，详情 `bit_rate` 只有 16,418,362 / 24,305,152 两档而 fplay 给 5 档，`output/play-deep-7707964786692083007.txt`）：
@@ -168,11 +170,49 @@ Referer: https://www.douyin.com/video/<aweme_id>
 ## 7 仍未解决，以及下一步能做什么
 
 1. **HDR 源作品（`is_source_HDR=1`）**：原片对象确实存在（`tos-cn-v-0051` / 同桶同 key / 140,778,272 B），但官方只按 `sign=<原片真实 MD5>` 寻址。项目内没有任何能"从作品 ID 推出这个哈希"的官方来源。已判死的入口见第 3 节全表。
-2. **VOD `GetPlayInfo`（`video.token_auth.play_auth_token` 是完整 AWS4 签发 query）**：接口形态已确定，`Authorization` 由客户端原生层生成，AES/密钥不在 APK 明文常量。要继续攻就得逆 `libc++_shared`/native 层，属另一个量级的工程。
+2. **VOD `GetPlayInfo`（`video.token_auth.play_auth_token` 是完整 AWS4 签发 query）**：后续按实际消费者复核，已检查的 version 2/4 播放分支传入空 auth；此前搜索到的 AWS4 常量属于上传 SDK 和 QoS。“只差 native Authorization”及“应逆 `libc++_shared` 找密钥”的推断已撤回。2026-11-17 的 Ghidra 分析进一步确认，MDL `_getAuth` 为本地代理地址计算 CRC32，并非服务器播放授权。当前仍需找到目标自身有效的原片身份和取址上下文，详见[真实消费链审计](original-investigation-2026-11-16-auth-consumer-audit.md)。
 3. **登录态未验证**：本机没有可用 Cookie 文件，P3 只在访客身份下测过。若拿到已登录 Cookie，值得在 HDR 作品上复测一次 P3——`jiji262` 的 README 明说需要登录 Cookie，这一点本项目目前无法排除。同日 `docs/original-investigation-2026-11-16-login-result.md` 记录的登录对照是另外两个作品（`7707196543073275177`、`7704677676878925119`），三阶段目录完全相同，**没有覆盖 HDR 作品**，所以该分支仍未排掉。
 4. **不做的事**：不用第三方/他人的整文件 MD5 作常规取址依据；不凭第三方"原画"标签放行；不按 CDN 桶名推断原画；不改 `br`/分辨率；不把普通档改名 original；不硬编码样例地址。
 
-## 8 复现
+## 8 追加验收：登录态与 App 侧（2026-11-16 晚）
+
+用户扫码登录后（`tools/capture_login_cookies.py` 抓取 13 个字段，含 `sessionid`/`sid_tt`/`ttwid`，落在 gitignore 的 `credentials.json`），两条此前未排掉的分支全部实测：
+
+| 分支 | 做法 | 结果 |
+| --- | --- | --- |
+| A 登录态默认档 | 用登录 Cookie 打 `ratio=default`，对 `770805`/`770799`/`770796` | 三个仍 **404**（`output/verify-play-default.txt` 首行标注登录态） |
+| B1 App 侧详情是否下发 `token_auth` | `api.amemv.com`/`aweme.snssdk.com`/`api5-normal-c-lf.amemv.com` 的 `aid=1128` 详情，带登录 Cookie、不带 `X-Gorgon` | 三家均 **HTTP 200 + 完整 56 KB 回包**（说明 App 链不是签名墙），但 `video.token_auth`、`video.meta.token_auth` 都不存在，`need_set_token=false` |
+| B2 `play_addr_hdr` 是否存在于客户端 | 对 270 MB APK 全量 dex/so 做字节扫描（`tools/scan_apk_strings.py`） | `play_addr_hdr` **0 命中**；`is_source_HDR` 仅 2 处，`PlayTokenAuth`/`GetPlayInfo`/`video/openapi/v1` 集中在 `classes30.dex`；`x-gorgon` 只在 `libsscronet.so` |
+| B3 下载策略是否差异点 | 对 `770805`/`770799`/`770796`/`770726` 取 App 侧 `video_control` | 四条全是 `allow_download=false` + `prevent_download_type`，原因分别是 `290002 isolation_content`、`200142 aigc_forbidden`；**能取到 4K 原片的 `770726` 也一样**，所以不是分水岭 |
+| B4 短剧剧集侧入口 | 取 App 侧 `series_basic_info`/`series_paid_info`/`chapter_list` | `series_basic_info={}`、`chapter_list=null`、`media_type=4`，该作品在接口语义上不是可枚举剧集，没有剧集侧入口 |
+| B5 `xigua_base_info` | 同上 | `{"status":0,"item_id":0,...}` 空壳，没有西瓜侧 vid |
+
+**结论：**A 排除（登录态不给默认档）；B 的前提被推翻——客户端自己也没有 `play_addr_hdr` 或 `token_auth`，HDR 短剧这类作品在抖音 web/app 播放链里只下发转码档，原片对象只能按 MD5 寻址。第三方能取到，靠的是别的产品线（红果/番茄等短剧产品）或自建客户端，不是"抖音接口里还差一个参数"。
+
+### 8.1 后续三条补充实验（同日晚）
+
+| 实验 | 做法 | 结果 |
+| --- | --- | --- |
+| VOD 错误码取全 | `tools/probe_vod_error.py`：web `play_auth_token` 打 3 host × 2 path，打印完整 `ResponseMetadata.Error` | `/` 为 `100013 AccessDenied`（`User is not authorized to perform: vod:GetPlayInfo on resource: []`），`/video/openapi/v1/` 为 `100010 SignatureDoesNotMatch`。token 的 `X-Amz-SignedQueries` 只有 `aid;codec_type;format_type;stream_type;video_id`，是**播放域令牌**，权限模型上调不了 `GetPlayInfo`，不是缺参数 |
+| 换客户端身份是否能拿到 VOD 令牌 | `tools\probe_client_aids.py`：aid 1128（抖音）/2329（极速版）/1112（火山）/6383（web）取同一作品详情 | 四家全部 200 有详情，`video.token_auth` **全部为空**，`need_set_token=false`；服务端对该作品不签发 VOD 令牌，与客户端身份无关 |
+| 详情自带哈希是否等于原片 MD5 | `tools\check_file_hash.py`：比对 `play_addr`/`play_addr_265`/`download_addr`/`bit_rate` 行的 `file_hash`/`file_cs` 与已知原片 MD5 `351f10c0…` | 全部不等，`file_hash` 是**各转码档自己的 MD5**（`b6baa1ad…`=720p、`de0bb56d…`=540p）；`file_cs` 是 `c:0-<字节数>-<crc>` 形态的分段校验。官方详情里的哈希不能用于原片寻址 |
+| 抖音→西瓜映射 | `tools\dump_app_raw.py`：原始 App 详情全文检索 `ixigua`/`365yg`/`xigua`/`sync_to_toutiao` | `xigua_base_info` 空壳、`xigua_task.is_xigua_task=false`、`sync_to_toutiao=0`、无任何 ixigua/365yg 链接。用户给的原片链接挂在 365yg/ixigua 域，不是"抖音→西瓜"映射出来的，而是 VOD `GetPlayInfo` 输出的 TOS 形态 URL |
+
+### 8.2 官方档位清单与 play 门禁机制（同日晚，决定性）
+
+`tools\dump_fplay_gears.py`、`tools\probe_fplay_codecs.py`（8 个 `force_fids` × 9 个 `codec_type`，共 72 组）、`tools\probe_play_sign_mech.py`、`tools\probe_hdr_slot.py`：
+
+1. **档位清单**：`7708052871413075238` 的 fplay 只注册 **8 个转码档**（去重 8 个 `file_id`），最大 68,568,404 字节 / 1280×720；原片实测 140,778,272 字节。72 组组合里的并集仍是同样这 8 个 `file_id`，**原片的 `file_id` 与 `file_hash` 不在任何官方响应里**。
+2. **play 门禁机制**（决定性）：`/aweme/v1/play/` 里 **`file_id` 决定取哪个文件对象，`sign` 只是门禁位**。实测——
+   - `file_id=73a71219…` + `sign=ff52aa38…`（该档自己的 MD5）+ `ratio=normal` → `206`，`Content-Range` 总长 68,568,404（该档）；
+   - 同一 `file_id` + `sign=351f10c0…`（**原片** MD5）+ `ratio=default` → 仍然 `206`，返回的还是 68,568,404 那一档；
+   - 无 `sign` → `404` JSON。
+   即：只要知道目标文件的 `file_id`，`sign` 用任意合法 32 位十六进制都能过关；**原片取不到的原因是不知道它的 `file_id`，不是哈希门禁**。
+3. **`force_fids=hdr`**：返回 1 个 `definition=360p`、`size=0`、`file_id=""` 的兜底行，其 `main_url` 解码后是 `v26.douyinvod.com/…/video/s/220v03033g1…/`，实测 `Content-Range` 总长 45,992,041（就是 540p 档），不是原片。该 fid 只是"给我一个能播的"兜底，并无 HDR 槽。
+
+**这条把问题锁死了**：抖音官方接口对这类作品既不下发原片 `file_id`，也不注册原片档位；`ratio=default` 只在平台把原片登记为默认档时才有响应（`770726` 的 6.9 GB 4K 原片即属此列，已验证能自取）。
+
+## 9 复现（补）
 
 ```powershell
 # 离线测试
@@ -187,3 +227,12 @@ $env:PYTHONPATH='D:\ProjectPy\douyin-original-parser'
 ```
 
 注：本机 PowerShell 工具的输出捕获在本会话不可用，命令一律 `*> output\xxx.txt` 后再读文件。
+
+登录态抓取（会弹一个可见的 Chromium，扫码后把 Cookie 写进 `credentials.json`）：
+
+```powershell
+.\.venv\Scripts\python.exe tools\capture_login_cookies.py credentials.json 900
+.\.venv\Scripts\python.exe tools\verify_play_default.py --cookie-file credentials.json 7708052871413075238
+```
+
+`credentials.json` 已在 `.gitignore` 中，不要提交，也不要贴到任何外部系统。

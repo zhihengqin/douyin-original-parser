@@ -1,0 +1,852 @@
+{
+  "created_at": "2026-11-16T21:25:16.658592+08:00",
+  "primary_targets_repaired": false,
+  "verification": {
+    "pytest_passed": 155,
+    "subtests_passed": 152,
+    "catalog_used": false,
+    "external_reference_used": false
+  },
+  "integrated": {
+    "catalog_read_disabled": true,
+    "catalog_write_disabled": true,
+    "external_asset_recovery": false,
+    "results": [
+      {
+        "aweme_id": "7698054262056552561",
+        "size_bytes": 40087514,
+        "width": 1080,
+        "height": 1920,
+        "duration_seconds": 46.249,
+        "source_evidence": "official_quality",
+        "official_quality": "original",
+        "probe": {
+          "ok": true,
+          "actual_size": 40087514,
+          "duration_seconds": 46.249,
+          "tracks": [
+            {
+              "width": 1080,
+              "height": 1920,
+              "type": "vide",
+              "codec": "hvc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        },
+        "download": {
+          "path": "D:\\ProjectPy\\douyin-original-parser\\output\\verified-original-7698054262056552561.mp4",
+          "bytes": 40087514,
+          "md5": "8dfd03e580d0afdd54ff0607276adc93",
+          "sha256": "fadfb57fe4627165e216f5ea9e10f1afbeb952cbdaefaa3176d933b4a2bb8dc6",
+          "official_hash_match": true,
+          "reference_match": null,
+          "reference_sha256": null,
+          "media": {
+            "duration_seconds": 46.249,
+            "tracks": [
+              {
+                "width": 1080,
+                "height": 1920,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          }
+        }
+      },
+      {
+        "aweme_id": "7707264789998849307",
+        "size_bytes": 6932400516,
+        "width": 3840,
+        "height": 2160,
+        "duration_seconds": 480.073,
+        "source_evidence": "official_quality",
+        "official_quality": "original",
+        "probe": {
+          "ok": true,
+          "actual_size": 6932400516,
+          "duration_seconds": 480.073,
+          "tracks": [
+            {
+              "width": 3840,
+              "height": 2160,
+              "type": "vide",
+              "codec": "avc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        }
+      }
+    ]
+  },
+  "default_download": {
+    "aweme_id": "7706477018388536499",
+    "catalog_used": false,
+    "upstream_hash_at_range": null,
+    "source_evidence": "official_play_default",
+    "probe": {
+      "ok": true,
+      "actual_size": 27668186,
+      "duration_seconds": 31.069,
+      "tracks": [
+        {
+          "width": 1080,
+          "height": 1920,
+          "type": "vide",
+          "codec": "hvc1"
+        },
+        {
+          "type": "soun",
+          "codec": "mp4a"
+        }
+      ],
+      "has_video": true,
+      "has_audio": true
+    },
+    "download": {
+      "path": "D:\\ProjectPy\\douyin-original-parser\\output\\verified-default-7706477018388536499.mp4",
+      "bytes": 27668186,
+      "md5": "e51a13fb1b8d5c51a85996373ee734e6",
+      "sha256": "7020a6f103f4252beeebc13d58db2b2e8257f2ae922352816ddf98d8efb6fb30",
+      "official_hash_match": null,
+      "reference_match": null,
+      "reference_sha256": null,
+      "media": {
+        "duration_seconds": 31.069,
+        "tracks": [
+          {
+            "width": 1080,
+            "height": 1920,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      }
+    }
+  },
+  "audits": [
+    {
+      "aweme_id": "7708052871413075238",
+      "request_count": 139,
+      "address_count": 96,
+      "candidate_count": 10,
+      "observation_count": 45,
+      "visited_video_nodes": 480,
+      "decode_or_host_rejections": 4,
+      "original_verified": false,
+      "incomplete": null,
+      "incomplete_reason": null,
+      "omitted_candidate_count": null,
+      "routes": [
+        {
+          "name": "web_detail",
+          "outcome": "received"
+        },
+        {
+          "name": "app_detail",
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_issued",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_original",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_source",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        }
+      ],
+      "response_status_counts": {
+        "206": 92,
+        "404": 4
+      },
+      "media": [
+        {
+          "qualities": [
+            "adapt_lowest"
+          ],
+          "official_hashes": [
+            "b6baa1ad694fc0043350350907f6b76a"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 28405118,
+            "metadata_bytes_read": 274163,
+            "duration_matches": true,
+            "average_bitrate": 686804,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt"
+          ],
+          "official_hashes": [
+            "de0bb56d7eebeeb08cded9da183f1cdc"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 24414636,
+            "metadata_bytes_read": 274163,
+            "duration_matches": true,
+            "average_bitrate": 590319,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [],
+          "official_hashes": [],
+          "address_count": 2,
+          "original_verified": false,
+          "media": null
+        },
+        {
+          "qualities": [
+            "normal"
+          ],
+          "official_hashes": [
+            "49ef8e5b6770ea1dbde45c6846feab3f"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 960,
+                "height": 540,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 45992041,
+            "metadata_bytes_read": 359671,
+            "duration_matches": true,
+            "average_bitrate": 1112037,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt_low"
+          ],
+          "official_hashes": [
+            "4f4ef7919831bb04d3460d13b2d8f30d"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 28053488,
+            "metadata_bytes_read": 273098,
+            "duration_matches": true,
+            "average_bitrate": 678302,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "low"
+          ],
+          "official_hashes": [
+            "f797fe59f1bd2284b6b418d4c01d8b3b"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 39027679,
+            "metadata_bytes_read": 273043,
+            "duration_matches": true,
+            "average_bitrate": 943646,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt_lower"
+          ],
+          "official_hashes": [
+            "05799636321d77489de96d5a564fc8da"
+          ],
+          "address_count": 12,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 21138968,
+            "metadata_bytes_read": 274163,
+            "duration_matches": true,
+            "average_bitrate": 511117,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "normal"
+          ],
+          "official_hashes": [
+            "ff52aa3872a929aac9ca740e6095c51e"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 68568404,
+            "metadata_bytes_read": 359681,
+            "duration_matches": true,
+            "average_bitrate": 1657909,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [
+            "low"
+          ],
+          "official_hashes": [
+            "f611dddf82623928ecbe75ea0298923d"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 44221246,
+            "metadata_bytes_read": 272755,
+            "duration_matches": true,
+            "average_bitrate": 1069221,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true
+          }
+        },
+        {
+          "qualities": [],
+          "official_hashes": [],
+          "address_count": 2,
+          "original_verified": false,
+          "media": null
+        }
+      ]
+    },
+    {
+      "aweme_id": "7707993970332290314",
+      "request_count": 156,
+      "address_count": 108,
+      "candidate_count": 11,
+      "observation_count": 50,
+      "visited_video_nodes": 516,
+      "decode_or_host_rejections": 4,
+      "original_verified": false,
+      "incomplete": false,
+      "incomplete_reason": null,
+      "omitted_candidate_count": 0,
+      "routes": [
+        {
+          "name": "web_detail",
+          "outcome": "received"
+        },
+        {
+          "name": "app_detail",
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_issued",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_original",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        },
+        {
+          "name": "fplay_source",
+          "code": 0,
+          "status": 10,
+          "outcome": "received"
+        }
+      ],
+      "response_status_counts": {
+        "206": 104,
+        "404": 4
+      },
+      "media": [
+        {
+          "qualities": [
+            "adapt_lowest"
+          ],
+          "official_hashes": [
+            "dc938a5598b84247c6a1af6c2ac1752d"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 21409165,
+            "metadata_bytes_read": 270479,
+            "duration_matches": true,
+            "average_bitrate": 523873,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt"
+          ],
+          "official_hashes": [
+            "a75c8540907d7183e48814f87d463ad9"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 18473036,
+            "metadata_bytes_read": 270479,
+            "duration_matches": true,
+            "average_bitrate": 452027,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [],
+          "official_hashes": [],
+          "address_count": 2,
+          "original_verified": false,
+          "media": null
+        },
+        {
+          "qualities": [
+            "normal"
+          ],
+          "official_hashes": [
+            "9d1698ed73aac796127d161aab4c5ec8"
+          ],
+          "address_count": 16,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 40274983,
+            "metadata_bytes_read": 355147,
+            "duration_matches": true,
+            "average_bitrate": 985511,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "low"
+          ],
+          "official_hashes": [
+            "21be1c8cdf9ae81fcbee47b633b1ae23"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 30731901,
+            "metadata_bytes_read": 269103,
+            "duration_matches": true,
+            "average_bitrate": 751996,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt_low"
+          ],
+          "official_hashes": [
+            "1134506e3d4d56cb038c8dd8c67fd766"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 22332945,
+            "metadata_bytes_read": 269158,
+            "duration_matches": true,
+            "average_bitrate": 546477,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt_lowest"
+          ],
+          "official_hashes": [
+            "af6f4ec79bc66b03789513e7110867f7"
+          ],
+          "address_count": 12,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 540,
+                "height": 960,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 13472840,
+            "metadata_bytes_read": 270478,
+            "duration_matches": true,
+            "average_bitrate": 329674,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "adapt_lower"
+          ],
+          "official_hashes": [
+            "488ec0fcca28c57029b307e21c888700"
+          ],
+          "address_count": 12,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 576,
+                "height": 1024,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 15842227,
+            "metadata_bytes_read": 270479,
+            "duration_matches": true,
+            "average_bitrate": 387652,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "low"
+          ],
+          "official_hashes": [
+            "6d1b6000ab3ecfff92a8100dd9accc99"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 34228823,
+            "metadata_bytes_read": 269079,
+            "duration_matches": true,
+            "average_bitrate": 837564,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [
+            "normal"
+          ],
+          "official_hashes": [
+            "8cb2358a9f30b153326f5a9c06267948"
+          ],
+          "address_count": 8,
+          "original_verified": false,
+          "media": {
+            "duration_seconds": 326.937,
+            "tracks": [
+              {
+                "width": 720,
+                "height": 1280,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true,
+            "actual_size": 52471983,
+            "metadata_bytes_read": 355625,
+            "duration_matches": true,
+            "average_bitrate": 1283966,
+            "verified_complete_mp4": true,
+            "declared_size_matches": true,
+            "declared_dimensions_match": true
+          }
+        },
+        {
+          "qualities": [],
+          "official_hashes": [],
+          "address_count": 2,
+          "original_verified": false,
+          "media": null
+        }
+      ]
+    }
+  ],
+  "additional_route_evidence": "original-investigation-2026-11-16-astar-routes.json",
+  "public_research": "original-investigation-2026-11-16-astar-public.md",
+  "limitations": [
+    "Primary HDR targets and current configured link still have no discovered original.",
+    "Public interface tests are bounded; not all undisclosed Douyin APIs were enumerated.",
+    "Default route is inherited compatibility behavior; differing size alone is insufficient original proof.",
+    "No uploader reference file was used; no byte-for-byte comparison to an uploader local file is asserted."
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "started_at": "2026-11-16T10:29:13+00:00",
+  "schema_version": 1,
+  "aweme_id": "7706430541934972201",
+  "catalog_used": false,
+  "reference_used": false,
+  "login_file_used": false,
+  "third_party_parser_used": false,
+  "routes": [
+    {
+      "route": "fplay_issued",
+      "requested_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "row_count": 12,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "lower",
+        "normal"
+      ],
+      "max_size": 9725641,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_original",
+      "requested_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "row_count": 14,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "lower",
+        "normal"
+      ],
+      "max_size": 9725641,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_source",
+      "requested_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "original_verified": true,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "row_count": 1,
+      "qualities": [
+        "original"
+      ],
+      "max_size": 87979914,
+      "candidate_count": 1,
+      "candidates_omitted": 0,
+      "candidates": [
+        {
+          "outcome": "official_source_verified",
+          "original_verified": true,
+          "official_quality": "original",
+          "size": 87979914,
+          "width": 1920,
+          "height": 1440,
+          "http_requests": 6,
+          "bytes_read": 37111,
+          "actual_size": 87979914,
+          "media": {
+            "duration_seconds": 46.208,
+            "tracks": [
+              {
+                "width": 1920,
+                "height": 1440,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": []
+        }
+      ],
+      "outcome": "official_source_verified"
+    },
+    {
+      "route": "play_default",
+      "origin": "official_http_detail",
+      "requested_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+      "selected_size": 2960665,
+      "need_set_cookie": false,
+      "signature": "a_bogus",
+      "original_verified": false,
+      "http_status": 206,
+      "http_requests": 6,
+      "bytes_read": 37111,
+      "actual_size": 87979914,
+      "media": {
+        "duration_seconds": 46.208,
+        "tracks": [
+          {
+            "width": 1920,
+            "height": 1440,
+            "type": "vide",
+            "codec": "avc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "has_video": true,
+        "has_audio": true
+      },
+      "embedded_vids": [],
+      "size_matches_known_transcode": false,
+      "outcome": "default_candidate_identity_unconfirmed"
+    },
+    {
+      "route": "mobile_share_ssr",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 32534,
+      "outcome": "item_list_not_present",
+      "observed_items": 0
+    }
+  ],
+  "original_verified": true,
+  "detail": {
+    "aweme_id_matches": true,
+    "vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+    "selected_vid": "v0d00fg10000dbpbpovog65kfjne0f3g",
+    "bit_rate_rows": 2,
+    "model_present": true
+  },
+  "result": "official_source_verified",
+  "finished_at": "2026-11-16T10:29:21+00:00"
+}

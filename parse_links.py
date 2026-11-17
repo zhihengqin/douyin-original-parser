@@ -7,14 +7,14 @@ from pathlib import Path
 from original_parser import OriginalParser, ParseError
 from original_parser.client import load_credentials
 
-LINKS = ["https://www.douyin.com/video/7707964786692083007"]
+LINKS = ["https://www.douyin.com/video/7708787653319134506"]
 DOWNLOAD = False
 # 默认自动取得匿名访客标识；也可指定包含 Cookie 和 User-Agent 的凭据文件。
 COOKIE_FILE = None
 # 历史已核对过的外部来源原片身份默认不参与取址；设 True 或命令行加 --allow-external
 # 才会使用（仍走官方分发重签与 MP4 媒体校验）。None 表示跟随环境变量
 # DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY。
-ALLOW_EXTERNAL = True
+ALLOW_EXTERNAL = None
 
 
 def main(argv=None):

@@ -317,7 +317,7 @@ class ParserTests(unittest.TestCase):
             "encrypted": ({"encrypt": True}, "带媒体加密标记"),
             "missing_url": ({"main_url": ""}, "缺少播放地址"),
             "decode": ({"main_url": "not-a-valid-encoded-url"}, "地址解码失败"),
-            "host": ({"main_url": "https://untrusted.example/video.mp4"}, "地址校验未通过"),
+            "url": ({"main_url": "https://media.example:9999/video.mp4"}, "地址校验未通过"),
         }
         messages = {}
         for reason, (fields, expected) in cases.items():
@@ -328,7 +328,8 @@ class ParserTests(unittest.TestCase):
             else:
                 rows["video_1"].update(fields)
             with self.subTest(reason=reason), OriginalParser(auto_guest=False) as parser:
-                with patch.object(parser, "_json", return_value=response):
+                with patch.object(parser, "_json", return_value=response), \
+                        patch.object(parser, "_dispatch_official_original", return_value=None):
                     with self.assertRaises(ParseError) as caught:
                         parser.source_streams(detail())
                 self.assertEqual(caught.exception.code, "source_unavailable")
@@ -342,10 +343,11 @@ class ParserTests(unittest.TestCase):
         response["video_info"]["data"]["video_list"] = [
             dict(row, vtype="dash"), dict(row, encrypt=True), dict(row, main_url=""),
             dict(row, main_url={"unexpected": "type"},
-                 backup_url_1="https://untrusted.example/video.mp4"),
+                 backup_url_1="https://media.example:9999/video.mp4"),
         ]
         with OriginalParser(auto_guest=False) as parser:
-            with patch.object(parser, "_json", return_value=response):
+            with patch.object(parser, "_json", return_value=response), \
+                    patch.object(parser, "_dispatch_official_original", return_value=None):
                 with self.assertRaises(ParseError) as caught:
                     parser.source_streams(detail())
         self.assertEqual(caught.exception.code, "source_unavailable")
@@ -613,14 +615,15 @@ class ParserTests(unittest.TestCase):
 
     def test_source_diagnostics_do_not_expose_upstream_secrets(self):
         markers = ("secret-query-token", "secret-key-seed", "secret-quality-value")
-        for fields in ({"main_url": "https://untrusted.example/video?token=" + markers[0]},
+        for fields in ({"main_url": "https://media.example:9999/video?token=" + markers[0]},
                        {"main_url": "bad-base64-" + markers[0]},
                        {"quality": markers[2]}):
             response = payload()
             response["video_info"]["data"]["key_seed"] = markers[1]
             response["video_info"]["data"]["video_list"]["video_1"].update(fields)
             with self.subTest(fields=fields), OriginalParser(auto_guest=False) as parser:
-                with patch.object(parser, "_json", return_value=response):
+                with patch.object(parser, "_json", return_value=response), \
+                        patch.object(parser, "_dispatch_official_original", return_value=None):
                     with patch("original_parser.client.logger") as diagnostic_log:
                         with self.assertRaises(ParseError) as caught:
                             parser.source_streams(detail())

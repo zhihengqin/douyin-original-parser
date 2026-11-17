@@ -1,0 +1,844 @@
+{
+  "report_date": "2026-11-16",
+  "scope": "User-named mirrors, two0051buckets, aid392139, current public repository algorithms, and actual captured media relationships.",
+  "all_web_or_all_douyin_interfaces_searched": false,
+  "five_target_original_discovery_fixed": false,
+  "user_hints": {
+    "hosts": [
+      "v13-default.365yg.com",
+      "v26-dy.ixigua.com",
+      "v3-qingtao.douyinvod.com"
+    ],
+    "buckets": [
+      "tos-cn-v-0051",
+      "tos-cn-v-15c800-ce"
+    ],
+    "aid": "392139"
+  },
+  "repository_audits": {
+    "evil0ctal_main": {
+      "commit": "3c045e11aecd58ab076562f1246931b9dd5d909b",
+      "version": "5.1.11",
+      "raw_detail_preserved": true,
+      "douyin_dash_to_original_reverse_mapping_found": false,
+      "evidence": "docs/original-investigation-2026-11-16-evil0ctal-dash.json"
+    },
+    "evil0ctal_v4": {
+      "commit": "42784ffc83a72a516bfe952153ad7e2a3998d16c",
+      "explicit_dash_merge_platform": "bilibili",
+      "douyin_uri_play_ratio": "1080p"
+    },
+    "jiji262": {
+      "commit": "4255c983db82a6df6d811f04f5572e08794dfb59",
+      "actual_pure_selection_methods_replayed": 8,
+      "real_detail_inputs_replayed": 6,
+      "selected_uris_match_current_default_probe_uris": true,
+      "default_route_label_independent": true,
+      "upstream_larger_file_promotion_not_adopted": true,
+      "evidence": "output/research-astar-user-hints/jiji/FINDINGS.md"
+    }
+  },
+  "ledger": {
+    "network_requests": 0,
+    "catalog_used": false,
+    "reference_urls_used": false,
+    "address_observations": 484,
+    "base_objects": 57,
+    "buckets": {
+      "tos-cn-ve-15c000-ce": 262,
+      "tos-cn-ve-51": 156,
+      "tos-cn-ve-51-ce": 36,
+      "tos-cn-v-0051-ce": 18,
+      "tos-cn-v-0051": 8,
+      "tos-cn-v-15c800-ce": 4
+    },
+    "aids": {
+      "6383": 382,
+      "392139": 102
+    },
+    "observations_are_not_unique_files": true,
+    "host_observation_counts": {
+      "v5-dy-ov-experiment.zjcdn.com": 242,
+      "v3-dy-o.zjcdn.com": 191,
+      "v3-qingtao.douyinvod.com": 51
+    },
+    "newly_retained_audio_address_observations": 6,
+    "newly_retained_audio_works": [
+      "7707964786692083007",
+      "7707993970332290314",
+      "7708052871413075238"
+    ],
+    "audio_field_shape": "video.bit_rate_audio[].audio_meta.url_list.{main_url,backup_url}",
+    "observed_audio_video_parent_pairs": [
+      {
+        "works": [
+          "7707964786692083007"
+        ],
+        "bucket": "tos-cn-v-0051-ce",
+        "suffixes": [
+          "media-audio-und-mp4a",
+          "media-video-avc1"
+        ],
+        "distinct_declared_hashes": 2,
+        "qualities": [
+          "low"
+        ],
+        "uploaded_original_base_object_mapping_established": false
+      },
+      {
+        "works": [
+          "7707993970332290314"
+        ],
+        "bucket": "tos-cn-v-0051-ce",
+        "suffixes": [
+          "media-audio-und-mp4a",
+          "media-video-avc1"
+        ],
+        "distinct_declared_hashes": 2,
+        "qualities": [
+          "normal"
+        ],
+        "uploaded_original_base_object_mapping_established": false
+      },
+      {
+        "works": [
+          "7708052871413075238"
+        ],
+        "bucket": "tos-cn-v-0051",
+        "suffixes": [
+          "media-audio-und-mp4a",
+          "media-video-avc1"
+        ],
+        "distinct_declared_hashes": 2,
+        "qualities": [
+          "low"
+        ],
+        "uploaded_original_base_object_mapping_established": false
+      }
+    ],
+    "evidence": "output/research-astar-user-hints/bucket-ledger-with-audio.json"
+  },
+  "bounded_relation_probes": {
+    "http_attempts": 11,
+    "catalog_used": false,
+    "reference_urls_used": false,
+    "limits": {
+      "requests": 36,
+      "body_bytes_per_case": 32
+    },
+    "limitations": [
+      "Parent path variants retain a signature issued for a different path; failure does not establish absence.",
+      "Matching head bytes alone do not prove full-file equality.",
+      "Original status is not inferred from hostname, bucket, aid or file size."
+    ],
+    "cases": [
+      {
+        "aweme_id": "7708052871413075238",
+        "mode": "issued",
+        "bucket": "tos-cn-v-0051",
+        "http": 206,
+        "final_host": "v3-dy-o.zjcdn.com",
+        "content_range": "bytes 0-31/41979651",
+        "content_type": "video/mp4",
+        "body_bytes_read": 32,
+        "ftyp": true,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "mode": "aid_392139",
+        "bucket": "tos-cn-v-0051",
+        "http": 206,
+        "final_host": "v3-dy-o.zjcdn.com",
+        "content_range": "bytes 0-31/41979651",
+        "content_type": "video/mp4",
+        "body_bytes_read": 32,
+        "ftyp": true,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "mode": "parent_path_same_aid",
+        "bucket": "tos-cn-v-0051",
+        "http": 403,
+        "final_host": "v3-dy-o.zjcdn.com",
+        "content_range": null,
+        "content_type": "video/mp4",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "mode": "parent_path_aid_392139",
+        "bucket": "tos-cn-v-0051",
+        "http": 403,
+        "final_host": "v3-dy-o.zjcdn.com",
+        "content_range": null,
+        "content_type": "video/mp4",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "mode": "issued",
+        "bucket": "tos-cn-v-0051-ce",
+        "http": 206,
+        "final_host": "v5-dy-ov-experiment.zjcdn.com",
+        "content_range": "bytes 0-31/39056996",
+        "content_type": "video/mp4",
+        "body_bytes_read": 32,
+        "ftyp": true,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "mode": "aid_392139",
+        "bucket": "tos-cn-v-0051-ce",
+        "http": 206,
+        "final_host": "v5-dy-ov-experiment.zjcdn.com",
+        "content_range": "bytes 0-31/39056996",
+        "content_type": "video/mp4",
+        "body_bytes_read": 32,
+        "ftyp": true,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "mode": "parent_path_same_aid",
+        "bucket": "tos-cn-v-0051-ce",
+        "http": 403,
+        "final_host": "v5-dy-ov-experiment.zjcdn.com",
+        "content_range": null,
+        "content_type": "application/octet-stream",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "mode": "parent_path_aid_392139",
+        "bucket": "tos-cn-v-0051-ce",
+        "http": 403,
+        "final_host": "v5-dy-ov-experiment.zjcdn.com",
+        "content_range": null,
+        "content_type": "application/octet-stream",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7698054262056552561",
+        "mode": "user_named_mirror",
+        "bucket": "tos-cn-v-15c800-ce",
+        "mirror": "v13-default.365yg.com",
+        "http": 403,
+        "final_host": "v13-default.365yg.com",
+        "content_range": null,
+        "content_type": "text/html",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7698054262056552561",
+        "mode": "user_named_mirror",
+        "bucket": "tos-cn-v-15c800-ce",
+        "mirror": "v26-dy.ixigua.com",
+        "http": 403,
+        "final_host": "v26-dy.ixigua.com",
+        "content_range": null,
+        "content_type": "text/html",
+        "body_bytes_read": 0,
+        "http_attempts": 1
+      },
+      {
+        "aweme_id": "7698054262056552561",
+        "mode": "user_named_mirror",
+        "bucket": "tos-cn-v-15c800-ce",
+        "mirror": "v3-qingtao.douyinvod.com",
+        "http": 206,
+        "final_host": "v3-qingtao.douyinvod.com",
+        "content_range": "bytes 0-31/40087514",
+        "content_type": "video/mp4",
+        "body_bytes_read": 32,
+        "ftyp": true,
+        "http_attempts": 1
+      }
+    ],
+    "aid_comparisons": [
+      {
+        "aweme_id": "7707993970332290314",
+        "same_declared_range": true,
+        "same_first32byte_digest": true,
+        "full_file_equality_proven": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "same_declared_range": true,
+        "same_first32byte_digest": true,
+        "full_file_equality_proven": false
+      }
+    ],
+    "source_positive_mirror_etag_matches_declared_file_hash": true,
+    "parent_path403_proves_original_absent": false,
+    "parent_path_variants_reuse_signature_issued_for_other_path": true,
+    "evidence": "output/research-astar-user-hints/bucket-relation-probes.json"
+  },
+  "new0051objects": {
+    "object_count": 10,
+    "http_attempts": 40,
+    "response_body_bytes_consumed": 19332,
+    "mdat_downloaded": false,
+    "full_file_hashes_recomputed": false,
+    "new_vids": [],
+    "stable_path_summary": {
+      "buckets": [
+        "tos-cn-v-0051",
+        "tos-cn-v-0051-ce"
+      ],
+      "terminal_segments": [
+        "media-video-avc1"
+      ],
+      "all_rows_declared_dash": true,
+      "all_have_mvex_trex": true,
+      "all_video_codec_avc1": true,
+      "all_have_audio_file_binding": true,
+      "base_object_key_to_original_mapping": "not established by the observed response or container metadata"
+    },
+    "objects": [
+      {
+        "aweme_id": "7707964786692083007",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 14565754,
+        "actual_size": 14565754,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 145.367,
+          "tracks": [
+            {
+              "width": 720,
+              "height": 1280,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707964786692083007",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 12635419,
+        "actual_size": 12635419,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 145.367,
+          "tracks": [
+            {
+              "width": 576,
+              "height": 1024,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707964786692083007",
+        "quality": [
+          "adapt_low"
+        ],
+        "declared_size": 8655635,
+        "actual_size": 8655635,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 145.367,
+          "tracks": [
+            {
+              "width": 576,
+              "height": 1024,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "quality": [
+          "normal"
+        ],
+        "declared_size": 39056996,
+        "actual_size": 39056996,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 326.934,
+          "tracks": [
+            {
+              "width": 720,
+              "height": 1280,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 31917292,
+        "actual_size": 31917292,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 326.934,
+          "tracks": [
+            {
+              "width": 720,
+              "height": 1280,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 28420558,
+        "actual_size": 28420558,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 326.934,
+          "tracks": [
+            {
+              "width": 576,
+              "height": 1024,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "quality": [
+          "adapt_low"
+        ],
+        "declared_size": 20021334,
+        "actual_size": 20021334,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 326.934,
+          "tracks": [
+            {
+              "width": 576,
+              "height": 1024,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 41979651,
+        "actual_size": 41979651,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 330.867,
+          "tracks": [
+            {
+              "width": 1280,
+              "height": 720,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "quality": [
+          "low"
+        ],
+        "declared_size": 36785796,
+        "actual_size": 36785796,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 330.867,
+          "tracks": [
+            {
+              "width": 1024,
+              "height": 576,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "quality": [
+          "adapt_low"
+        ],
+        "declared_size": 25811549,
+        "actual_size": 25811549,
+        "metadata_complete": true,
+        "metadata_probe_completed": true,
+        "dimensions_match": true,
+        "duration_matches": true,
+        "official_row_media_format": "dash",
+        "media": {
+          "duration_seconds": 330.867,
+          "tracks": [
+            {
+              "width": 1024,
+              "height": 576,
+              "type": "vide",
+              "codec": "avc1"
+            }
+          ],
+          "has_video": true,
+          "has_audio": false
+        },
+        "mvex_present": true,
+        "trex_present": true,
+        "encoder_markers": [
+          "mdtaencoder",
+          "Lavf58.76.100"
+        ],
+        "audio_file_binding_present": true,
+        "original_identity_established": false
+      }
+    ],
+    "limitations": [
+      "Only ftyp/box headers/moov were inspected; mdat was not downloaded.",
+      "Byte count measures response bodies consumed by Python, not network/TLS overhead.",
+      "Official file_hash values were not recomputed from entire media files.",
+      "Complete metadata and normal/low stream labels do not establish an original upload.",
+      "moov was re-read once per new object to retain encoder/fragmentation evidence; the cumulative per-object request/byte limits still apply."
+    ]
+  },
+  "posthoc_reference_comparison": {
+    "analysis_type": "post_hoc_only",
+    "network_requests": 0,
+    "network_disabled_by_python_audit_hook": true,
+    "discovery_inputs_frozen_before_reference_read": true,
+    "discovery_freeze_time": "2026-11-16T15:48:01.684166+00:00",
+    "reference_values_added_to_candidate_sets": false,
+    "reference_values_used_in_requests": false,
+    "candidate_count_definition": "Distinct independently observed video file_hash identities; download endpoint wrappers without an object identity are excluded.",
+    "match_definition": "Compare issued file_hash identity, declared/observed byte size, and exact stable object key; size alone is not identity proof.",
+    "scope_limitations": [
+      "Only the frozen candidate set is compared. A non-match does not establish that an original does not exist or cannot be retrieved.",
+      "The two available catalog references originate from external assets with historical official distribution/media validation, not independent official source-directory declarations.",
+      "The comparison can distinguish these candidates from those historical assets; it does not independently prove those assets are byte-identical to the author's upload.",
+      "Missing original/source labels were not used to reject a candidate.",
+      "No reference identity was found for three works in the inspected catalog and historical investigation records; their match result is unknown.",
+      "Candidate file_hash fields are official declarations; this pass did not hash complete media bodies."
+    ],
+    "works": [
+      {
+        "aweme_id": "7708319942491344154",
+        "candidate_count": 4,
+        "reference_available": false,
+        "matches_historical_reference_identity": null,
+        "matches_verified_author_upload": null,
+        "file_hash_match": null,
+        "size_match": null,
+        "object_key_match": null,
+        "base_key_match": null,
+        "reference_strength": "no_reference_available"
+      },
+      {
+        "aweme_id": "7708052871413075238",
+        "candidate_count": 11,
+        "reference_available": true,
+        "matches_historical_reference_identity": false,
+        "matches_verified_author_upload": null,
+        "file_hash_match": false,
+        "size_match": false,
+        "object_key_match": false,
+        "base_key_match": false,
+        "reference_strength": "external_asset_identity_with_historical_official_validation"
+      },
+      {
+        "aweme_id": "7707993970332290314",
+        "candidate_count": 12,
+        "reference_available": true,
+        "matches_historical_reference_identity": false,
+        "matches_verified_author_upload": null,
+        "file_hash_match": false,
+        "size_match": false,
+        "object_key_match": false,
+        "base_key_match": false,
+        "reference_strength": "external_asset_identity_with_historical_official_validation"
+      },
+      {
+        "aweme_id": "7707964786692083007",
+        "candidate_count": 8,
+        "reference_available": false,
+        "matches_historical_reference_identity": null,
+        "matches_verified_author_upload": null,
+        "file_hash_match": null,
+        "size_match": null,
+        "object_key_match": null,
+        "base_key_match": null,
+        "reference_strength": "no_reference_available"
+      },
+      {
+        "aweme_id": "7706218040236444937",
+        "candidate_count": 5,
+        "reference_available": false,
+        "matches_historical_reference_identity": null,
+        "matches_verified_author_upload": null,
+        "file_hash_match": null,
+        "size_match": null,
+        "object_key_match": null,
+        "base_key_match": null,
+        "reference_strength": "no_reference_available"
+      }
+    ],
+    "evidence": "output/research-astar-user-hints/posthoc-identity-comparison.json"
+  },
+  "audit_code_improvement": {
+    "file": "tools/audit_official_sources.py",
+    "behavior": "Recurse dictionary url_list while preserving existing list handling and inherited identity metadata.",
+    "new_real_audio_address_observations": 6,
+    "observed_audio_video_parent_pairs": 3,
+    "production_original_classification_changed": false,
+    "regression_test_file": "tests/test_source_audit.py",
+    "current_targeted_test_result": {
+      "passed": 10,
+      "subtests_passed": 2
+    },
+    "prior_full_suite_not_rerun_this_stage": {
+      "passed": 155,
+      "subtests_passed": 152
+    },
+    "git_diff_check_passed": true
+  },
+  "label_policy": {
+    "original_source_label_required_for_candidate_discovery": false,
+    "missing_label_proves_not_original": false,
+    "bucket_or_host_or_aid_alone_proves_original": false,
+    "positive_default_without_quality_label_http": 206,
+    "positive_default_declared_total_bytes": 40087514,
+    "unlabeled_candidates_retained_for_identity_validation": true,
+    "lossless_remux_is_proof_of_upload_file_identity": false
+  },
+  "target_results": [
+    {
+      "aweme_id": "7708319942491344154",
+      "detail_http": 200,
+      "detail_status": 0,
+      "detail_matches_work": true,
+      "detail_bit_rate_count": 4,
+      "detail_video_model_present": false,
+      "independent_video_file_identity_groups": 4,
+      "new_media_objects_vs_prior_evidence": 0,
+      "default_play_http": 404,
+      "original_discovery_fixed": false,
+      "absence_of_original_source_label_used_as_rejection": false
+    },
+    {
+      "aweme_id": "7708052871413075238",
+      "detail_http": 200,
+      "detail_status": 0,
+      "detail_matches_work": true,
+      "detail_bit_rate_count": 11,
+      "detail_video_model_present": false,
+      "independent_video_file_identity_groups": 11,
+      "new_media_objects_vs_prior_evidence": 3,
+      "default_play_http": 404,
+      "original_discovery_fixed": false,
+      "absence_of_original_source_label_used_as_rejection": false
+    },
+    {
+      "aweme_id": "7707993970332290314",
+      "detail_http": 200,
+      "detail_status": 0,
+      "detail_matches_work": true,
+      "detail_bit_rate_count": 12,
+      "detail_video_model_present": false,
+      "independent_video_file_identity_groups": 12,
+      "new_media_objects_vs_prior_evidence": 4,
+      "default_play_http": 404,
+      "original_discovery_fixed": false,
+      "absence_of_original_source_label_used_as_rejection": false
+    },
+    {
+      "aweme_id": "7707964786692083007",
+      "detail_http": 200,
+      "detail_status": 0,
+      "detail_matches_work": true,
+      "detail_bit_rate_count": 8,
+      "detail_video_model_present": false,
+      "independent_video_file_identity_groups": 8,
+      "new_media_objects_vs_prior_evidence": 3,
+      "default_play_http": 404,
+      "original_discovery_fixed": false,
+      "absence_of_original_source_label_used_as_rejection": false
+    },
+    {
+      "aweme_id": "7706218040236444937",
+      "detail_http": 200,
+      "detail_status": 0,
+      "detail_matches_work": true,
+      "detail_bit_rate_count": 5,
+      "detail_video_model_present": false,
+      "independent_video_file_identity_groups": 5,
+      "new_media_objects_vs_prior_evidence": 0,
+      "default_play_http": 404,
+      "original_discovery_fixed": false,
+      "absence_of_original_source_label_used_as_rejection": false
+    }
+  ],
+  "cleanup": {
+    "captured_at": "2026-11-16T23:55:11.2024170+08:00",
+    "owned_process_count": 0,
+    "default_roaming_profile_exists": false,
+    "default_local_profile_exists": false,
+    "douyin_run_entry_count": 0,
+    "asar_original_sha256_restored": true,
+    "asar_sha256": "fde20fce17eeb52b2533e40fef9887965338589b0a7e38e90775811304b52708",
+    "fallback_browser_research_cache_index_exclusive_open": true,
+    "claims_all_system_chrome_processes_absent": false,
+    "scope": "Owned runtime processes, named default profile directories, Douyin HKCU Run values, archive hash and the named research cache index only.",
+    "evidence": "output/research-astar-resumed/desktop-client/runtime/final-cleanup-summary.json"
+  },
+  "additional_observed_bucket_not_user_second_hint": "tos-cn-v-0051-ce"
+}

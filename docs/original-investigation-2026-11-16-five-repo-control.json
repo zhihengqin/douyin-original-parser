@@ -1,0 +1,128 @@
+{
+  "started_at": "2026-11-16T10:33:15+00:00",
+  "schema_version": 1,
+  "aweme_id": "7695305664234589459",
+  "catalog_used": false,
+  "reference_used": false,
+  "login_file_used": false,
+  "third_party_parser_used": false,
+  "routes": [
+    {
+      "route": "fplay_issued",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 13,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "lower",
+        "normal"
+      ],
+      "max_size": 87098787,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_original",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 1,
+      "qualities": [],
+      "max_size": 0,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_source",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": true,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 1,
+      "qualities": [
+        "original"
+      ],
+      "max_size": 528422694,
+      "candidate_count": 1,
+      "candidates_omitted": 0,
+      "candidates": [
+        {
+          "outcome": "official_source_verified",
+          "original_verified": true,
+          "official_quality": "original",
+          "size": 528422694,
+          "width": 1920,
+          "height": 1248,
+          "http_requests": 4,
+          "bytes_read": 587651,
+          "actual_size": 528422694,
+          "media": {
+            "duration_seconds": 486.342,
+            "tracks": [
+              {
+                "width": 1920,
+                "height": 1248,
+                "type": "vide",
+                "codec": "hev1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": []
+        }
+      ],
+      "outcome": "official_source_verified"
+    },
+    {
+      "route": "play_default",
+      "origin": "official_http_detail",
+      "original_verified": false,
+      "outcome": "request_or_validation_failed",
+      "error_type": "ParseError",
+      "error_code": "invalid_url"
+    },
+    {
+      "route": "mobile_share_ssr",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 32606,
+      "outcome": "item_list_not_present",
+      "observed_items": 0
+    }
+  ],
+  "original_verified": true,
+  "detail": {
+    "aweme_id_matches": true,
+    "vid": "v0200fg10000db5jd27og65gafbkjltg",
+    "selected_vid": "v0200fg10000db5jd27og65gafbkjltg",
+    "bit_rate_rows": 2,
+    "model_present": true
+  },
+  "routes_incomplete": true,
+  "result": "official_source_verified",
+  "budget": {
+    "http_requests": 11,
+    "max_http_requests": 64,
+    "range_bytes_requested": 587653,
+    "max_range_bytes": 8388608,
+    "max_probe_seconds": 120,
+    "budget_exhausted": false
+  },
+  "finished_at": "2026-11-16T10:33:17+00:00"
+}

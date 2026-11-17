@@ -10,3 +10,10 @@ output/
 credentials.json
 cookies.txt
 logs/
+
+# 本机研究下载、反编译产物及临时诊断文件，不随源码提交。
+/.research-repos/
+/douyin-32.2.6/
+/androguard.db
+/hs_err_pid*.log
+/.tmp_*.py

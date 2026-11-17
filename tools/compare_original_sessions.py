@@ -83,25 +83,37 @@ class DiagnosticParser(OriginalParser):
     def __init__(self, **kwargs):
         super().__init__(auto_guest=False, **kwargs)
         self.directories = []
+        self._directory_selectors = []
 
     def _catalog_original_candidate(self, detail, video_id):
         return None
 
-    def _source_candidates(self, payload, video_id):
-        info = payload.get("video_info") or {}
-        data = info.get("data") or {}
-        rows = data.get("video_list") or []
-        rows = list(rows.values()) if isinstance(rows, dict) else rows
-        self.directories.append({
-            "selector": "original" if not self.directories else "source",
-            "code": safe_number(payload.get("code")),
-            "info_code": safe_number(info.get("code")),
-            "status": safe_number(data.get("status")),
-            "video_id": safe_id(data.get("video_id")),
-            "rows": [media_identity(row) for row in rows[:100] if isinstance(row, dict)]
-                    if isinstance(rows, list) else [],
-        })
-        return super()._source_candidates(payload, video_id)
+    def _source_stream_groups(self, detail):
+        model = (detail.get("video") or {}).get("video_model")
+        if isinstance(model, str):
+            try:
+                model = json.loads(model)
+            except ValueError:
+                model = None
+        self._directory_selectors = (["inline"] if isinstance(model, dict) and model.get("video_list") else [])
+        self._directory_selectors.extend(("original", "source"))
+        return super()._source_stream_groups(detail)
+
+    def _source_candidates(self, payload, video_id, *, allow_missing_urls=False):
+        # 每份目录只在第一遍收集身份时记录；第二遍只生成原有地址失败诊断。
+        if allow_missing_urls:
+            info = payload.get("video_info") or {}
+            data = info.get("data") or {}
+            rows = self._video_rows(data)
+            self.directories.append({
+                "selector": self._directory_selectors.pop(0) if self._directory_selectors else "unknown",
+                "code": safe_number(payload.get("code")),
+                "info_code": safe_number(info.get("code")),
+                "status": safe_number(data.get("status")),
+                "video_id": safe_id(data.get("video_id")),
+                "rows": [media_identity(row) for row in rows[:100]],
+            })
+        return super()._source_candidates(payload, video_id, allow_missing_urls=allow_missing_urls)
 
 
 def analyze_detail(work, detail, cookies, user_agent, *, on_verified=None):
@@ -139,14 +151,18 @@ def analyze_detail(work, detail, cookies, user_agent, *, on_verified=None):
         finally:
             result["directories"] = parser.directories
     if result.get("error_code") == "source_unavailable":
+        queried_directories = [directory for directory in result["directories"]
+                               if directory["selector"] in ("original", "source")]
         if not result["video_model_present"]:
             result["availability"] = "model_not_supplied"
-        elif len(result["directories"]) == 2 and all(
+        elif len(queried_directories) == 2 and all(
                 directory["code"] == directory["info_code"] == 0
                 and directory["status"] == 10 and directory["video_id"] == result["video_id"]
                 and directory["rows"] and all(row["quality"] not in ("original", "source")
                                               for row in directory["rows"])
-                for directory in result["directories"]):
+                for directory in queried_directories) and not any(
+                row["quality"] in ("original", "source")
+                for directory in result["directories"] for row in directory["rows"]):
             result["availability"] = "valid_directory_without_original"
     return result
 

@@ -1,14 +1,115 @@
 # Linux 无 Docker：三个 NiKa 实例共用一个原画解析服务
 
-**当前策略：**只返回经过完整媒体校验的官方原画。官方没有下发 `original/source`，或可信的官方原片分发无法签发时，HTTP 返回 `source_unavailable`（消息包含“获取原画失败”），普通转码档不会作为成功结果返回，也不会缓存。2026-11-06 的“最高可用画质降级”只保留在历史调查记录中，不是当前部署行为。
+**当前策略：**优先返回经过媒体校验的官方 `original/source` 档位或可信身份重新分发的原片；仍保留 `ratio=default` 兼容通道，该通道排除已知转码大小并检查媒体完整性，但没有同等强度的官方原画档位声明。所有取址路径均无候选时返回 `source_unavailable`（消息包含“获取原画失败”），不会直接选择 `normal/adapt` 或按最大文件降级。精简 HTTP 成功回包不含 `source_evidence`，需用 CLI 完整结果区分来源。2026-11-06 的“最高可用画质降级”只保留在历史调查记录中，不是当前部署行为。
 
-更新时需要替换 Python 源码并重启解析服务，同时编译发布使用该服务的 NiKa 后端；旧 Java 客户端会拒绝 `source_selected=false` 的普通档。依赖和既有启动参数无需改变，已启用自建渠道的前端无需改动。先升级 NiKa 后端可兼容仍返回原画的旧 Python 服务，再更新 Python。严格原画选档、媒体校验和 HTTP 缓存已经在 Windows 本地联调通过，目标 Linux 是否已更新需按下方命令复查。
+更新时需要替换 Python 源码、用服务的 `.venv/bin/python` 同步 `requirements.txt`，再重启解析服务。新版 `deploy.sh` 和 `upgrade.sh` 会自动安装依赖并检查签名功能；依赖失败时不会继续启动服务。已有启动参数和已启用自建渠道的前端无需改动。当前 HTTP 成功响应仅含 `data.url`，仍要求旧完整字段的 Java 客户端会把成功结果判为失败；需配套发布兼容该响应的 NiKa `nika-basic` 后端，详见下面的 `ServiceException` 排查说明。
 
 更新后用作品 `7706466342664277290` 调用 `/parse`，成功回包只返回 `{"code":0,"msg":"原画解析成功","data":{"url":"..."}}`，应验证 `data.url` 可下载且为约 185,591,975 字节的原片；可信记录来自部署包中的 `original_metadata.json`，服务账户无法写入项目目录时不影响静态记录读取。没有匹配原片记录且官方只返回普通档的作品，例如 `7704212621922159898`，应返回 HTTP 502、`code=source_unavailable`、`data=null`。这些是本地官方接口与 MP4 Range 校验结果，若上游返回发生变化应以新回包及媒体校验为准。
 
-当前主解析节点为 Linux `172.31.0.4`，三个 Java 实例的主调用地址为 `http://172.31.0.4:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于目录内。只有运行解析服务的节点需要安装 Python、Playwright 和 Chromium，Java 节点无需同步 Cookie。已部署成功的 04 升级步骤见 [请求保护说明](REQUEST_PROTECTION.md)，无需重装依赖。
+当前主解析节点为 Linux `172.31.0.4`，三个 Java 实例的主调用地址为 `http://172.31.0.4:8765`。安装目录为 `/opt/software/python`，`run.py` 直接位于目录内。所有运行解析服务的节点（包括备用出口）都需要同步 Python 依赖；Java 节点无需同步 Cookie。已部署成功的 04 升级步骤见 [请求保护说明](REQUEST_PROTECTION.md)。
 
 Python 服务由 systemd 独立管理，Java 发布或重启不应同时停止它。已由服务器截图确认 `.3` 为 Ubuntu 22.04.4 LTS，使用 `/usr/bin/python3`，版本 3.10.12，无需另装一套 Python。可用 `uname -m` 再确认 CPU 架构；浏览器安装仍须与当前 Playwright 支持的架构匹配。其他服务器若使用 CentOS、Rocky、AlmaLinux，不能直接套用这里的 `apt` 或假定 `--with-deps` 可用。
+
+## 已有节点报缺少 gmssl 时
+
+在报错的解析节点执行以下命令。裸 `pip install` 可能安装到系统的
+`/usr/local/lib/python3.10/dist-packages`，服务的虚拟环境仍然无法导入。
+本次只补签名依赖，不升级 Playwright；所有步骤成功后再重启：
+
+```bash
+cd /opt/software/python
+.venv/bin/python -m pip install 'gmssl>=3.2' &&
+sudo -u douyin-parser .venv/bin/python -c 'import sys; from original_parser.abogus import ABogus; q, sig, ua, body = ABogus().generate_abogus("aid=6383&device_platform=webapp", ""); assert sig and "a_bogus=" in q; print("签名检查通过:", sys.executable)' &&
+systemctl restart douyin-original-parser &&
+systemctl is-active douyin-original-parser
+```
+
+检查通过后请求 `http://127.0.0.1:8765/health`，并重新测试解析。这里修复的是
+运行环境缺失，不保证某个作品一定有原片。更新到新版后，启动脚本会先执行
+`python -m original_parser.check_runtime`，缺少签名依赖时直接启动失败；
+绕过启动脚本而在请求中遇到缺依赖时返回 HTTP 503 / `dependency_missing`，
+不再报告为作品无原片的 `source_unavailable`。
+
+## 报 `network_error` / `SSLError` 时
+
+新版本会把证书、TLS 握手和 HTTPS 代理故障返回为 HTTP 503 /
+`network_tls_error`，并给出固定的原因（例如“证书校验失败”或“TLS 协议与代理或对端不匹配”）。
+如果仍看到旧文案 `平台请求失败：SSLError` 或 `network_error`，通常表示服务仍在运行旧源码；
+先按下面的重新打包升级步骤更新节点。不要把 `verify=False` 加入代码来绕过证书校验。
+
+升级后若仍是 `network_tls_error`，在报错节点只收集版本、时间和代理配置状态，不要复制 Cookie、
+签名 URL 或 token：
+
+```bash
+cd /opt/software/python
+.venv/bin/python -c 'import sys, ssl, requests, certifi; print("python:", sys.executable); print("openssl:", ssl.OPENSSL_VERSION); print("requests:", requests.__version__); print("ca:", certifi.where())'
+.venv/bin/python -c 'import os; names = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"); print("\n".join(name + ": " + ("configured" if os.environ.get(name) else "unset") for name in names))'
+date -u
+curl --noproxy '*' -Iv --connect-timeout 5 --max-time 15 https://www.douyin.com/
+curl --noproxy '*' -Iv --connect-timeout 5 --max-time 15 https://aweme.snssdk.com/
+```
+
+结果可按下面判断：
+
+* `certificate verify failed` 或 `unable to get local issuer`：检查系统 `ca-certificates` 是否安装、
+  `certifi.where()` 指向的文件是否存在，以及 `REQUESTS_CA_BUNDLE` / `CURL_CA_BUNDLE` 是否指向了失效文件；
+  Ubuntu 可执行 `sudo apt-get install -y ca-certificates` 后重试。
+* `hostname mismatch`：HTTPS 代理或中间设备返回的证书与目标主机不匹配，应修正代理出口或代理证书链。
+* `wrong version number`、`unknown protocol`：代理协议配置与端口不匹配，先在不经过代理的网络上用上面的
+  `curl --noproxy '*'` 命令对照测试。
+* `TLS 连接被对端中止`：检查节点出口、防火墙和系统时间；两个官方域名都失败时优先排查节点网络。
+
+这些检查只说明 TLS 通道是否可用，不能把普通转码档认定为作者原片；通道恢复后仍需重新请求并完成媒体校验。
+
+## 成功素材仍报“请求异常 / ServiceException”时
+
+该文案来自 NiKa Java 客户端，不能直接解释为平台没有原画。旧版
+`SelfHostedVideoParserClient.validateOriginal()` 要求响应包含 `source_selected`、
+`provider`、`probe` 和 `video_list`，而当前 Python 成功响应仅有 `data.url`。
+即使 Python 返回 HTTP 200 / `code=0`，旧 Java 也会抛出
+“自建解析结果中找不到原画”，随后被 `catch (RuntimeException)` 隐藏为
+“请求异常 / ServiceException”，并将该出口标记为故障。
+
+配套 Java 修复接受成功响应中恰好只含 `url` 的新格式，将地址适配为下游需要的
+单条 `video_list`；旧完整格式继续执行原有校验，显式 `source_selected=false`
+的响应仍被拒绝。业务 `ServiceException` 会保留原提示，不再作为网络故障暂停出口。
+需要重新发布所有承接解析任务的 `nika-basic` 实例；只更新 Python 部署包不能修复旧 Java。
+
+可在 Java 所在服务器直接请求报错的 Python 节点，查看实际 HTTP 状态及响应：
+
+```bash
+curl --noproxy '*' --silent --show-error --connect-timeout 5 --max-time 180 \
+  -w '\nHTTP %{http_code}，耗时 %{time_total} 秒\n' \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://www.douyin.com/video/7706139583431413046","with_probe":true}' \
+  http://172.31.0.4:8765/parse
+```
+
+如果这里返回 `code=0` 和 `data.url`，但业务端仍报上述异常，应检查 Java 部署版本。
+若直接请求也失败，应按实际返回的错误码及节点日志继续处理。
+
+## 已有节点重新打包升级
+
+在 Windows 项目根目录执行 `./build-deploy-package.ps1`，将新生成的
+`output/release-日期时间/douyin-original-parser-deploy.tar.gz` 上传到解析节点的
+`/tmp/`。每台启用的主、备用解析节点都要升级；只运行 Java 的节点无需执行。
+
+先从新包提取升级脚本，再执行，避免调用服务器上的旧脚本而漏装新增依赖：
+
+```bash
+UPGRADE_SCRIPT=$(mktemp /tmp/douyin-upgrade.XXXXXX.sh) &&
+tar -xOf /tmp/douyin-original-parser-deploy.tar.gz douyin-original-parser/deploy/linux/upgrade.sh > "$UPGRADE_SCRIPT" &&
+sudo bash "$UPGRADE_SCRIPT" /tmp/douyin-original-parser-deploy.tar.gz --no-units
+```
+
+该命令适用于已安装 `.venv` 并注册服务的节点。`--no-units` 保留现有 systemd
+配置，仍会更新源码、用 `/opt/software/python/.venv/bin/python` 安装依赖、
+检查实际签名功能，并在需要时安装匹配的 Chromium。升级期间服务会停止；
+依赖安装或检查失败时不会继续启动，修复错误后重新执行上述命令。
+
+升级成功后应看到“运行环境检查通过”“douyin-original-parser 正在运行”
+和“本机 /health 正常”，再重试解析。只解压覆盖源码不会安装 `gmssl`。
+首次安装使用下面的安装及注册步骤。
 
 ## 1. 上传和解压
 

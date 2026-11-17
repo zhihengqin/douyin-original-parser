@@ -124,6 +124,35 @@ class LocalService:
 
 
 class ServerGuardTests(unittest.TestCase):
+    def test_missing_dependency_is_service_unavailable_without_upstream_cooldown(self):
+        def unavailable(*_):
+            raise ParseError("dependency_missing", "a_bogus 签名依赖加载失败（gmssl）")
+
+        config = GuardConfig(interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
+        with LocalService(unavailable, config=config) as service:
+            status, headers, body = service.request({"url": AWEME})
+            health = service.health()
+        self.assertEqual(status, 503)
+        self.assertEqual(body["code"], "dependency_missing")
+        self.assertIsNone(body["data"])
+        self.assertNotIn("Retry-After", headers)
+        self.assertEqual(health["protection"]["state"], "closed")
+
+    def test_tls_node_failure_is_service_unavailable_without_upstream_cooldown(self):
+        def unavailable(*_):
+            raise ParseError("network_tls_error", "作品详情接口 HTTPS 请求失败（证书校验失败）；请检查解析节点的 CA 证书、系统时间和 HTTPS 代理配置")
+
+        config = GuardConfig(interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
+        with LocalService(unavailable, config=config) as service:
+            status, headers, body = service.request({"url": AWEME})
+            health = service.health()
+        self.assertEqual(status, 503)
+        self.assertEqual(body["code"], "network_tls_error")
+        self.assertIn("CA", body["msg"])
+        self.assertIsNone(body["data"])
+        self.assertNotIn("Retry-After", headers)
+        self.assertEqual(health["protection"]["state"], "closed")
+
     def test_missing_original_is_returned_as_parse_error(self):
         def unavailable(*_):
             raise ParseError("source_unavailable", "获取原画失败：仅返回普通转码档")

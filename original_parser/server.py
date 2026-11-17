@@ -117,7 +117,10 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None,
                                         "retry_after_seconds": exc.retry_after}, retry_after=exc.retry_after)
             except ParseError as exc:
-                status = 400 if exc.code in ("invalid_input", "invalid_url") else 502
+                if exc.code in ("dependency_missing", "network_tls_error"):
+                    status = 503
+                else:
+                    status = 400 if exc.code in ("invalid_input", "invalid_url") else 502
                 self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None})
             except Exception as exc:
                 logger.warning("parse_failed category=%s", type(exc).__name__)

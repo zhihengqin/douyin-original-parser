@@ -40,15 +40,17 @@ def parse_moov(body: bytes) -> dict:
         elif kind == b"trak":
             track = {}
 
-            def visit(data, current_track):
+            def visit(data, current_track, parent=b"trak"):
                 for box_kind, box in boxes(data):
                     if box_kind in (b"mdia", b"minf", b"stbl"):
-                        visit(box, current_track)
+                        visit(box, current_track, box_kind)
                     elif box_kind == b"tkhd" and len(box) >= 84:
                         w, h = struct.unpack_from(">II", box, len(box) - 8)
                         if w and h:
                             current_track.update(width=w // 65536, height=h // 65536)
-                    elif box_kind == b"hdlr" and len(box) >= 12:
+                    elif box_kind == b"hdlr" and parent == b"mdia" and len(box) >= 12:
+                        # QuickTime minf may contain a data handler (e.g. url ).
+                        # Only mdia/hdlr declares the track's media type.
                         current_track["type"] = box[8:12].decode("ascii", errors="replace")
                     elif box_kind == b"stsd" and len(box) >= 16:
                         current_track["codec"] = box[12:16].decode("ascii", errors="replace")

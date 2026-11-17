@@ -1,0 +1,324 @@
+{
+  "created_at": "2026-11-17T00:59:10.278061+08:00",
+  "scope": "Public Evil0ctal demo, independent official reproduction, bounded CDN probes and reusable audit extension",
+  "goal_complete": false,
+  "failed_targets_original_verified": false,
+  "provenance": [
+    "third_party_demo_initial_discovery",
+    "independent_official_detail_reproduction",
+    "issued_official_cdn_media_metadata"
+  ],
+  "catalog_used_for_discovery_or_requests": false,
+  "local_douyin_credentials_sent_to_demo": false,
+  "demo": {
+    "version_observed": "5.1.11",
+    "completed_ui_tasks": 7,
+    "selected_parse_and_task_http_responses": 20,
+    "upstream_request_count": null,
+    "works": {
+      "7698054262056552561": {
+        "video_bit_rate_count": 10,
+        "audio_bit_rate_count": 0,
+        "new_video_candidate_count": 0,
+        "new_audio_candidate_count": 0,
+        "new_raw_vids_vs_desktop": []
+      },
+      "7708319942491344154": {
+        "video_bit_rate_count": 10,
+        "audio_bit_rate_count": 1,
+        "new_video_candidate_count": 6,
+        "new_audio_candidate_count": 1,
+        "new_raw_vids_vs_desktop": []
+      },
+      "7708052871413075238": {
+        "video_bit_rate_count": 11,
+        "audio_bit_rate_count": 1,
+        "new_video_candidate_count": 0,
+        "new_audio_candidate_count": 0,
+        "new_raw_vids_vs_desktop": []
+      },
+      "7707993970332290314": {
+        "video_bit_rate_count": 12,
+        "audio_bit_rate_count": 1,
+        "new_video_candidate_count": 0,
+        "new_audio_candidate_count": 0,
+        "new_raw_vids_vs_desktop": []
+      },
+      "7707964786692083007": {
+        "video_bit_rate_count": 8,
+        "audio_bit_rate_count": 1,
+        "new_video_candidate_count": 0,
+        "new_audio_candidate_count": 0,
+        "new_raw_vids_vs_desktop": []
+      },
+      "7706218040236444937": {
+        "video_bit_rate_count": 5,
+        "audio_bit_rate_count": 0,
+        "new_video_candidate_count": 0,
+        "new_audio_candidate_count": 0,
+        "new_raw_vids_vs_desktop": []
+      }
+    }
+  },
+  "direct_params_http_attempts": 4,
+  "source_recheck": {
+    "http_attempts": 3,
+    "success": false,
+    "error_code": "source_unavailable",
+    "stop_reason": null
+  },
+  "media_checks": {
+    "http_attempts": 21,
+    "body_bytes_read": 868066,
+    "stop_reason": null
+  },
+  "live_tool_checks": {
+    "7706218040236444937": {
+      "request_count": 5,
+      "candidate_count": 7,
+      "audio_candidate_count": 0,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    },
+    "7707964786692083007": {
+      "request_count": 5,
+      "candidate_count": 10,
+      "audio_candidate_count": 1,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    },
+    "7707993970332290314": {
+      "request_count": 5,
+      "candidate_count": 15,
+      "audio_candidate_count": 1,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    },
+    "7708052871413075238": {
+      "request_count": 5,
+      "candidate_count": 13,
+      "audio_candidate_count": 1,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    },
+    "7708319942491344154": {
+      "request_count": 5,
+      "candidate_count": 12,
+      "audio_candidate_count": 1,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    },
+    "7698054262056552561": {
+      "request_count": 5,
+      "candidate_count": 17,
+      "audio_candidate_count": 0,
+      "web_pc_enabled": true,
+      "probe_all": false,
+      "incomplete": false
+    }
+  },
+  "lineage_review": {
+    "path": "output\\research-astar-continuation-20261117\\lineage-review.json",
+    "network_requests": 0,
+    "new_parent_or_source_vid_found": false,
+    "next_request_input_supported": false
+  },
+  "bounded_media_followup": {
+    "aweme_id": "7708319942491344154",
+    "request_count": 100,
+    "incomplete": true,
+    "incomplete_reason": "request_budget_exhausted",
+    "candidate_count": 11,
+    "candidate_groups_with_media_metadata": 4,
+    "original_verified_count": 0,
+    "observed_media": [
+      {
+        "qualities": [
+          "adapt_lowest"
+        ],
+        "actual_size": 44695234,
+        "duration_seconds": 348.667,
+        "tracks": [
+          {
+            "width": 720,
+            "height": 1280,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "complete_mp4": true,
+        "explicit_original": false
+      },
+      {
+        "qualities": [
+          "adapt"
+        ],
+        "actual_size": 33785763,
+        "duration_seconds": 348.667,
+        "tracks": [
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "hvc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "complete_mp4": true,
+        "explicit_original": false
+      },
+      {
+        "qualities": [
+          "normal"
+        ],
+        "actual_size": 57163128,
+        "duration_seconds": 348.667,
+        "tracks": [
+          {
+            "width": 540,
+            "height": 960,
+            "type": "vide",
+            "codec": "avc1"
+          },
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          }
+        ],
+        "complete_mp4": true,
+        "explicit_original": false
+      },
+      {
+        "qualities": [
+          "adapt_low"
+        ],
+        "actual_size": 35937790,
+        "duration_seconds": 348.667,
+        "tracks": [
+          {
+            "type": "soun",
+            "codec": "mp4a"
+          },
+          {
+            "width": 576,
+            "height": 1024,
+            "type": "vide",
+            "codec": "avc1"
+          }
+        ],
+        "complete_mp4": true,
+        "explicit_original": false
+      }
+    ],
+    "identity_conclusion": "media metadata only; no upload-original identity established"
+  },
+  "code": {
+    "files": [
+      "tools/audit_official_sources.py",
+      "tests/test_source_audit.py"
+    ],
+    "production_parser_default_changed_this_phase": false,
+    "features": [
+      "optional supplemental web_pc detail",
+      "separate recursive audio discovery",
+      "dict-shaped url_list handling",
+      "identity validation",
+      "bounded network requests"
+    ]
+  },
+  "verification": {
+    "status": "passed",
+    "command": ".\\.venv\\Scripts\\python.exe -m pytest tests/test_source_audit.py tests/test_source_pipeline.py tests/test_media_handlers.py tests/test_vid_lineage_probe.py -q",
+    "exit_code": 0,
+    "tests_passed": 38,
+    "subtests_passed": 34,
+    "full_project_suite_run_this_phase": false,
+    "independent_review": "One confirmed issue: retain already discovered video metadata after supplemental route triggers 429/444. Fixed and covered by offline tests. No other confirmed issue.",
+    "final_stop_regression_network_requests": 0,
+    "git_diff_check": "passed for touched paths",
+    "production_parser_default_changed_this_phase": false
+  },
+  "limitations": [
+    "A media file, original label, resolution, bucket, host or aid alone is not proof of upload-original identity.",
+    "Full PC query changes several fields at once; no single field causation established.",
+    "Current minimal response has 2 bit_rate rows but 7 unique model video files; full PC adds 3 DASH videos and 1 audio.",
+    "CDN checks read metadata only; no full samples or entire-file hashes were compared.",
+    "Candidate groups can include unidentified playback entry URLs and are not identical to unique file counts.",
+    "HTTP counts cover the specified experiments, not all browser traffic or invisible third-party upstream calls.",
+    "Five target original files remain unverified; absence of source labels and default 404 do not prove nonexistence."
+  ],
+  "evidence": [
+    {
+      "path": "output\\research-astar-user-hints\\demo\\audit.json",
+      "sha256": "a28efff88b71323feaf652367b337d649930b2dcbdada7f9a15432baff5a97b5"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\local-params-summary.json",
+      "sha256": "a491bc21386739cba03e71afced87ac5d4852c6cf848a39fab0fe70924894a61"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\local-reproduction-audit.json",
+      "sha256": "81deb1d272871ebd60f6a35ed840b21c27bdcfe450e4ac52814fbe91518405b7"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\current-source-recheck.json",
+      "sha256": "19b00fc3429511c16b1099b438ee1ef7484d03a3ebd30ff7092ac183d7469f66"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\media-probes.json",
+      "sha256": "f5f58fe26ea7662dd377c69f6761c4679fe120c3b4ccd73be5d9979c76952066"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-7706218040236444937-audit.json",
+      "sha256": "d8a46fcac03eb065144db797fc35cbb2a76c28994fb3d770bfd04129029a31c0"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-7707964786692083007-audit.json",
+      "sha256": "0fbc087a92c404fe551de4408015fc84040330f3997c84c7cb8d834422476991"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-7707993970332290314-audit.json",
+      "sha256": "11a632b7143f19ab568b2305d26f292eca4d2483505864ecb80bc5a96dc38234"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-7708052871413075238-audit.json",
+      "sha256": "b35e3f1bca647b68d23b8a9d86b80646335d53b2013961fb2ab6a650545d1ce6"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-current-audit.json",
+      "sha256": "c38ac97e715d5aed573e2467ff338b5c6b0f12ebb5871a5c9eff41a7a8caa2e3"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\tool-positive-audit.json",
+      "sha256": "ddb331878b80ec84dbf80bc62d29a77dedf5f4d1972cbf9407f7ba6dd7c19c10"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\cleanup.json",
+      "sha256": "f30c09ddd950218adf0eca87452aa100590ec0cb72e473173c98e35ffe97965c"
+    },
+    {
+      "path": "output\\research-astar-user-hints\\demo\\completed-get-detail.jpg",
+      "sha256": "b712bb20017fdcfbb3934f15a355079539470c10c6b08902a9c0c964e6020b45"
+    },
+    {
+      "path": "output\\research-astar-continuation-20261117\\lineage-review.json",
+      "sha256": "4bf672868039bb18a074c9b5e679a49ef73cb2c279f78670f95f2800e54926c4"
+    },
+    {
+      "path": "output\\research-astar-continuation-20261117\\probe-7708319942491344154.json",
+      "sha256": "23f5182a7a0cffb7eb8ef7adb9521be7d54895fc96a0a4e9fa67f57827a9d36d"
+    }
+  ]
+}

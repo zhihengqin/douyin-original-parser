@@ -1,0 +1,246 @@
+{
+  "started_at": "2026-11-16T11:12:26+00:00",
+  "schema_version": 1,
+  "aweme_id": "7695305664234589459",
+  "catalog_used": false,
+  "reference_used": false,
+  "login_file_used": false,
+  "third_party_parser_used": false,
+  "routes": [
+    {
+      "route": "fplay_issued",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 13,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "lower",
+        "normal"
+      ],
+      "max_size": 87098787,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_original",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 16,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "lower",
+        "normal"
+      ],
+      "max_size": 87098787,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_source",
+      "requested_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "original_verified": true,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "row_count": 1,
+      "qualities": [
+        "original"
+      ],
+      "max_size": 528422694,
+      "candidate_count": 1,
+      "candidates_omitted": 0,
+      "candidates": [
+        {
+          "outcome": "official_source_verified",
+          "original_verified": true,
+          "official_quality": "original",
+          "size": 528422694,
+          "width": 1920,
+          "height": 1248,
+          "http_requests": 4,
+          "bytes_read": 587651,
+          "actual_size": 528422694,
+          "media": {
+            "duration_seconds": 486.342,
+            "tracks": [
+              {
+                "width": 1920,
+                "height": 1248,
+                "type": "vide",
+                "codec": "hev1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": []
+        }
+      ],
+      "outcome": "official_source_verified"
+    },
+    {
+      "route": "play_default",
+      "origin": "official_http_detail",
+      "original_verified": false,
+      "outcome": "request_or_validation_failed",
+      "error_type": "ParseError",
+      "error_code": "invalid_url"
+    },
+    {
+      "route": "mobile_share_ssr",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 32607,
+      "outcome": "item_list_not_present",
+      "observed_items": 0
+    }
+  ],
+  "original_verified": true,
+  "detail": {
+    "aweme_id_matches": true,
+    "vid": "v0200fg10000db5jd27og65gafbkjltg",
+    "selected_vid": "v0200fg10000db5jd27og65gafbkjltg",
+    "bit_rate_rows": 2,
+    "model_present": true
+  },
+  "routes_incomplete": true,
+  "result": "official_source_verified",
+  "additional_routes": [
+    {
+      "route": "legacy_iteminfo",
+      "original_verified": false,
+      "http_status": 200,
+      "body_bytes": 129,
+      "status_code": 11110,
+      "outcome": "platform_error"
+    },
+    {
+      "route": "legacy_app_detail",
+      "original_verified": false,
+      "http_status": 200,
+      "body_bytes": 0,
+      "outcome": "empty_response"
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 40609,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "bit_rate_rows": 0,
+      "profile": "videodl_ios16",
+      "model_present": false,
+      "media_candidates": [
+        {
+          "field": "play_addr",
+          "original_verified": false,
+          "http_status": 206,
+          "http_requests": 4,
+          "bytes_read": 529169,
+          "actual_size": 67139544,
+          "media": {
+            "duration_seconds": 486.342,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1108,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v0200fg10000db5jd27og65gafbkjltg"
+          ],
+          "buckets": [
+            "tos-cn-ve-15"
+          ],
+          "outcome": "play_candidate_identity_unconfirmed"
+        }
+      ],
+      "verification_incomplete": false
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 40640,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "bit_rate_rows": 0,
+      "profile": "ios16_trailing_slash",
+      "model_present": false
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 40668,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "bit_rate_rows": 0,
+      "profile": "aweme_32_7_trailing_slash",
+      "model_present": false
+    },
+    {
+      "route": "catchsnap_anonymous_cookie_share",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 40654,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v0200fg10000db5jd27og65gafbkjltg",
+      "bit_rate_rows": 0,
+      "attempt": 1,
+      "anonymous_cookie_attached": true,
+      "model_present": false
+    },
+    {
+      "route": "tiktokdownloader_bare_default",
+      "outcome": "request_or_validation_failed",
+      "error_type": "ParseError",
+      "error_code": "invalid_url"
+    },
+    {
+      "route": "videodl_ies_play_1080p",
+      "outcome": "request_or_validation_failed",
+      "error_type": "ParseError",
+      "error_code": "invalid_url"
+    }
+  ],
+  "budget": {
+    "http_requests": 28,
+    "range_bytes_requested": 1116829,
+    "budget_exhausted": false
+  },
+  "finished_at": "2026-11-16T11:12:59+00:00"
+}

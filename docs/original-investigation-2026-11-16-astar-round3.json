@@ -1,0 +1,592 @@
+{
+  "date": "2026-11-16",
+  "aweme_id": "7708319942491344154",
+  "current_target_repaired": false,
+  "catalog_used": false,
+  "external_asset_used": false,
+  "production": {
+    "success": false,
+    "error_code": "source_unavailable",
+    "catalog_write_disabled": true
+  },
+  "web_h5_audit": {
+    "original_verified": false,
+    "ordinary_app_detail_incomplete": true,
+    "download_addr_http_statuses": [
+      404,
+      404,
+      404,
+      404
+    ],
+    "http_attempts": 16,
+    "routes": [
+      {
+        "name": "web",
+        "outcome": "received",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "leaf_count": 715,
+        "media_rows": [
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "h265"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "app",
+        "error_type": "ParseError",
+        "error_code": "upstream_empty_response",
+        "media_rows": []
+      },
+      {
+        "name": "h5",
+        "outcome": "received",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "leaf_count": 376,
+        "media_rows": [
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "h265"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "web_fplay_issued",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "web_fplay_original",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "web_fplay_source",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "web_fplay_codec8",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 1,
+        "status": 2002,
+        "media_rows": []
+      },
+      {
+        "name": "h5_fplay_issued",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "h5_fplay_original",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          },
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          }
+        ]
+      },
+      {
+        "name": "h5_fplay_source",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 0,
+        "status": 10,
+        "media_rows": [
+          {
+            "quality": "normal",
+            "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+            "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+            "size": 57163128,
+            "vwidth": 540,
+            "vheight": 960,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "normal",
+            "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+            "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+            "size": 89305645,
+            "vwidth": 720,
+            "vheight": 1280,
+            "codec_type": "h264"
+          },
+          {
+            "quality": "adapt",
+            "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+            "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+            "size": 33785763,
+            "vwidth": 576,
+            "vheight": 1024,
+            "codec_type": "bytevc1"
+          }
+        ]
+      },
+      {
+        "name": "h5_fplay_codec8",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "code": 1,
+        "status": 2002,
+        "media_rows": []
+      }
+    ]
+  },
+  "lineage": {
+    "observed_vids": [
+      "v03033g10000dbqb7pfog65ls2ibfar0",
+      "v03033g10000dbq8slvog65gt07rs0p0"
+    ],
+    "new_media_identity_discovered": false,
+    "original_verified": false,
+    "http_attempts": 16,
+    "metadata_bytes_read": 1047791,
+    "full_media_downloaded": false,
+    "media_objects": [
+      {
+        "quality": "adapt",
+        "file_id": "a415ecf483934b3b9d4b7fb55eb0b218",
+        "file_hash": "dcd6a281f1a79411fd4d57906feb6fbd",
+        "size": 33785763,
+        "vwidth": 576,
+        "vheight": 1024,
+        "actual_size": 33785763,
+        "media": {
+          "duration_seconds": 348.667,
+          "tracks": [
+            {
+              "width": 576,
+              "height": 1024,
+              "type": "vide",
+              "codec": "hvc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        },
+        "embedded_vids": [
+          "v03033g10000dbqb7pfog65ls2ibfar0"
+        ]
+      },
+      {
+        "quality": "normal",
+        "file_id": "e84ca8ec601f4dc59baa5c1e9ce34a4c",
+        "file_hash": "3ab44fa36eb607204846ec13bc5b1178",
+        "size": 57163128,
+        "vwidth": 540,
+        "vheight": 960,
+        "actual_size": 57163128,
+        "media": {
+          "duration_seconds": 348.667,
+          "tracks": [
+            {
+              "width": 540,
+              "height": 960,
+              "type": "vide",
+              "codec": "avc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        },
+        "embedded_vids": [
+          "v03033g10000dbq8slvog65gt07rs0p0"
+        ]
+      },
+      {
+        "quality": "normal",
+        "file_id": "b2df047ecddb4f39a640a066b065fc6f",
+        "file_hash": "93809fb21cbd8cfb5420ea1ee389d1b6",
+        "size": 89305645,
+        "vwidth": 720,
+        "vheight": 1280,
+        "actual_size": 89305645,
+        "media": {
+          "duration_seconds": 348.667,
+          "tracks": [
+            {
+              "width": 720,
+              "height": 1280,
+              "type": "vide",
+              "codec": "avc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        },
+        "embedded_vids": [
+          "v03033g10000dbq8slvog65gt07rs0p0"
+        ]
+      }
+    ]
+  },
+  "native": {
+    "context": "registered_main_Douyin41.1_aid1128",
+    "series_login_baseline_reproduced": false,
+    "http_attempts": 6,
+    "download_addr_http_statuses": [
+      404,
+      404
+    ],
+    "routes": [
+      {
+        "route": "duet",
+        "aweme_id": "7708319942491344154",
+        "path": "/aweme/v1/duet/detail/",
+        "http": 200,
+        "response_bytes": 43450,
+        "status": 0,
+        "returned_aweme_ids": [
+          "7708319942491344154"
+        ]
+      },
+      {
+        "route": "series",
+        "aweme_id": "7708319942491344154",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "response_bytes": 106,
+        "status": 8,
+        "returned_aweme_ids": []
+      },
+      {
+        "route": "locate",
+        "aweme_id": "7708319942491344154",
+        "path": "/aweme/v1/locate/post/",
+        "http": 200,
+        "response_bytes": 147,
+        "status": 3002056,
+        "returned_aweme_ids": []
+      },
+      {
+        "route": "positive_series",
+        "aweme_id": "7698054262056552561",
+        "path": "/aweme/v1/series/aweme/detail/",
+        "http": 200,
+        "response_bytes": 106,
+        "status": 8,
+        "returned_aweme_ids": []
+      }
+    ],
+    "field_comparison": {
+      "matching_work": true,
+      "native_visited_nodes": 1085,
+      "native_vids": [
+        "v03033g10000dbqb7pfog65ls2ibfar0"
+      ],
+      "new_identity_records": [],
+      "video_model_nonempty": false,
+      "unknown_file_group_count": 1
+    }
+  },
+  "selected_app_certificate": {
+    "callback": 16777218,
+    "package_manager_flags": 64,
+    "consumer": "PackageInfo.signatures[0].toByteArray()",
+    "harness_equals_v2": true,
+    "android13_expected_certificate_md5": "aea615ab910015038f73c47e45d21466",
+    "rotation_chain_verified": true,
+    "current_harness_certificate_correct": true,
+    "full_android_runtime_reproduced": false,
+    "network_retest_required_for_certificate": false
+  },
+  "download_api_static": {
+    "network_requests": 0,
+    "production_changes": false,
+    "apks_indexed": [
+      "main 41.1.0 410101",
+      "yumme 41.1.0 410101"
+    ],
+    "annotated_apk": "main 41.1.0 410101",
+    "literal_aweme_v1_aweme_download_present": false,
+    "new_reproducible_aweme_to_original_lookup": false,
+    "routes": [
+      {
+        "path": "/aweme/privacy_platform/api/privacy/permission/download",
+        "method": "GET",
+        "query": [
+          "item_id"
+        ],
+        "response_fields": [
+          "msg",
+          "status"
+        ],
+        "category": "download permission status"
+      },
+      {
+        "path": "/aweme/v2/namek/merchant/download/list/",
+        "method": "GET",
+        "query": [
+          "download_type"
+        ],
+        "response_fields": [
+          "download_infos"
+        ],
+        "category": "enterprise certificate tasks"
+      },
+      {
+        "path": "/aweme/v2/namek/merchant/download/mget/",
+        "method": "GET",
+        "query": [
+          "download_ids"
+        ],
+        "response_fields": [
+          "download_infos"
+        ],
+        "category": "enterprise certificate task polling"
+      },
+      {
+        "path": "/aweme/v2/namek/merchant/download/retry/",
+        "method": "GET",
+        "query": [
+          "download_id"
+        ],
+        "response_fields": [
+          "download_info"
+        ],
+        "category": "enterprise certificate task mutation"
+      },
+      {
+        "path": "/aweme/v2/namek/merchant/download/delete/",
+        "method": "GET",
+        "query": [
+          "download_id"
+        ],
+        "response_fields": [
+          "status_code"
+        ],
+        "category": "enterprise certificate task mutation"
+      },
+      {
+        "path": "/aweme/v1/ai/asset_task/download/info/",
+        "method": "GET",
+        "query": [
+          "zlink",
+          "channel_name"
+        ],
+        "response_fields": [
+          "android_download_url",
+          "compliance_info",
+          "pop_up"
+        ],
+        "category": "AI zlink/channel Android download information"
+      }
+    ],
+    "originVideoResourceId_owner": "com.ss.android.ugc.aweme.shortvideo.edit.VideoPublishEditModel",
+    "limitations": [
+      "Absence of route literal does not disprove dynamically assembled or other server routes.",
+      "Detailed return schemas were extracted from main APK; matching Jingxuan route literals were indexed only.",
+      "AI direct consumer was located but not decompiled; live URL contents are unverified.",
+      "No new request input linking the current public aweme to a source video identity was found."
+    ]
+  },
+  "limitations": [
+    "Ordinary App detail returned empty bodies; successful duet detail does not exhaust all App routes.",
+    "The series positive control also failed with status 8; effective login was not reproduced this round.",
+    "HTTP 404 and absent original rows do not establish that an uploaded original does not exist.",
+    "Only directly observed VID graph nodes and returned media were checked.",
+    "The existing default-dispatch compatibility heuristic is not an explicit original-quality declaration."
+  ]
+}

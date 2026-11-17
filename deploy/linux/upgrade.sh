@@ -8,7 +8,7 @@
 #   sudo bash upgrade.sh                          # 自动找 banben/ 下最新的部署包
 #   sudo bash upgrade.sh /path/to/包.tar.gz        # 指定部署包
 #   sudo bash upgrade.sh --create-account          # 首次部署：创建服务账户与可写家目录
-#   sudo bash upgrade.sh --no-units                # 只更新源码，不动 systemd 单元
+#   sudo bash upgrade.sh --no-units                # 更新源码及依赖，不动 systemd 单元
 
 set -uo pipefail
 
@@ -31,16 +31,23 @@ usage() {
   --dir <目录>         自动查找部署包的目录，默认 /opt/software/python/banben
   --target <目录>      项目目录，默认 /opt/software/python
   --create-account     首次部署：创建服务账户与可写家目录
-  --no-units           不更新 systemd 单元文件（只更新源码）
+  --no-units           不更新 systemd 单元文件（更新源码及虚拟环境依赖）
   -h, --help           显示本帮助
 USAGE
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --package) PACKAGE="${2:-}"; shift 2 ;;
-    --dir) SEARCH_DIR="${2:-}"; shift 2 ;;
-    --target) TARGET="${2:-}"; shift 2 ;;
+    --package|--dir|--target)
+      option="$1"
+      [ $# -ge 2 ] && [ -n "$2" ] && [[ "$2" != --* ]] \
+        || { echo "错误：$option 需要路径参数。" >&2; exit 2; }
+      case "$option" in
+        --package) PACKAGE="$2" ;;
+        --dir) SEARCH_DIR="$2" ;;
+        --target) TARGET="$2" ;;
+      esac
+      shift 2 ;;
     --create-account) CREATE_ACCOUNT=1; shift ;;
     --no-units) INSTALL_UNITS=0; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -141,6 +148,22 @@ done
 chmod -R a+rX "$TARGET"
 echo "已更新源码、deploy 目录与入口脚本。"
 
+step "同步服务虚拟环境依赖并检查签名功能"
+[ -x "$TARGET/.venv/bin/python" ] || fail "缺少服务虚拟环境，请先执行 bash $TARGET/deploy/linux/install.sh。服务尚未启动。"
+"$TARGET/.venv/bin/python" -m pip install -r "$TARGET/requirements.txt" \
+  || fail "依赖安装失败，服务尚未启动；修复安装错误后重新执行升级。"
+"$TARGET/.venv/bin/python" -m pip check \
+  || fail "虚拟环境依赖冲突，服务尚未启动。"
+(cd "$TARGET" && "$TARGET/.venv/bin/python" -m original_parser.check_runtime) \
+  || fail "运行环境检查失败，服务尚未启动。"
+# requirements 更新 Playwright 时可能需要新的 Chromium 修订；已有匹配版本则不下载。
+export PLAYWRIGHT_BROWSERS_PATH="$TARGET/.browsers"
+if ! "$TARGET/.venv/bin/python" -c 'from pathlib import Path; from playwright.sync_api import sync_playwright; p = sync_playwright().start(); ready = Path(p.chromium.executable_path).is_file(); p.stop(); raise SystemExit(0 if ready else 1)'; then
+  "$TARGET/.venv/bin/python" -m playwright install --with-deps chromium --no-shell \
+    || fail "Chromium 安装失败，服务尚未启动。"
+fi
+chmod -R a+rX "$TARGET/.browsers" || fail "无法设置 Chromium 读取权限。"
+
 if [ "$INSTALL_UNITS" = "1" ] && [ -f "$TARGET/deploy/linux/$SERVICE.service" ]; then
   step "安装 systemd 服务单元与请求保护配置"
   install_file "$TARGET/deploy/linux/$SERVICE.service" "/etc/systemd/system/$SERVICE.service"
@@ -163,7 +186,7 @@ if systemctl cat "$SERVICE" >/dev/null 2>&1; then
   }
   echo "$SERVICE 正在运行。"
 else
-  echo "服务单元尚未安装（首次部署请加 --install-units），已完成文件更新。"
+  echo "服务单元尚未安装，已完成文件更新；首次部署请按 $TARGET/deploy/README.md 注册并启动 systemd 服务。"
   exit 0
 fi
 

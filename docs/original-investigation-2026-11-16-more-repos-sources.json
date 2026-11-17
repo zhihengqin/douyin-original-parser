@@ -1,0 +1,113 @@
+{
+  "review_date_beijing": "2026-11-16",
+  "target_aweme_id": "7707993970332290314",
+  "repository_count": 15,
+  "scope": "fixed_public_source_review_and_bounded_official_requests_not_full_upstream_app_runs",
+  "repositories": [
+    {
+      "repo": "Johnserf-Seed/f2",
+      "commit": "f6be8c0ffba9a127075bbeafe4838716650b6325",
+      "source": "f2/apps/douyin/utils.py",
+      "line": 1782,
+      "finding": "select_existing_bit_rate_by_pixels_and_bitrate"
+    },
+    {
+      "repo": "yt-dlp/yt-dlp",
+      "commit": "fcfd814ffac6e3c1976ff7c6065386dcfea9f515",
+      "source": "yt_dlp/extractor/tiktok.py",
+      "line": 1495,
+      "finding": "douyin_web_detail_then_existing_stream_parser_not_tiktok_app_api"
+    },
+    {
+      "repo": "JoeanAmier/TikTokDownloader",
+      "commit": "f766a6eff25b76fe4d737f10c27258e4da65df7d",
+      "source": "src/extract/extractor.py",
+      "line": 1628,
+      "finding": "unsigned_two_parameter_ratio_default_and_size_heuristic"
+    },
+    {
+      "repo": "dingwei2028/douyin-downloader-local",
+      "commit": "8a05b4affb4387ad4e46d7ec7adc34f687081bf0",
+      "source": "core/downloader_base.py",
+      "line": 1264,
+      "finding": "jiji_ratio_default_variant_with_retries_and_browser_detail_capture"
+    },
+    {
+      "repo": "Jolly-J/CatchSnap",
+      "commit": "8600ef28f1edaeea8aaa10086bbb6970be1fb251",
+      "source": "lib/parsers/douyin_parser.dart",
+      "line": 170,
+      "finding": "anonymous_cookie_forwarding_share_page_retry_and_legacy_iteminfo"
+    },
+    {
+      "repo": "lazymicezhu/Douyin-download",
+      "commit": "8e89d1b52f66a4c20c49e8a777caae5bc2c14c3e",
+      "source": "DouyinLite/DownloadModel.swift",
+      "line": 105,
+      "finding": "paid_tikhub_original_endpoint_client_only_not_executed"
+    },
+    {
+      "repo": "assimon/svbot",
+      "commit": "8caf6003d5a6ac63000b4e24287136441bf5cdc1",
+      "source": "videos/adapter/douyin_adapter.go",
+      "line": 167,
+      "finding": "legacy_iteminfo_then_first_play_addr_playwm_rewrite"
+    },
+    {
+      "repo": "insoxin/api-golang",
+      "commit": "ee3e7aa8376271e0a849398f2129133c52e36528",
+      "source": "main.go",
+      "line": 148,
+      "finding": "legacy_api_hl_amemv_app_detail_aid1128_version251"
+    },
+    {
+      "repo": "owen-gxz/douyin_download",
+      "commit": "72d2296d3c072d173ee551114239dfdca813941f",
+      "source": "download.go",
+      "line": 88,
+      "finding": "GetOriginalVideoUrl_is_first_play_addr_watermark_rewrite"
+    },
+    {
+      "repo": "CharlesPikachu/videodl",
+      "commit": "52aa299dbbb85d775f8ee02651df63a105cc5a1d",
+      "source": "videodl/modules/sources/douyin.py",
+      "line": 22,
+      "finding": "ios16_share_router_then_http_iesdouyin_play_ratio1080p"
+    },
+    {
+      "repo": "putyy/res-downloader",
+      "commit": "f8ac4d9c85baf28322106e40ea3fdea9867e2f74",
+      "source": "core/plugins/plugin.default.go",
+      "line": 31,
+      "finding": "captures_existing_network_media_response_no_douyin_source_discovery"
+    },
+    {
+      "repo": "wqvbjhc/MediaBridge",
+      "commit": "2a086e9e122ba615b411210973caa0f176943617",
+      "source": "src/lib/engines/custom.ts",
+      "line": 7,
+      "finding": "douyin_third_party_gateways_then_local_render_data_play_addr_fallback"
+    },
+    {
+      "repo": "sasigai1/douyinxiazai",
+      "commit": "973b864a02339823ad88039a3ac1050488d44191",
+      "source": "scripts/download_douyin_hd.py",
+      "line": 74,
+      "finding": "pc_html_render_data_initial_state_then_existing_addresses_by_resolution"
+    },
+    {
+      "repo": "sheen945/video-no-watermark",
+      "commit": "61934fa34e9968dcc6f3efe27564aeceb94672b6",
+      "source": "scripts/nwm.mjs",
+      "line": 7,
+      "finding": "hellotik_service_client_not_executed"
+    },
+    {
+      "repo": "652036/video-unwatermark",
+      "commit": "ebc8b03378195cb2356ebca2ec8d6e99b2439547",
+      "source": "app/engines/sharepage.py",
+      "line": 242,
+      "finding": "share_page_ua_and_trailing_slash_variants_browser_capture_and_external_engines"
+    }
+  ]
+}

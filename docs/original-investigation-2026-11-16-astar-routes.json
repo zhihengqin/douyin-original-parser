@@ -1,0 +1,1953 @@
+{
+  "assembled_at": "2026-11-16T13:10:39+00:00",
+  "catalog_used": false,
+  "reference_asset_used": false,
+  "target_repair_verified": false,
+  "evidence": {
+    "single_variable_controls": {
+      "catalog_used": false,
+      "reference_hash_used": false,
+      "works": [
+        {
+          "aweme_id": "7708052871413075238",
+          "vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "baseline_rows": 8,
+          "known_transcode": {
+            "size": 68568404,
+            "quality": "normal",
+            "file_id": "73a71219c82b41a89f9246b0cb1e418e",
+            "file_hash": "ff52aa3872a929aac9ca740e6095c51e"
+          },
+          "cases": [
+            {
+              "case": "bare",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "vid_only",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "vid_zero_sign",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "vid_known_transcode_sign",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "known_fid_no_sign",
+              "error_type": "ParseError",
+              "error_code": "invalid_url"
+            },
+            {
+              "case": "known_fid_zero_sign",
+              "error_type": "ParseError",
+              "error_code": "invalid_url"
+            },
+            {
+              "case": "known_fid_known_sign",
+              "error_type": "ParseError",
+              "error_code": "invalid_url"
+            },
+            {
+              "case": "known_sign_only",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            }
+          ]
+        },
+        {
+          "aweme_id": "7707264789998849307",
+          "vid": "v0d00fg10000dbqr10vog65mqlbihb00",
+          "baseline_rows": 12,
+          "known_transcode": {
+            "size": 120715342,
+            "quality": "adapt_lowest",
+            "file_id": "fc7f1816f6474114bd02daea2349a5c5",
+            "file_hash": "d1da2006f554d9357c40c2ca2dfa4901"
+          },
+          "cases": [
+            {
+              "case": "bare",
+              "error_type": "ParseError",
+              "error_code": "invalid_url"
+            },
+            {
+              "case": "vid_only",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "vid_zero_sign",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "vid_known_transcode_sign",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            },
+            {
+              "case": "known_fid_no_sign",
+              "http": 206,
+              "content_type": "video/mp4",
+              "content_range": "bytes 0-15/120715342",
+              "is_ftyp": true,
+              "final_host": "v5-se2-yz-e.douyinvod.com"
+            },
+            {
+              "case": "known_fid_zero_sign",
+              "http": 206,
+              "content_type": "video/mp4",
+              "content_range": "bytes 0-15/120715342",
+              "is_ftyp": true,
+              "final_host": "v95-zjbjx-mc-b.douyinvod.com"
+            },
+            {
+              "case": "known_fid_known_sign",
+              "error_type": "ParseError",
+              "error_code": "invalid_url"
+            },
+            {
+              "case": "known_sign_only",
+              "http": 404,
+              "content_type": "application/json; charset=utf-8",
+              "content_range": null,
+              "is_ftyp": false,
+              "final_host": "www.douyin.com"
+            }
+          ]
+        }
+      ]
+    },
+    "dispatch_before_cdn_support": {
+      "catalog_used": false,
+      "reference_used": false,
+      "works": [
+        {
+          "aweme_id": "7708052871413075238",
+          "vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "original_rows": [],
+          "cases": [
+            {
+              "case": "fid_known_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                }
+              ],
+              "stopped": "host_outside_existing_allowlist",
+              "stop_host": "v3-dy-o.zjcdn.com"
+            },
+            {
+              "case": "fid_known_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                }
+              ],
+              "stopped": "host_outside_existing_allowlist",
+              "stop_host": "v3-dy-o.zjcdn.com"
+            },
+            {
+              "case": "fid_vid_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_known_transcode_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            }
+          ]
+        },
+        {
+          "aweme_id": "7707264789998849307",
+          "vid": "v0d00fg10000dbqr10vog65mqlbihb00",
+          "original_rows": [
+            {
+              "quality": "original",
+              "size": 6932400516,
+              "file_id": "v0d00fg10000dbqr10vog65mqlbihb00",
+              "file_hash": "c792bd731786fe9f67556a4c8204d0ce"
+            }
+          ],
+          "cases": [
+            {
+              "case": "fid_known_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                }
+              ],
+              "stopped": "host_outside_existing_allowlist",
+              "stop_host": "v5-dy-ov-experiment.zjcdn.com"
+            },
+            {
+              "case": "fid_known_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v95-bj.douyinvod.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/120715342",
+              "is_ftyp": true
+            },
+            {
+              "case": "fid_vid_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_known_transcode_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_fresh_source_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                }
+              ],
+              "stopped": "host_outside_existing_allowlist",
+              "stop_host": "v5-dy-ov-experiment.zjcdn.com"
+            }
+          ]
+        }
+      ]
+    },
+    "dispatch_after_cdn_support": {
+      "catalog_used": false,
+      "reference_used": false,
+      "works": [
+        {
+          "aweme_id": "7708052871413075238",
+          "vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "original_rows": [],
+          "cases": [
+            {
+              "case": "fid_known_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v3-dy-o.zjcdn.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/68568404",
+              "is_ftyp": true
+            },
+            {
+              "case": "fid_known_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v3-dy-o.zjcdn.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/68568404",
+              "is_ftyp": true
+            },
+            {
+              "case": "fid_vid_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_known_transcode_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            }
+          ]
+        },
+        {
+          "aweme_id": "7707264789998849307",
+          "vid": "v0d00fg10000dbqr10vog65mqlbihb00",
+          "original_rows": [
+            {
+              "quality": "original",
+              "size": 6932400516,
+              "file_id": "v0d00fg10000dbqr10vog65mqlbihb00",
+              "file_hash": "c792bd731786fe9f67556a4c8204d0ce"
+            }
+          ],
+          "cases": [
+            {
+              "case": "fid_known_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v9.douyinvod.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/120715342",
+              "is_ftyp": true
+            },
+            {
+              "case": "fid_known_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v5-dy-ov-experiment.zjcdn.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/120715342",
+              "is_ftyp": true
+            },
+            {
+              "case": "fid_vid_no_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_zero_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_known_transcode_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            {
+              "case": "fid_vid_fresh_source_sign_no_ratio",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 302
+                },
+                {
+                  "host": "v3-dy-o.zjcdn.com",
+                  "http": 206
+                }
+              ],
+              "http": 206,
+              "content_range": "bytes 0-15/6932400516",
+              "is_ftyp": true
+            }
+          ]
+        }
+      ]
+    },
+    "target_770805_lineage": {
+      "aweme_id": "7708052871413075238",
+      "current_vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+      "catalog_used": false,
+      "reference_used": false,
+      "fallback_rows": [
+        {
+          "quality": "low",
+          "size": 39027679,
+          "file_id": "6464338964b14d709d470ce6cb3787fd",
+          "file_hash": "f797fe59f1bd2284b6b418d4c01d8b3b",
+          "codec_type": "h264",
+          "vwidth": 1024,
+          "vheight": 576
+        },
+        {
+          "quality": "adapt_low",
+          "size": 28053488,
+          "file_id": "37a0ee5bd47d4b34b719b28cae7f87f1",
+          "file_hash": "4f4ef7919831bb04d3460d13b2d8f30d",
+          "codec_type": "h264",
+          "vwidth": 1024,
+          "vheight": 576
+        },
+        {
+          "quality": "low",
+          "size": 44221246,
+          "file_id": "83540611593d43ea96d490f99dfee882",
+          "file_hash": "f611dddf82623928ecbe75ea0298923d",
+          "codec_type": "h264",
+          "vwidth": 1280,
+          "vheight": 720
+        },
+        {
+          "quality": "normal",
+          "size": 45992041,
+          "file_id": "93890dffa15741f5884a55e3a4ef6391",
+          "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+          "codec_type": "h264",
+          "vwidth": 960,
+          "vheight": 540
+        },
+        {
+          "quality": "normal",
+          "size": 68568404,
+          "file_id": "73a71219c82b41a89f9246b0cb1e418e",
+          "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+          "codec_type": "h264",
+          "vwidth": 1280,
+          "vheight": 720
+        },
+        {
+          "quality": "adapt_lower",
+          "size": 21138968,
+          "file_id": "f3ef68ad2e2a473ea25beafe4adff94d",
+          "file_hash": "05799636321d77489de96d5a564fc8da",
+          "codec_type": "bytevc1",
+          "vwidth": 1024,
+          "vheight": 576
+        },
+        {
+          "quality": "adapt",
+          "size": 24414636,
+          "file_id": "d37dbc65b8f8415786bc40093973e006",
+          "file_hash": "de0bb56d7eebeeb08cded9da183f1cdc",
+          "codec_type": "bytevc1",
+          "vwidth": 1024,
+          "vheight": 576
+        },
+        {
+          "quality": "adapt_lowest",
+          "size": 28405118,
+          "file_id": "4bdd7aa5efbc4352a6d6f63df0f96e37",
+          "file_hash": "b6baa1ad694fc0043350350907f6b76a",
+          "codec_type": "bytevc1",
+          "vwidth": 1280,
+          "vheight": 720
+        }
+      ],
+      "media_objects": [
+        {
+          "quality": "low",
+          "file_id": "6464338964b14d709d470ce6cb3787fd",
+          "file_hash": "f797fe59f1bd2284b6b418d4c01d8b3b",
+          "size": 39027679,
+          "http_requests": 4,
+          "bytes_read": 273059,
+          "actual_size": 39027679,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        },
+        {
+          "quality": "adapt_low",
+          "file_id": "37a0ee5bd47d4b34b719b28cae7f87f1",
+          "file_hash": "4f4ef7919831bb04d3460d13b2d8f30d",
+          "size": 28053488,
+          "http_requests": 4,
+          "bytes_read": 273114,
+          "actual_size": 28053488,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        },
+        {
+          "quality": "low",
+          "file_id": "83540611593d43ea96d490f99dfee882",
+          "file_hash": "f611dddf82623928ecbe75ea0298923d",
+          "size": 44221246,
+          "http_requests": 4,
+          "bytes_read": 272771,
+          "actual_size": 44221246,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              },
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        },
+        {
+          "quality": "normal",
+          "file_id": "93890dffa15741f5884a55e3a4ef6391",
+          "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+          "size": 45992041,
+          "http_requests": 4,
+          "bytes_read": 359687,
+          "actual_size": 45992041,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 960,
+                "height": 540,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbqmt9fog65se99jopeg"
+          ]
+        },
+        {
+          "quality": "normal",
+          "file_id": "73a71219c82b41a89f9246b0cb1e418e",
+          "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+          "size": 68568404,
+          "http_requests": 4,
+          "bytes_read": 359697,
+          "actual_size": 68568404,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "avc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbqmt9fog65se99jopeg"
+          ]
+        },
+        {
+          "quality": "adapt_lower",
+          "file_id": "f3ef68ad2e2a473ea25beafe4adff94d",
+          "file_hash": "05799636321d77489de96d5a564fc8da",
+          "size": 21138968,
+          "http_requests": 4,
+          "bytes_read": 274179,
+          "actual_size": 21138968,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        },
+        {
+          "quality": "adapt",
+          "file_id": "d37dbc65b8f8415786bc40093973e006",
+          "file_hash": "de0bb56d7eebeeb08cded9da183f1cdc",
+          "size": 24414636,
+          "http_requests": 4,
+          "bytes_read": 274179,
+          "actual_size": 24414636,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1024,
+                "height": 576,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        },
+        {
+          "quality": "adapt_lowest",
+          "file_id": "4bdd7aa5efbc4352a6d6f63df0f96e37",
+          "file_hash": "b6baa1ad694fc0043350350907f6b76a",
+          "size": 28405118,
+          "http_requests": 4,
+          "bytes_read": 274179,
+          "actual_size": 28405118,
+          "media": {
+            "duration_seconds": 330.867,
+            "tracks": [
+              {
+                "width": 1280,
+                "height": 720,
+                "type": "vide",
+                "codec": "hvc1"
+              },
+              {
+                "type": "soun",
+                "codec": "mp4a"
+              }
+            ],
+            "has_video": true,
+            "has_audio": true
+          },
+          "embedded_vids": [
+            "v03033g10000dbs82lnog65ls2l3ol5g"
+          ]
+        }
+      ],
+      "sdk": [
+        {
+          "requested_vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "status": 10,
+          "response_vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "rows": [
+            {
+              "quality": "normal",
+              "size": 45992041,
+              "file_id": "93890dffa15741f5884a55e3a4ef6391",
+              "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+              "codec_type": "h264",
+              "vwidth": 960,
+              "vheight": 540
+            },
+            {
+              "quality": "normal",
+              "size": 68568404,
+              "file_id": "73a71219c82b41a89f9246b0cb1e418e",
+              "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+              "codec_type": "h264",
+              "vwidth": 1280,
+              "vheight": 720
+            }
+          ]
+        },
+        {
+          "requested_vid": "v03033g10000dbqmt9fog65se99jopeg",
+          "status": 10,
+          "response_vid": "v03033g10000dbqmt9fog65se99jopeg",
+          "rows": [
+            {
+              "quality": "normal",
+              "size": 68568404,
+              "file_id": "d4a723fc7e0f46a094c009e18a41a53d",
+              "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+              "codec_type": "h264",
+              "vwidth": 1280,
+              "vheight": 720
+            },
+            {
+              "quality": "normal",
+              "size": 45992041,
+              "file_id": "787df5f04cd24f599e3db2f65f3bef14",
+              "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+              "codec_type": "h264",
+              "vwidth": 960,
+              "vheight": 540
+            }
+          ]
+        }
+      ],
+      "object_limit_reached": false,
+      "objects_omitted": 0,
+      "vid_limit_reached": false,
+      "vids_omitted": 0,
+      "repair_verified": false,
+      "audit_complete": true,
+      "sdk_codec8": [
+        {
+          "vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "status": 2002,
+          "response_vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+          "rows": []
+        },
+        {
+          "vid": "v03033g10000dbqmt9fog65se99jopeg",
+          "status": 2002,
+          "response_vid": "v03033g10000dbqmt9fog65se99jopeg",
+          "rows": []
+        }
+      ]
+    },
+    "target_770805_lineage_followup": [
+      {
+        "vid": "v03033g10000dbqmt9fog65se99jopeg",
+        "case": "embedded_vid_default",
+        "hops": [
+          {
+            "host": "www.douyin.com",
+            "http": 404
+          }
+        ],
+        "http": 404,
+        "content_range": null,
+        "is_ftyp": false
+      },
+      {
+        "vid": "v03033g10000dbqmt9fog65se99jopeg",
+        "case": "embedded_vid_sdk_source",
+        "status": 10,
+        "response_vid": "v03033g10000dbqmt9fog65se99jopeg",
+        "rows": [
+          {
+            "quality": "normal",
+            "size": 68568404,
+            "file_id": "d4a723fc7e0f46a094c009e18a41a53d",
+            "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+            "codec_type": "h264",
+            "vwidth": 1280,
+            "vheight": 720
+          },
+          {
+            "quality": "normal",
+            "size": 45992041,
+            "file_id": "787df5f04cd24f599e3db2f65f3bef14",
+            "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+            "codec_type": "h264",
+            "vwidth": 960,
+            "vheight": 540
+          }
+        ]
+      },
+      {
+        "vid": "v03033g10000dbqmt9fog65se99jopeg",
+        "case": "embedded_vid_exact_fid",
+        "status": 10,
+        "response_vid": "v03033g10000dbs82lnog65ls2l3ol5g",
+        "rows": [
+          {
+            "quality": "adapt_low",
+            "size": 28053488,
+            "file_id": "37a0ee5bd47d4b34b719b28cae7f87f1",
+            "file_hash": "4f4ef7919831bb04d3460d13b2d8f30d",
+            "codec_type": "h264",
+            "vwidth": 1024,
+            "vheight": 576
+          },
+          {
+            "quality": "normal",
+            "size": 68568404,
+            "file_id": "73a71219c82b41a89f9246b0cb1e418e",
+            "file_hash": "ff52aa3872a929aac9ca740e6095c51e",
+            "codec_type": "h264",
+            "vwidth": 1280,
+            "vheight": 720
+          },
+          {
+            "quality": "adapt_lower",
+            "size": 21138968,
+            "file_id": "f3ef68ad2e2a473ea25beafe4adff94d",
+            "file_hash": "05799636321d77489de96d5a564fc8da",
+            "codec_type": "bytevc1",
+            "vwidth": 1024,
+            "vheight": 576
+          },
+          {
+            "quality": "low",
+            "size": 39027679,
+            "file_id": "6464338964b14d709d470ce6cb3787fd",
+            "file_hash": "f797fe59f1bd2284b6b418d4c01d8b3b",
+            "codec_type": "h264",
+            "vwidth": 1024,
+            "vheight": 576
+          },
+          {
+            "quality": "adapt_lowest",
+            "size": 28405118,
+            "file_id": "4bdd7aa5efbc4352a6d6f63df0f96e37",
+            "file_hash": "b6baa1ad694fc0043350350907f6b76a",
+            "codec_type": "bytevc1",
+            "vwidth": 1280,
+            "vheight": 720
+          },
+          {
+            "quality": "normal",
+            "size": 45992041,
+            "file_id": "93890dffa15741f5884a55e3a4ef6391",
+            "file_hash": "49ef8e5b6770ea1dbde45c6846feab3f",
+            "codec_type": "h264",
+            "vwidth": 960,
+            "vheight": 540
+          },
+          {
+            "quality": "adapt",
+            "size": 24414636,
+            "file_id": "d37dbc65b8f8415786bc40093973e006",
+            "file_hash": "de0bb56d7eebeeb08cded9da183f1cdc",
+            "codec_type": "bytevc1",
+            "vwidth": 1024,
+            "vheight": 576
+          },
+          {
+            "quality": "low",
+            "size": 44221246,
+            "file_id": "83540611593d43ea96d490f99dfee882",
+            "file_hash": "f611dddf82623928ecbe75ea0298923d",
+            "codec_type": "h264",
+            "vwidth": 1280,
+            "vheight": 720
+          }
+        ]
+      }
+    ],
+    "current_and_third_targets": {
+      "started_at": "2026-11-16T13:06:26.919646+00:00",
+      "catalog_used": false,
+      "reference_used": false,
+      "works": [
+        {
+          "aweme_id": "7706218040236444937",
+          "routes": [
+            {
+              "route": "issued_fplay",
+              "status": 10,
+              "response_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+              "rows": [
+                {
+                  "quality": "normal",
+                  "size": 51437277,
+                  "file_id": "bcf012ead769419dbcd602dc84225ae1",
+                  "file_hash": "dba8686744367012b4d1f32e9032c501",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                },
+                {
+                  "quality": "adapt_lowest",
+                  "size": 39323874,
+                  "file_id": "569ae5b3f05f46369ff81f88d219d9b2",
+                  "file_hash": "987af707e7cea05ea40b8ec90d7bbe7a",
+                  "codec_type": "bytevc1",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 72404804,
+                  "file_id": "c49dedc2159c459ca38d44c877c51bef",
+                  "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "adapt_lower",
+                  "size": 27305197,
+                  "file_id": "18505f68c6fe434c92bc8f93cfd68ec1",
+                  "file_hash": "5bc470484882a0f36d13372d4f1f913d",
+                  "codec_type": "bytevc1",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "adapt",
+                  "size": 32237534,
+                  "file_id": "1f9df974e54548bf836b7d2ed7318034",
+                  "file_hash": "6f8a807bc163c541e3c799f60641c2a5",
+                  "codec_type": "bytevc1",
+                  "vwidth": 576,
+                  "vheight": 1024
+                }
+              ]
+            },
+            {
+              "route": "source_fplay",
+              "status": 10,
+              "response_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+              "rows": [
+                {
+                  "quality": "adapt_lower",
+                  "size": 27305197,
+                  "file_id": "18505f68c6fe434c92bc8f93cfd68ec1",
+                  "file_hash": "5bc470484882a0f36d13372d4f1f913d",
+                  "codec_type": "bytevc1",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "adapt",
+                  "size": 32237534,
+                  "file_id": "1f9df974e54548bf836b7d2ed7318034",
+                  "file_hash": "6f8a807bc163c541e3c799f60641c2a5",
+                  "codec_type": "bytevc1",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "normal",
+                  "size": 51437277,
+                  "file_id": "bcf012ead769419dbcd602dc84225ae1",
+                  "file_hash": "dba8686744367012b4d1f32e9032c501",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                },
+                {
+                  "quality": "adapt_lowest",
+                  "size": 39323874,
+                  "file_id": "569ae5b3f05f46369ff81f88d219d9b2",
+                  "file_hash": "987af707e7cea05ea40b8ec90d7bbe7a",
+                  "codec_type": "bytevc1",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 72404804,
+                  "file_id": "c49dedc2159c459ca38d44c877c51bef",
+                  "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                }
+              ]
+            },
+            {
+              "route": "sdk_source",
+              "requested_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+              "status": 10,
+              "response_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+              "rows": [
+                {
+                  "quality": "adapt",
+                  "size": 32237534,
+                  "file_id": "1f9df974e54548bf836b7d2ed7318034",
+                  "file_hash": "6f8a807bc163c541e3c799f60641c2a5",
+                  "codec_type": "bytevc1",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "adapt_lowest",
+                  "size": 39323874,
+                  "file_id": "569ae5b3f05f46369ff81f88d219d9b2",
+                  "file_hash": "987af707e7cea05ea40b8ec90d7bbe7a",
+                  "codec_type": "bytevc1",
+                  "vwidth": 720,
+                  "vheight": 1280
+                }
+              ]
+            },
+            {
+              "route": "default_dispatch",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            }
+          ],
+          "vid": "v0d033g10000dbovp17og65v1kcfouhg",
+          "response_id": "7706218040236444937",
+          "video_model_keys": [
+            "enable_ssl",
+            "fallback_api",
+            "media_type",
+            "message",
+            "status",
+            "title_info",
+            "url_expire",
+            "version",
+            "video_duration",
+            "video_id",
+            "video_list",
+            "volume"
+          ],
+          "observed_vids": [
+            "v0d033g10000dbovp17og65v1kcfouhg"
+          ],
+          "is_source_HDR": 1,
+          "production": {
+            "error_type": "ParseError",
+            "error_code": "source_unavailable"
+          }
+        },
+        {
+          "aweme_id": "7707964786692083007",
+          "routes": [
+            {
+              "route": "issued_fplay",
+              "status": 10,
+              "response_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+              "rows": [
+                {
+                  "quality": "normal",
+                  "size": 16418362,
+                  "file_id": "1d1b6a965d5d41789ab43ff234836990",
+                  "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                },
+                {
+                  "quality": "adapt_low",
+                  "size": 9688807,
+                  "file_id": "81c769e7402b4bdeb48a18a5ec81ab64",
+                  "file_hash": "6950d912c1a5633f7b026df6ad85706c",
+                  "codec_type": "h264",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "low",
+                  "size": 13668503,
+                  "file_id": "b1813e178cc143899e830a167cc64431",
+                  "file_hash": "3deb32c94fcc9564bef13b7959855f16",
+                  "codec_type": "h264",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "low",
+                  "size": 15598745,
+                  "file_id": "6ffb623c9b4a45bfb4921e2c701bfb16",
+                  "file_hash": "c9c406b9408afc891412653392e0e774",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 24305152,
+                  "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+                  "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                }
+              ]
+            },
+            {
+              "route": "source_fplay",
+              "status": 10,
+              "response_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+              "rows": [
+                {
+                  "quality": "adapt_low",
+                  "size": 9688807,
+                  "file_id": "81c769e7402b4bdeb48a18a5ec81ab64",
+                  "file_hash": "6950d912c1a5633f7b026df6ad85706c",
+                  "codec_type": "h264",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "low",
+                  "size": 13668503,
+                  "file_id": "b1813e178cc143899e830a167cc64431",
+                  "file_hash": "3deb32c94fcc9564bef13b7959855f16",
+                  "codec_type": "h264",
+                  "vwidth": 576,
+                  "vheight": 1024
+                },
+                {
+                  "quality": "low",
+                  "size": 15598745,
+                  "file_id": "6ffb623c9b4a45bfb4921e2c701bfb16",
+                  "file_hash": "c9c406b9408afc891412653392e0e774",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 24305152,
+                  "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+                  "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 16418362,
+                  "file_id": "1d1b6a965d5d41789ab43ff234836990",
+                  "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                }
+              ]
+            },
+            {
+              "route": "sdk_source",
+              "requested_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+              "status": 10,
+              "response_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+              "rows": [
+                {
+                  "quality": "normal",
+                  "size": 16418362,
+                  "file_id": "1d1b6a965d5d41789ab43ff234836990",
+                  "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                },
+                {
+                  "quality": "normal",
+                  "size": 24305152,
+                  "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+                  "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                }
+              ]
+            },
+            {
+              "route": "default_dispatch",
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            }
+          ],
+          "vid": "v28033gi0000dbs329vog65m4ip4vss0",
+          "response_id": "7707964786692083007",
+          "video_model_keys": [
+            "enable_ssl",
+            "fallback_api",
+            "media_type",
+            "message",
+            "status",
+            "url_expire",
+            "version",
+            "video_duration",
+            "video_id",
+            "video_list",
+            "volume"
+          ],
+          "observed_vids": [
+            "v28033gi0000dbs329vog65m4ip4vss0"
+          ],
+          "is_source_HDR": 1,
+          "production": {
+            "error_type": "ParseError",
+            "error_code": "source_unavailable"
+          }
+        }
+      ]
+    },
+    "current_and_third_lineage": [
+      {
+        "aweme_id": "7706218040236444937",
+        "current_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+        "catalog_used": false,
+        "reference_used": false,
+        "fallback_rows": [
+          {
+            "quality": "normal",
+            "size": 72404804,
+            "file_id": "c49dedc2159c459ca38d44c877c51bef",
+            "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+            "codec_type": "h264",
+            "vwidth": 720,
+            "vheight": 1280
+          },
+          {
+            "quality": "adapt_lower",
+            "size": 27305197,
+            "file_id": "18505f68c6fe434c92bc8f93cfd68ec1",
+            "file_hash": "5bc470484882a0f36d13372d4f1f913d",
+            "codec_type": "bytevc1",
+            "vwidth": 576,
+            "vheight": 1024
+          },
+          {
+            "quality": "adapt",
+            "size": 32237534,
+            "file_id": "1f9df974e54548bf836b7d2ed7318034",
+            "file_hash": "6f8a807bc163c541e3c799f60641c2a5",
+            "codec_type": "bytevc1",
+            "vwidth": 576,
+            "vheight": 1024
+          },
+          {
+            "quality": "normal",
+            "size": 51437277,
+            "file_id": "bcf012ead769419dbcd602dc84225ae1",
+            "file_hash": "dba8686744367012b4d1f32e9032c501",
+            "codec_type": "h264",
+            "vwidth": 540,
+            "vheight": 960
+          },
+          {
+            "quality": "adapt_lowest",
+            "size": 39323874,
+            "file_id": "569ae5b3f05f46369ff81f88d219d9b2",
+            "file_hash": "987af707e7cea05ea40b8ec90d7bbe7a",
+            "codec_type": "bytevc1",
+            "vwidth": 720,
+            "vheight": 1280
+          }
+        ],
+        "media_objects": [
+          {
+            "quality": "normal",
+            "file_id": "c49dedc2159c459ca38d44c877c51bef",
+            "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+            "size": 72404804,
+            "http_requests": 4,
+            "bytes_read": 369441,
+            "actual_size": 72404804,
+            "media": {
+              "duration_seconds": 338.78,
+              "tracks": [
+                {
+                  "width": 720,
+                  "height": 1280,
+                  "type": "vide",
+                  "codec": "avc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v0d033g10000dbo46gvog65mgfoqmhbg"
+            ]
+          },
+          {
+            "quality": "adapt_lower",
+            "file_id": "18505f68c6fe434c92bc8f93cfd68ec1",
+            "file_hash": "5bc470484882a0f36d13372d4f1f913d",
+            "size": 27305197,
+            "http_requests": 4,
+            "bytes_read": 280695,
+            "actual_size": 27305197,
+            "media": {
+              "duration_seconds": 338.78,
+              "tracks": [
+                {
+                  "width": 576,
+                  "height": 1024,
+                  "type": "vide",
+                  "codec": "hvc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v0d033g10000dbovp17og65v1kcfouhg"
+            ]
+          },
+          {
+            "quality": "adapt",
+            "file_id": "1f9df974e54548bf836b7d2ed7318034",
+            "file_hash": "6f8a807bc163c541e3c799f60641c2a5",
+            "size": 32237534,
+            "http_requests": 4,
+            "bytes_read": 280695,
+            "actual_size": 32237534,
+            "media": {
+              "duration_seconds": 338.78,
+              "tracks": [
+                {
+                  "width": 576,
+                  "height": 1024,
+                  "type": "vide",
+                  "codec": "hvc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v0d033g10000dbovp17og65v1kcfouhg"
+            ]
+          },
+          {
+            "quality": "normal",
+            "file_id": "bcf012ead769419dbcd602dc84225ae1",
+            "file_hash": "dba8686744367012b4d1f32e9032c501",
+            "size": 51437277,
+            "http_requests": 4,
+            "bytes_read": 369295,
+            "actual_size": 51437277,
+            "media": {
+              "duration_seconds": 338.78,
+              "tracks": [
+                {
+                  "width": 540,
+                  "height": 960,
+                  "type": "vide",
+                  "codec": "avc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v0d033g10000dbo46gvog65mgfoqmhbg"
+            ]
+          },
+          {
+            "quality": "adapt_lowest",
+            "file_id": "569ae5b3f05f46369ff81f88d219d9b2",
+            "file_hash": "987af707e7cea05ea40b8ec90d7bbe7a",
+            "size": 39323874,
+            "http_requests": 4,
+            "bytes_read": 280695,
+            "actual_size": 39323874,
+            "media": {
+              "duration_seconds": 338.78,
+              "tracks": [
+                {
+                  "width": 720,
+                  "height": 1280,
+                  "type": "vide",
+                  "codec": "hvc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v0d033g10000dbovp17og65v1kcfouhg"
+            ]
+          }
+        ],
+        "sdk": [
+          {
+            "requested_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+            "status": 10,
+            "response_vid": "v0d033g10000dbovp17og65v1kcfouhg",
+            "rows": [
+              {
+                "quality": "normal",
+                "size": 51437277,
+                "file_id": "bcf012ead769419dbcd602dc84225ae1",
+                "file_hash": "dba8686744367012b4d1f32e9032c501",
+                "codec_type": "h264",
+                "vwidth": 540,
+                "vheight": 960
+              },
+              {
+                "quality": "normal",
+                "size": 72404804,
+                "file_id": "c49dedc2159c459ca38d44c877c51bef",
+                "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+                "codec_type": "h264",
+                "vwidth": 720,
+                "vheight": 1280
+              }
+            ]
+          },
+          {
+            "requested_vid": "v0d033g10000dbo46gvog65mgfoqmhbg",
+            "status": 10,
+            "response_vid": "v0d033g10000dbo46gvog65mgfoqmhbg",
+            "rows": [
+              {
+                "quality": "normal",
+                "size": 51437277,
+                "file_id": "92ba7fc739b9457db2628e96409177d9",
+                "file_hash": "dba8686744367012b4d1f32e9032c501",
+                "codec_type": "h264",
+                "vwidth": 540,
+                "vheight": 960
+              },
+              {
+                "quality": "normal",
+                "size": 72404804,
+                "file_id": "741962e7d26c4da68d95a8471b79a855",
+                "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+                "codec_type": "h264",
+                "vwidth": 720,
+                "vheight": 1280
+              }
+            ]
+          }
+        ],
+        "object_limit_reached": false,
+        "objects_omitted": 0,
+        "vid_limit_reached": false,
+        "vids_omitted": 0,
+        "repair_verified": false,
+        "audit_complete": true,
+        "embedded_followup": [
+          {
+            "vid": "v0d033g10000dbo46gvog65mgfoqmhbg",
+            "default_dispatch": {
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            "sdk_source": {
+              "status": 10,
+              "response_vid": "v0d033g10000dbo46gvog65mgfoqmhbg",
+              "rows": [
+                {
+                  "quality": "normal",
+                  "size": 72404804,
+                  "file_id": "741962e7d26c4da68d95a8471b79a855",
+                  "file_hash": "4c1cc79ba5642be3e2864566db7063fb",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                },
+                {
+                  "quality": "normal",
+                  "size": 19041910,
+                  "file_id": "2b8cdd95c2464324bc0466bfd4dda9f8",
+                  "file_hash": "5b093ca0a90c5b3d4ba32a35ea48b728",
+                  "codec_type": "bytevc1",
+                  "vwidth": 360,
+                  "vheight": 640
+                },
+                {
+                  "quality": "normal",
+                  "size": 23088989,
+                  "file_id": "180296d95b1d415d921f25b0bc3eaf6f",
+                  "file_hash": "3f815c574bd1aec789e6f46bf9f480ca",
+                  "codec_type": "bytevc1",
+                  "vwidth": 540,
+                  "vheight": 960
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "aweme_id": "7707964786692083007",
+        "current_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+        "catalog_used": false,
+        "reference_used": false,
+        "fallback_rows": [
+          {
+            "quality": "adapt_low",
+            "size": 9688807,
+            "file_id": "81c769e7402b4bdeb48a18a5ec81ab64",
+            "file_hash": "6950d912c1a5633f7b026df6ad85706c",
+            "codec_type": "h264",
+            "vwidth": 576,
+            "vheight": 1024
+          },
+          {
+            "quality": "low",
+            "size": 13668503,
+            "file_id": "b1813e178cc143899e830a167cc64431",
+            "file_hash": "3deb32c94fcc9564bef13b7959855f16",
+            "codec_type": "h264",
+            "vwidth": 576,
+            "vheight": 1024
+          },
+          {
+            "quality": "low",
+            "size": 15598745,
+            "file_id": "6ffb623c9b4a45bfb4921e2c701bfb16",
+            "file_hash": "c9c406b9408afc891412653392e0e774",
+            "codec_type": "h264",
+            "vwidth": 720,
+            "vheight": 1280
+          },
+          {
+            "quality": "normal",
+            "size": 24305152,
+            "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+            "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+            "codec_type": "h264",
+            "vwidth": 720,
+            "vheight": 1280
+          },
+          {
+            "quality": "normal",
+            "size": 16418362,
+            "file_id": "1d1b6a965d5d41789ab43ff234836990",
+            "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+            "codec_type": "h264",
+            "vwidth": 540,
+            "vheight": 960
+          }
+        ],
+        "media_objects": [
+          {
+            "quality": "adapt_low",
+            "file_id": "81c769e7402b4bdeb48a18a5ec81ab64",
+            "file_hash": "6950d912c1a5633f7b026df6ad85706c",
+            "size": 9688807,
+            "http_requests": 4,
+            "bytes_read": 120986,
+            "actual_size": 9688807,
+            "media": {
+              "duration_seconds": 145.381,
+              "tracks": [
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                },
+                {
+                  "width": 576,
+                  "height": 1024,
+                  "type": "vide",
+                  "codec": "avc1"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v28033gi0000dbs329vog65m4ip4vss0"
+            ]
+          },
+          {
+            "quality": "low",
+            "file_id": "b1813e178cc143899e830a167cc64431",
+            "file_hash": "3deb32c94fcc9564bef13b7959855f16",
+            "size": 13668503,
+            "http_requests": 4,
+            "bytes_read": 120899,
+            "actual_size": 13668503,
+            "media": {
+              "duration_seconds": 145.381,
+              "tracks": [
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                },
+                {
+                  "width": 576,
+                  "height": 1024,
+                  "type": "vide",
+                  "codec": "avc1"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v28033gi0000dbs329vog65m4ip4vss0"
+            ]
+          },
+          {
+            "quality": "low",
+            "file_id": "6ffb623c9b4a45bfb4921e2c701bfb16",
+            "file_hash": "c9c406b9408afc891412653392e0e774",
+            "size": 15598745,
+            "http_requests": 4,
+            "bytes_read": 120683,
+            "actual_size": 15598745,
+            "media": {
+              "duration_seconds": 145.381,
+              "tracks": [
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                },
+                {
+                  "width": 720,
+                  "height": 1280,
+                  "type": "vide",
+                  "codec": "avc1"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v28033gi0000dbs329vog65m4ip4vss0"
+            ]
+          },
+          {
+            "quality": "normal",
+            "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+            "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+            "size": 24305152,
+            "http_requests": 4,
+            "bytes_read": 158649,
+            "actual_size": 24305152,
+            "media": {
+              "duration_seconds": 145.381,
+              "tracks": [
+                {
+                  "width": 720,
+                  "height": 1280,
+                  "type": "vide",
+                  "codec": "avc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v28033gi0000dbrcbr7og65lknc94cu0"
+            ]
+          },
+          {
+            "quality": "normal",
+            "file_id": "1d1b6a965d5d41789ab43ff234836990",
+            "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+            "size": 16418362,
+            "http_requests": 4,
+            "bytes_read": 158955,
+            "actual_size": 16418362,
+            "media": {
+              "duration_seconds": 145.381,
+              "tracks": [
+                {
+                  "width": 540,
+                  "height": 960,
+                  "type": "vide",
+                  "codec": "avc1"
+                },
+                {
+                  "type": "soun",
+                  "codec": "mp4a"
+                }
+              ],
+              "has_video": true,
+              "has_audio": true
+            },
+            "embedded_vids": [
+              "v28033gi0000dbrcbr7og65lknc94cu0"
+            ]
+          }
+        ],
+        "sdk": [
+          {
+            "requested_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+            "status": 10,
+            "response_vid": "v28033gi0000dbs329vog65m4ip4vss0",
+            "rows": [
+              {
+                "quality": "normal",
+                "size": 16418362,
+                "file_id": "1d1b6a965d5d41789ab43ff234836990",
+                "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                "codec_type": "h264",
+                "vwidth": 540,
+                "vheight": 960
+              },
+              {
+                "quality": "normal",
+                "size": 24305152,
+                "file_id": "912ecf96dddc4fe7b755ab0fee219b41",
+                "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                "codec_type": "h264",
+                "vwidth": 720,
+                "vheight": 1280
+              }
+            ]
+          },
+          {
+            "requested_vid": "v28033gi0000dbrcbr7og65lknc94cu0",
+            "status": 10,
+            "response_vid": "v28033gi0000dbrcbr7og65lknc94cu0",
+            "rows": [
+              {
+                "quality": "normal",
+                "size": 16418362,
+                "file_id": "84f0f73febf9444ea7294044a40b8daf",
+                "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                "codec_type": "h264",
+                "vwidth": 540,
+                "vheight": 960
+              },
+              {
+                "quality": "normal",
+                "size": 24305152,
+                "file_id": "82c953b2fb0f417ea23c0526be96c020",
+                "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                "codec_type": "h264",
+                "vwidth": 720,
+                "vheight": 1280
+              }
+            ]
+          }
+        ],
+        "object_limit_reached": false,
+        "objects_omitted": 0,
+        "vid_limit_reached": false,
+        "vids_omitted": 0,
+        "repair_verified": false,
+        "audit_complete": true,
+        "embedded_followup": [
+          {
+            "vid": "v28033gi0000dbrcbr7og65lknc94cu0",
+            "default_dispatch": {
+              "hops": [
+                {
+                  "host": "www.douyin.com",
+                  "http": 404
+                }
+              ],
+              "http": 404,
+              "content_range": null,
+              "is_ftyp": false
+            },
+            "sdk_source": {
+              "status": 10,
+              "response_vid": "v28033gi0000dbrcbr7og65lknc94cu0",
+              "rows": [
+                {
+                  "quality": "normal",
+                  "size": 16418362,
+                  "file_id": "84f0f73febf9444ea7294044a40b8daf",
+                  "file_hash": "aec67829ef4e5b2b84a984df4dba9737",
+                  "codec_type": "h264",
+                  "vwidth": 540,
+                  "vheight": 960
+                },
+                {
+                  "quality": "normal",
+                  "size": 24305152,
+                  "file_id": "82c953b2fb0f417ea23c0526be96c020",
+                  "file_hash": "fc2c0ae8940e0743a1235df6dc97c62a",
+                  "codec_type": "h264",
+                  "vwidth": 720,
+                  "vheight": 1280
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

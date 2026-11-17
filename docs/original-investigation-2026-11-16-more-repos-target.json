@@ -1,0 +1,195 @@
+{
+  "started_at": "2026-11-16T11:12:19+00:00",
+  "schema_version": 1,
+  "aweme_id": "7707993970332290314",
+  "catalog_used": false,
+  "reference_used": false,
+  "login_file_used": false,
+  "third_party_parser_used": false,
+  "routes": [
+    {
+      "route": "fplay_issued",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "row_count": 9,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "normal"
+      ],
+      "max_size": 52471983,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_original",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "row_count": 9,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "normal"
+      ],
+      "max_size": 52471983,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "fplay_source",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "original_verified": false,
+      "code": 0,
+      "info_code": 0,
+      "status": 10,
+      "response_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "row_count": 9,
+      "qualities": [
+        "adapt",
+        "adapt_low",
+        "adapt_lower",
+        "adapt_lowest",
+        "low",
+        "normal"
+      ],
+      "max_size": 52471983,
+      "outcome": "no_official_source_in_response"
+    },
+    {
+      "route": "play_default",
+      "origin": "official_http_detail",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "selected_size": 21409165,
+      "need_set_cookie": false,
+      "signature": "a_bogus",
+      "original_verified": false,
+      "http_status": 404,
+      "outcome": "http_rejected"
+    },
+    {
+      "route": "mobile_share_ssr",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 32605,
+      "outcome": "item_list_not_present",
+      "observed_items": 0
+    }
+  ],
+  "original_verified": false,
+  "detail": {
+    "aweme_id_matches": true,
+    "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+    "selected_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+    "bit_rate_rows": 2,
+    "model_present": true
+  },
+  "routes_incomplete": false,
+  "result": "original_not_discovered",
+  "additional_routes": [
+    {
+      "route": "legacy_iteminfo",
+      "original_verified": false,
+      "http_status": 200,
+      "body_bytes": 129,
+      "status_code": 11110,
+      "outcome": "platform_error"
+    },
+    {
+      "route": "legacy_app_detail",
+      "original_verified": false,
+      "http_status": 200,
+      "body_bytes": 0,
+      "outcome": "empty_response"
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 38324,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "bit_rate_rows": 0,
+      "profile": "videodl_ios16",
+      "model_present": false,
+      "media_candidates": [
+        {
+          "field": "play_addr",
+          "original_verified": false,
+          "http_status": 404,
+          "outcome": "http_rejected"
+        }
+      ],
+      "verification_incomplete": false
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 36356,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "bit_rate_rows": 0,
+      "profile": "ios16_trailing_slash",
+      "model_present": false
+    },
+    {
+      "route": "share_page_variant",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 36400,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "bit_rate_rows": 0,
+      "profile": "aweme_32_7_trailing_slash",
+      "model_present": false
+    },
+    {
+      "route": "catchsnap_anonymous_cookie_share",
+      "original_verified": false,
+      "http_status": 200,
+      "html_bytes": 38390,
+      "outcome": "matching_play_address_returned",
+      "requested_work_matches": true,
+      "vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "bit_rate_rows": 0,
+      "attempt": 1,
+      "anonymous_cookie_attached": true,
+      "model_present": false
+    },
+    {
+      "route": "tiktokdownloader_bare_default",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "original_verified": false,
+      "http_status": 404,
+      "outcome": "http_rejected"
+    },
+    {
+      "route": "videodl_ies_play_1080p",
+      "requested_vid": "v28033gi0000dbs4nevog65jrl6u1s10",
+      "original_verified": false,
+      "http_status": 404,
+      "outcome": "http_rejected"
+    }
+  ],
+  "budget": {
+    "http_requests": 16,
+    "range_bytes_requested": 5,
+    "budget_exhausted": false
+  },
+  "finished_at": "2026-11-16T11:12:26+00:00"
+}

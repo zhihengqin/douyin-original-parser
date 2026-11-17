@@ -17,6 +17,8 @@ fi
 "${PROJECT_ROOT}/.venv/bin/python" -m pip install --upgrade pip
 "${PROJECT_ROOT}/.venv/bin/python" -m pip install -r "${PROJECT_ROOT}/requirements.txt"
 "${PROJECT_ROOT}/.venv/bin/python" -m pip check
+cd "${PROJECT_ROOT}"
+"${PROJECT_ROOT}/.venv/bin/python" -m original_parser.check_runtime
 export PLAYWRIGHT_BROWSERS_PATH="${PROJECT_ROOT}/.browsers"
 "${PROJECT_ROOT}/.venv/bin/python" -m playwright install --with-deps chromium --no-shell
 chmod -R a+rX "${PROJECT_ROOT}/.browsers"
