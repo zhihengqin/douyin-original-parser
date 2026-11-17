@@ -1,0 +1,500 @@
+{
+  "date": "2026-11-17",
+  "configuration_source": "NiKa SnapanyVideoParserClient.java defaults; runtime Nacos configuration not inspected",
+  "base_url": "http://114.55.234.134",
+  "resolve_calls": 3,
+  "force_refresh": false,
+  "usage_before": {
+    "balance": 42.4,
+    "total_used": 9959.1,
+    "remaining_requests": 424
+  },
+  "usage_after": {
+    "balance": 42.1,
+    "total_used": 9959.4,
+    "remaining_requests": 421
+  },
+  "api_account_units_consumed": 0.3,
+  "history_result_code": 40013,
+  "history_after_successful_resolve_also_missing": true,
+  "production_parser_changed": false,
+  "cases": [
+    {
+      "aweme_id": "7707196543073275177",
+      "data_fields": [
+        "trace_id",
+        "request_id",
+        "vid",
+        "title",
+        "cover",
+        "video_list",
+        "balance"
+      ],
+      "vid_present": false,
+      "video_count": 1,
+      "claimed_quality": "source",
+      "claimed_level": "原画",
+      "declared_size": 36153126,
+      "host": "v26-dy.ixigua.com",
+      "object": "tos-cn-ve-51/ocRq8hDtQABEEn8qfDAgIKeFb0z2GIQiP7nNCt",
+      "file": {
+        "aweme_id": "7707196543073275177",
+        "download_bytes": 36153126,
+        "md5": "e050f8be8915a2b4ea7de381939e8aa9",
+        "media": {
+          "duration_seconds": 309.639,
+          "tracks": [
+            {
+              "width": 540,
+              "height": 962,
+              "type": "vide",
+              "codec": "avc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        }
+      },
+      "ffprobe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "profile": "High",
+            "width": 540,
+            "height": 962,
+            "r_frame_rate": "30/1",
+            "bit_rate": "861454",
+            "nb_frames": "9288"
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "profile": "LC",
+            "r_frame_rate": "0/0",
+            "bit_rate": "64024",
+            "nb_frames": "13337"
+          }
+        ],
+        "format": {
+          "duration": "309.638005",
+          "size": "36153126",
+          "bit_rate": "934074",
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "comment": "vid:v02033g10000dbpkhdnog65u9q5nd820",
+            "encoder": "Lavf58.76.100"
+          }
+        }
+      },
+      "reference": {
+        "size": 132665774,
+        "md5": "96e395ae426871e3fc3294755d54308f",
+        "width": 720,
+        "height": 1282,
+        "object": "tos-cn-v-0051/oMq8DeoSEA0EB2TDE2AzrAAwANFLbCfo5gtDiE",
+        "current_classification": "known_normal_540p"
+      },
+      "is_independent_official_discovery": false,
+      "color_metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "profile": "High",
+            "width": 540,
+            "height": 962,
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "bt709",
+            "color_primaries": "bt709",
+            "bits_per_raw_sample": "8"
+          }
+        ]
+      }
+    },
+    {
+      "aweme_id": "7708052871413075238",
+      "data_fields": [
+        "trace_id",
+        "request_id",
+        "vid",
+        "title",
+        "cover",
+        "video_list",
+        "balance"
+      ],
+      "vid_present": false,
+      "video_count": 1,
+      "claimed_quality": "source",
+      "claimed_level": "原画",
+      "declared_size": 140778272,
+      "host": "v26-dy.ixigua.com",
+      "object": "tos-cn-v-0051/ogAAMdqlAbNZiScDirADwEEB1gsDeA8BdWfGq8",
+      "file": {
+        "aweme_id": "7708052871413075238",
+        "download_bytes": 140778272,
+        "md5": "351f10c0e8f038973f2a63c9c749cb41",
+        "media": {
+          "duration_seconds": 330.867,
+          "tracks": [
+            {
+              "width": 1280,
+              "height": 720,
+              "type": "vide",
+              "codec": "avc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        }
+      },
+      "ffprobe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "profile": "Main",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "30/1",
+            "bit_rate": "3203741",
+            "nb_frames": "9926"
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "profile": "LC",
+            "r_frame_rate": "0/0",
+            "bit_rate": "194763",
+            "nb_frames": "14249"
+          }
+        ],
+        "format": {
+          "duration": "330.866667",
+          "size": "140778272",
+          "bit_rate": "3403867",
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "creation_time": "2026-11-12T07:34:31.000000Z",
+            "Hw": "1",
+            "bitrate": "4000000",
+            "maxrate": "0",
+            "te_is_reencode": "1",
+            "encoder": "Lavf61.1.100"
+          }
+        }
+      },
+      "reference": {
+        "size": 140778272,
+        "md5": "351f10c0e8f038973f2a63c9c749cb41",
+        "width": 1280,
+        "height": 720,
+        "object": "tos-cn-v-0051/ogAAMdqlAbNZiScDirADwEEB1gsDeA8BdWfGq8",
+        "current_classification": "matches_previous_reference"
+      },
+      "is_independent_official_discovery": false,
+      "color_metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "profile": "Main",
+            "width": 1280,
+            "height": 720,
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "bt709",
+            "color_primaries": "bt709",
+            "bits_per_raw_sample": "8"
+          }
+        ]
+      },
+      "first_five_frames_color_metadata": {
+        "frames": [
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          }
+        ]
+      }
+    },
+    {
+      "aweme_id": "7708319942491344154",
+      "data_fields": [
+        "trace_id",
+        "request_id",
+        "vid",
+        "title",
+        "cover",
+        "video_list",
+        "balance"
+      ],
+      "vid_present": false,
+      "video_count": 1,
+      "claimed_quality": "source",
+      "claimed_level": "原画",
+      "declared_size": 266189150,
+      "host": "v26-dy.ixigua.com",
+      "object": "tos-cn-v-0000c2287/okJ0wCfMN9In2J93ObgII9FEBd7xtqoLDmABBf",
+      "file": {
+        "aweme_id": "7708319942491344154",
+        "download_bytes": 266189150,
+        "md5": "33e0fcccc4e31fa5d9a8ccdf1d5ff97f",
+        "media": {
+          "duration_seconds": 348.667,
+          "tracks": [
+            {
+              "width": 720,
+              "height": 1280,
+              "type": "vide",
+              "codec": "hvc1"
+            },
+            {
+              "type": "soun",
+              "codec": "mp4a"
+            }
+          ],
+          "has_video": true,
+          "has_audio": true
+        }
+      },
+      "ffprobe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "hevc",
+            "profile": "Main",
+            "width": 720,
+            "height": 1280,
+            "r_frame_rate": "30/1",
+            "bit_rate": "5904786",
+            "nb_frames": "10460"
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "profile": "LC",
+            "r_frame_rate": "0/0",
+            "bit_rate": "196391",
+            "nb_frames": "15016"
+          }
+        ],
+        "format": {
+          "duration": "348.666667",
+          "size": "266189150",
+          "bit_rate": "6107590",
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2mp41",
+            "creation_time": "2026-11-11T06:52:05.000000Z",
+            "Hw": "1",
+            "bitrate": "8500000",
+            "maxrate": "0",
+            "te_is_reencode": "1",
+            "encoder": "Lavf61.1.100"
+          }
+        }
+      },
+      "reference": {
+        "current_classification": "new_official_object_original_identity_unconfirmed"
+      },
+      "is_independent_official_discovery": false,
+      "official_redispatch": {
+        "aweme_id": "7708319942491344154",
+        "input_identity_source": "newly_downloaded_snapany_asset_md5",
+        "video_id": "v03033g10000dbqb7pfog65ls2ibfar0",
+        "file_hash": "33e0fcccc4e31fa5d9a8ccdf1d5ff97f",
+        "http_status": 206,
+        "content_range": "bytes 0-15/266189150",
+        "host": "v11-chd.douyinvod.com",
+        "object": "tos-cn-v-0000c2287/okJ0wCfMN9In2J93ObgII9FEBd7xtqoLDmABBf/",
+        "is_mp4": true
+      },
+      "color_metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "hevc",
+            "profile": "Main",
+            "width": 720,
+            "height": 1280,
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "bt709",
+            "color_primaries": "bt709"
+          }
+        ]
+      },
+      "first_five_frames_color_metadata": {
+        "frames": [
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          },
+          {
+            "pix_fmt": "yuv420p",
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_primaries": "bt709",
+            "color_transfer": "bt709"
+          }
+        ]
+      }
+    }
+  ],
+  "public_site_comparison": {
+    "http": 200,
+    "bytes": 3156,
+    "keys": [
+      "medias",
+      "overseas",
+      "text",
+      "id",
+      "is_pinned",
+      "post_url",
+      "author",
+      "stats",
+      "site",
+      "created_at"
+    ],
+    "code": null,
+    "error": null,
+    "message": null,
+    "site": "douyin",
+    "media_fields": [
+      [
+        "media_type",
+        "resource_url",
+        "preview_url",
+        "variants",
+        "duration",
+        "headers"
+      ],
+      [
+        "media_type",
+        "resource_url",
+        "preview_url",
+        "headers"
+      ]
+    ],
+    "videos": [
+      {
+        "quality": 9999,
+        "quality_label": "Original",
+        "size": null,
+        "host": "v26-kefu.douyinvod.com",
+        "object": "tos-cn-ve-51/oUD496aNyQ5ZDeKAEqWgx6D4FlfiAB5CPIRryr/",
+        "has_audio_url": false
+      }
+    ],
+    "actual_size": 68568404,
+    "media": {
+      "duration_seconds": 330.867,
+      "tracks": [
+        {
+          "width": 1280,
+          "height": 720,
+          "type": "vide",
+          "codec": "avc1"
+        },
+        {
+          "type": "soun",
+          "codec": "mp4a"
+        }
+      ],
+      "has_video": true,
+      "has_audio": true
+    },
+    "matches_java_reference": false,
+    "download_bytes": 68568404,
+    "md5": "ff52aa3872a929aac9ca740e6095c51e",
+    "matches_known_normal_720p": true
+  },
+  "hdr_followup": {
+    "actual_downloaded_files_declared_sdr": true,
+    "hdr_causation_established": false,
+    "historical_flag_is_not_media_hdr_proof": true,
+    "network_requests_added": 0
+  }
+}
