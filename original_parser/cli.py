@@ -10,10 +10,10 @@ from .client import OriginalParser, ParseError, load_credentials
 
 
 def parse_interval(value: str) -> tuple[float, float]:
-    """解析间隔配置：``3-6`` 表示区间，``3`` 表示固定间隔。"""
+    """解析间隔配置：``0.5-1`` 表示区间，``1`` 表示固定间隔。"""
     text = str(value).strip()
     if not text:
-        raise ValueError("--request-interval 不能为空，例如 3-6")
+        raise ValueError("--request-interval 不能为空，例如 0.5-1")
     lower, separator, upper = text.partition("-")
     if not separator:
         seconds = float(text)
@@ -28,14 +28,17 @@ def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(description="抖音原画解析：官方取址、地址还原、完整 MP4 校验")
     ap.add_argument("url", nargs="?", help="视频链接、分享文案或作品 ID")
-    ap.add_argument("--download", type=Path, help="下载到指定 MP4 文件，不覆盖已有文件")
+    ap.add_argument("--download", type=Path, help="保存为 MP4，不覆盖已有文件。DASH 分轨需要 PATH 中的 ffmpeg 合并")
     ap.add_argument("--reference", type=Path, help="下载后与本地对照文件做 SHA-256 比较")
     ap.add_argument("--json", type=Path, dest="json_path", help="保存完整解析结果")
-    ap.add_argument("--url-only", action="store_true", help="仅在控制台输出播放地址")
+    ap.add_argument("--url-only", action="store_true", help="仅输出视频地址。DASH 音频地址可从 --json 取得")
     ap.add_argument("--no-probe", action="store_true", help="跳过远程 MP4 大小和轨道校验")
     ap.add_argument("--allow-external", action="store_true", dest="allow_external",
                     help="允许使用本地已核对过的外部来源原片身份（仍需官方分发重签与媒体校验）；"
                          "等价于设置 DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1")
+    ap.add_argument("--allow-source-candidate", action="store_true", dest="allow_source_candidate",
+                    help="官方原画不可用时，允许返回最高普通档作为 source_candidate；"
+                         "仅当容器内嵌的源 VID 与详情不同，明确标注非平台原画")
     ap.add_argument("--cookie-file", type=Path,
                     help="Cookie 文件或 dtk-parse credentials.json（当前抖音接口需要 UIFID_TEMP）")
     ap.add_argument("--register-original", metavar="原片直链",
@@ -48,10 +51,11 @@ def main(argv=None):
     ap.add_argument("--serve", action="store_true", help="启动本地 HTTP 服务")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8765)
-    ap.add_argument("--max-concurrent", type=int, default=6, help="HTTP 同时受理请求数；实际访问上游始终串行")
-    ap.add_argument("--request-interval", default="3-6", metavar="下限-上限",
-                    help="相邻上游任务之间的等待区间秒数，例如 3-6 表示在 3 到 6 秒之间随机；"
-                         "单个数字表示固定间隔，默认 3-6")
+    ap.add_argument("--max-concurrent", type=int, default=6, help="HTTP 同时受理请求数，包含执行中及等待中的请求")
+    ap.add_argument("--parse-workers", type=int, default=3, help="实际解析工作线程数，默认3，相同作品请求自动合并")
+    ap.add_argument("--request-interval", default="0.5-1", metavar="下限-上限",
+                    help="每个工作线程完成任务后的等待区间秒数，例如 0.5-1 表示在 0.5 到 1 秒之间随机；"
+                         "单个数字表示固定间隔，默认 0.5-1")
     ap.add_argument("--cache-ttl", type=float, default=300, help="HTTP 成功缓存上限秒数，0 关闭缓存")
     ap.add_argument("--cache-max-entries", type=int, default=128)
     ap.add_argument("--queue-size", type=int, default=6, help="HTTP 等待执行的不同任务上限")
@@ -67,7 +71,7 @@ def main(argv=None):
         from .server import serve
         from .guard import GuardConfig
         try:
-            config = GuardConfig(interval_range=parse_interval(args.request_interval),
+            config = GuardConfig(interval_range=parse_interval(args.request_interval), worker_count=args.parse_workers,
                                  cache_ttl=args.cache_ttl,
                                  cache_max_entries=args.cache_max_entries, max_pending=args.queue_size,
                                  wait_timeout=args.queue_wait_timeout, failure_threshold=args.failure_threshold,
@@ -76,7 +80,8 @@ def main(argv=None):
                 load_credentials(args.cookie_file)
             serve(args.host, args.port, max_concurrent=args.max_concurrent, cookie_file=args.cookie_file,
                   detail_mode=args.detail_mode, browser_profile=args.browser_profile, guard_config=config,
-                  allow_external_asset_recovery=args.allow_external or None)
+                  allow_external_asset_recovery=args.allow_external or None,
+                  allow_source_candidate=args.allow_source_candidate or None)
             return 0
         except (ParseError, OSError, ValueError) as exc:
             print(json.dumps({"code": getattr(exc, "code", "local_error"), "msg": str(exc), "data": None},
@@ -93,7 +98,8 @@ def main(argv=None):
         with OriginalParser(cookies=cookies if args.cookie_file else None, user_agent=user_agent,
                             auto_guest=args.cookie_file is None, detail_mode=args.detail_mode,
                             browser_profile=args.browser_profile,
-                            allow_external_asset_recovery=args.allow_external or None) as parser:
+                            allow_external_asset_recovery=args.allow_external or None,
+                            allow_source_candidate=args.allow_source_candidate or None) as parser:
             if args.register_original:
                 outcome = parser.register_external_original(args.url, args.register_original)
                 record = outcome["record"]
@@ -122,11 +128,20 @@ def main(argv=None):
                 source = f"抖音官方原画档位 {data['official_quality']}"
             elif evidence == "official_play_hash":
                 source = f"抖音官方原片分发（已验证 file_hash，档位 {data['official_quality']}）"
+            elif evidence == "official_web_pc_bitrate":
+                source = "抖音 PC Web 详情独有档位（上传原件身份未经确认）"
+            elif evidence == "official_play_default":
+                source = "抖音官方默认播放档（原画身份未经确认）"
+            elif evidence == "platform_source_candidate":
+                source = (f"源候选（最高普通档 {data['official_quality']}；"
+                          f"容器内嵌独立源 VID {data.get('source_vid')}，非平台原画）")
             else:
                 source = f"抖音官方原画档位 {data['official_quality']}"
             print(f"来源：{source}；未使用第三方解析服务")
             print("媒体校验：" + ("通过，包含视频与音频轨道" if data['probe'] else "已跳过"))
             print("播放地址：" + data["url"])
+            if data.get("dash_mux_required"):
+                print("音视频：DASH 分轨，下载时自动合并；音频地址：" + (data.get("audio_url") or ""))
             if data.get("download"):
                 record = data["download"]
                 print("下载文件：" + record["path"])

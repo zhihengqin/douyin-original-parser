@@ -13,7 +13,13 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 logger = logging.getLogger(__name__)
-_browser_slot = threading.BoundedSemaphore(1)
+_browser_slot = threading.BoundedSemaphore(3)
+
+
+def configure_browser_concurrency(worker_count):
+    """服务启动时将浏览器并发与实际解析线程数对齐。"""
+    global _browser_slot
+    _browser_slot = threading.BoundedSemaphore(worker_count)
 
 
 def emit(stage, **fields):
@@ -178,19 +184,20 @@ def configure_platform(page, profile):
 
 
 def get_browser_detail(aweme_id, *, timeout=20, profile="windows"):
-    """每次使用独立匿名会话；最多一个浏览器，避免批量请求耗尽内存。"""
+    """每条任务使用独立匿名会话，浏览器并发上限跟随解析线程数。"""
     from .client import ParseError
 
     if not re.fullmatch(r"\d{15,22}", aweme_id):
         raise ParseError("invalid_input", "作品 ID 格式无效")
     if profile not in ("current", "native", "windows"):
         raise ValueError("不支持的浏览器平台配置")
-    if not _browser_slot.acquire(timeout=min(max(float(timeout), 0), 10)):
+    slots = _browser_slot
+    if not slots.acquire(timeout=min(max(float(timeout), 0), 10)):
         raise ParseError("browser_busy", "浏览器解析繁忙，请稍后重试")
     try:
         return _fetch_browser_detail(aweme_id, timeout=timeout, profile=profile)
     finally:
-        _browser_slot.release()
+        slots.release()
 
 
 def _fetch_browser_detail(aweme_id, *, timeout, profile):

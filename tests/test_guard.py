@@ -44,7 +44,7 @@ def verified_result(*, expiry=None, marker="original"):
 
 class GuardTests(unittest.TestCase):
     def guard(self, clock=None, **overrides):
-        options = {"interval_range": (0, 0), "wait_timeout": 2}
+        options = {"interval_range": (0, 0), "wait_timeout": 2, "worker_count": 1}
         options.update(overrides)
         kwargs = {} if clock is None else {
             "clock": lambda: clock.monotonic,
@@ -635,6 +635,100 @@ class GuardTests(unittest.TestCase):
                 self.assertEqual(exc.code, "busy")
         self.assertEqual(calls, [])
         guard.close()
+
+
+    def test_three_workers_execute_distinct_keys_and_coalesce_same_key(self):
+        guard = self.guard(worker_count=3)
+        release = threading.Event()
+        calls = []
+
+        def load(key):
+            calls.append(key)
+            self.assertTrue(release.wait(2))
+            return verified_result(marker=key)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+            try:
+                active = [pool.submit(guard.run, key, lambda key=key: load(key)) for key in range(3)]
+                self.eventually(lambda: guard.snapshot()["active"] == 3)
+                queued = pool.submit(guard.run, 3, lambda: load(3))
+                shared = pool.submit(guard.run, 0, lambda: self.fail("重复作品不应再次执行"))
+                self.eventually(lambda: guard.snapshot()["coalesced"] == 1)
+                self.assertEqual(guard.snapshot()["pending"], 1)
+                self.assertEqual(guard.snapshot()["workers"], 3)
+                self.assertEqual(set(calls), {0, 1, 2})
+            finally:
+                release.set()
+            self.assertEqual(active[0].result(2), shared.result(2))
+            for future in active[1:] + [queued]:
+                future.result(2)
+        self.assertEqual(sorted(calls), [0, 1, 2, 3])
+
+    def test_parallel_late_success_cannot_close_cooldown_or_half_open_probe(self):
+        clock = Clock()
+        guard = self.guard(clock, worker_count=3, failure_threshold=1, cooldown=30, wait_timeout=120)
+        late_entered, late_release = threading.Event(), threading.Event()
+        probe_entered, probe_release = threading.Event(), threading.Event()
+
+        def late():
+            late_entered.set()
+            self.assertTrue(late_release.wait(2))
+            return verified_result(expiry=clock.wall + 3600)
+
+        def restricted():
+            raise ParseError("upstream_empty_response", "模拟限制响应")
+
+        def probe():
+            probe_entered.set()
+            self.assertTrue(probe_release.wait(2))
+            return verified_result(expiry=clock.wall + 3600)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            try:
+                old = pool.submit(guard.run, "late", late)
+                self.assertTrue(late_entered.wait(1))
+                with self.assertRaises(ParseError):
+                    guard.run("restricted", restricted)
+                self.assertEqual(guard.snapshot()["state"], "open")
+                clock.advance(31)
+                trial = pool.submit(guard.run, "probe", probe)
+                self.assertTrue(probe_entered.wait(1))
+                self.assert_guard_error("upstream_cooldown", lambda: guard.run("extra", verified_result))
+                late_release.set()
+                old.result(2)
+                self.assertEqual(guard.snapshot()["state"], "half_open")
+                self.assertEqual(guard.snapshot()["consecutive_failures"], 1)
+            finally:
+                late_release.set()
+                probe_release.set()
+            trial.result(2)
+        self.assertEqual(guard.snapshot()["state"], "closed")
+
+    def test_no_waiting_slots_still_admits_all_idle_workers_and_close_wakes_them(self):
+        guard = self.guard(worker_count=3, max_pending=0)
+        release = threading.Event()
+
+        def load():
+            self.assertTrue(release.wait(2))
+            return verified_result()
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            try:
+                futures = [pool.submit(guard.run, key, load) for key in range(3)]
+                self.eventually(lambda: guard.snapshot()["active"] == 3)
+                self.assert_guard_error("busy", lambda: guard.run("excess", verified_result))
+                guard.close()
+                for future in futures:
+                    self.assert_guard_error("busy", lambda future=future: future.result(1))
+            finally:
+                release.set()
+        self.eventually(lambda: guard.snapshot()["active"] == 0)
+
+    def test_worker_count_defaults_and_bounds(self):
+        self.assertEqual(GuardConfig().worker_count, 3)
+        for value in (0, -1, 33, True, 1.5):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                GuardConfig(worker_count=value)
 
 
 if __name__ == "__main__":

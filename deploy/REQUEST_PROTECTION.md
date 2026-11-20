@@ -6,15 +6,16 @@
 
 | 环境变量 | 默认值 | 含义 |
 | --- | --- | --- |
-| `REQUEST_INTERVAL` | `3-6` | 完整解析任务结束后，至少等待 3~6 秒再启动下一个 |
+| `PARSE_WORKERS` | `3` | 实际工作线程数，1～32，浏览器并发也与此值对齐 |
+| `REQUEST_INTERVAL` | `0.5-1` | 每个工作线程完整解析结束后，独立等待0.5～1秒再启动下一个 |
 | `CACHE_TTL` | `300` | 成功缓存最多 300 秒；0 关闭结果缓存 |
 | `CACHE_MAX_ENTRIES` | `128` | 成功结果最多 128 项 |
-| `QUEUE_SIZE` | `6` | 最多 6 个不同任务等待，另有 1 个执行位置；还受 HTTP 受理上限约束 |
+| `QUEUE_SIZE` | `6` | 最多6个额外等待任务，另有`PARSE_WORKERS`个执行位置；还受HTTP受理上限约束 |
 | `QUEUE_WAIT_TIMEOUT` | `150` | 单个调用者等待排队和结果的总秒数，低于 Java 默认 180 秒 |
 | `FAILURE_THRESHOLD` | `3` | 自上次真实成功以来累计 3 次限制类失败后暂停 |
 | `COOLDOWN_SECONDS` | `900` | 暂停 900 秒后，允许下一条请求试探恢复 |
 
-`MAX_CONCURRENT=6` 表示最多同时受理 6 个 HTTP 请求，包含等待者。实际短链跳转、详情、原画接口及媒体校验由一个工作线程串行执行。间隔作用于完整任务；单个任务内部仍有多条必要网络请求，不是每条 HTTP 请求都单独等待 3～6 秒。
+`MAX_CONCURRENT=6`表示最多同时受理6个HTTP请求，包含等待者。短链跳转、详情、原画接口及媒体校验由默认3个工作线程并行执行。每个线程独立执行完整任务并间隔等待，单个任务内部的必要HTTP请求不单独等待0.5～1秒。每个任务创建自己的解析器和会话，浏览器模式使用独立浏览器上下文；同作品任务仍只执行一次。健康检查`protection.workers`为实际线程数，`protection.active`为正在执行的任务数。
 
 完整作品 URL、裸作品 ID、包含完整作品链接的分享文案按作品 ID 合并。相同短链接也会合并和缓存；不同短链接即使指向同一作品，当前仍按不同输入处理。`with_probe=true/false` 的请求分开处理，外部 Cookie 文件内容改变后也会隔离原缓存。
 
@@ -24,7 +25,7 @@
 
 HTTP 200 空正文、非 JSON、HTTP 403/444、HTTP 429、缺失或被拒绝的访客凭据参与暂停计数。无效输入、单作品不可见/无原画、普通网络超时和媒体校验失败不增加也不清零计数；实际解析成功才清零，缓存命中不清零。受保护的 HTTP 模式不会在单个任务内刷新访客重复请求详情。
 
-达到阈值后，尚未开始的排队任务立即收到 HTTP 503，`code=upstream_cooldown`，并携带 `Retry-After` 响应头及 `retry_after_seconds` 字段。暂停期间有效缓存仍可使用。冷却结束后只允许一个真实任务试探，同作品请求可合并；成功恢复，失败重新冷却。无人请求时不会主动试探。
+达到阈值后，尚未开始的排队任务立即收到 HTTP 503，`code=upstream_cooldown`，并携带 `Retry-After` 响应头及 `retry_after_seconds` 字段。暂停期间有效缓存仍可使用。冷却结束后只允许一个真实任务试探，同作品请求可合并；成功恢复，失败重新冷却。旧批次仍在执行的任务可以返回有效结果，但其迟到成功不能关闭当前冷却或试探状态。无人请求时不会主动试探。
 
 队列满或等待超时返回 HTTP 429。未启动且已无人等待的任务取消；已开始的任务继续，重试会合并到该任务。150 秒是调用者等待上限，不是强制杀死浏览器的时限。若底层调用永久挂起，执行槽位仍被占用，健康检查和缓存仍能工作，但新任务会等待超时，需要维护者处理。
 
@@ -71,7 +72,7 @@ curl --noproxy '*' --fail --connect-timeout 5 --max-time 10 http://127.0.0.1:876
 journalctl -u douyin-original-parser -n 30 --no-pager
 ```
 
-日志应显示原来的详情模式，以及 `protection interval=3.0-6.0s ... threshold=3 cooldown=900.0s`（采用当前默认配置时；已有实例以实际启动参数为准）。`/health` 的 `ok=true` 仍只表示服务在线，新增 `protection`：
+日志应显示原来的详情模式，以及 `protection interval=0.5-1.0s ... threshold=3 cooldown=900.0s`（采用当前默认配置时；已有实例以实际启动参数为准）。`/health` 的 `ok=true` 仍只表示服务在线，新增 `protection`：
 
 - `state=closed` 正常；`open` 冷却中；`half_open` 正在试探恢复。
 - `active`、`pending` 为实际执行和排队的任务数。
@@ -107,3 +108,9 @@ systemctl start douyin-original-parser
 ```
 
 旧代码不引用的新 `guard.py` 无需删除。备份不包含 Cookie、虚拟环境或浏览器目录。
+
+## 0.5～1秒随机间隔（2026-11-18）
+
+代码默认值、CLI默认值、Linux启动脚本、systemd主配置及请求保护配置均改为`0.5-1`。默认3个实际工作线程，每个线程完整解析任务结束后，在0.5～1秒之间独立随机等待，再启动下一条；这不是总解析耗时，也不是每个内部HTTP请求单独等待。
+
+已有服务的systemd环境变量优先于代码默认值。本次多线程需先更新Python代码。沿用`upgrade.sh --no-units`升级时，应将`/etc/systemd/system/douyin-original-parser.service.d/90-request-protection.conf`中的`Environment=REQUEST_INTERVAL`改为`0.5-1`，并设置`Environment=PARSE_WORKERS=3`，再执行`systemctl daemon-reload`和`systemctl restart douyin-original-parser`。不要用整份主配置覆盖已有详情模式或自定义服务参数。启动日志和健康检查应显示3个工作线程；若还有更高优先级的环境变量配置，以实际运行值为准。

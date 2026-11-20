@@ -6,9 +6,11 @@ import base64
 import hashlib
 import json
 import logging
+import math
 import os
 import re
 import ssl
+import subprocess
 import sys
 import tempfile
 import threading
@@ -24,6 +26,13 @@ from .media import inspect_file, inspect_mp4
 
 DETAIL_URL = "https://www.douyin.com/aweme/v1/web/aweme/detail/"
 DETAIL_UA = USER_AGENT
+# PC 网页详情会额外下发手机/webapp 详情没有的 video.bit_rate 档位，
+# 其中包含 tos-cn-v-* 原片桶行。参数取自 www.douyin.com 视频页的真实请求。
+PC_DETAIL_PARAMS = {
+    "device_platform": "webapp", "aid": "6383", "channel": "channel_pc_web",
+    "request_source": "600", "origin_type": "video_page", "support_h265": "1",
+    "pc_client_type": "1", "version_code": "190500", "version_name": "19.5.0",
+}
 MAX_JSON_BYTES = 8 * 1024 * 1024
 logger = logging.getLogger(__name__)
 GUEST_RETRY_CODES = frozenset(("credentials_required", "credentials_rejected",
@@ -36,10 +45,14 @@ GUEST_RETRY_CODES = frozenset(("credentials_required", "credentials_rejected",
 #                                          它无法由作品 ID 自身推出，不属于首次发现）
 OFFICIAL_PROVENANCE = "official_fplay_and_mp4_probe"
 EXTERNAL_ASSET_PROVENANCE = "official_play_hash_from_verified_asset"
-# 官方 /aweme/v1/play/ 的默认档（ratio=default）直接 302 到上传原片，
-# 只需作品自己的 video_id，不需要任何整文件哈希。
+# 兼容旧版登记记录；默认播放档的声明本身不能证明是上传原片。
 PLAY_DEFAULT_PROVENANCE = "official_play_default_and_mp4_probe"
 VERIFIED_PROVENANCE = frozenset((OFFICIAL_PROVENANCE, EXTERNAL_ASSET_PROVENANCE, PLAY_DEFAULT_PROVENANCE))
+# 非平台原画：最高普通档的容器内嵌了与详情不同的源 VID。仅显式开启时返回，
+# 不写入可信原片记录，也不能当作 official_quality。
+SOURCE_CANDIDATE_EVIDENCE = "platform_source_candidate"
+PC_BITRATE_EVIDENCE = "official_web_pc_bitrate"
+PLAY_DEFAULT_EVIDENCE = "official_play_default"
 PLAY_URL = "https://www.douyin.com/aweme/v1/play/"
 
 # requests normally wraps OpenSSL failures in ``requests.exceptions.SSLError``.
@@ -47,6 +60,14 @@ PLAY_URL = "https://www.douyin.com/aweme/v1/play/"
 # especially while reading a streamed body, so keep both in every transport
 # boundary below.
 _REQUEST_ERRORS = (requests.RequestException, ssl.SSLError)
+
+
+def _source_candidate_enabled(allow: bool | None = None) -> bool:
+    """源候选默认关闭；显式参数优先，否则跟随环境变量。"""
+    if allow is not None:
+        return bool(allow)
+    return os.environ.get("DOUYIN_ALLOW_SOURCE_CANDIDATE", "").strip().lower() in (
+        "1", "true", "yes")
 
 
 def _external_asset_recovery_enabled(allow_external: bool | None = None) -> bool:
@@ -61,6 +82,9 @@ def _external_asset_recovery_enabled(allow_external: bool | None = None) -> bool
 _ORIGINAL_METADATA_LOCK = threading.Lock()
 _DEFAULT_ORIGINAL_METADATA = Path(__file__).resolve().parents[1] / "original_metadata.json"
 PLATFORM_HOSTS = ("douyin.com", "iesdouyin.com")
+# 备用目录接口的主机并不固定，这里只保留官方域名范围，不约束 aid、路径或 CDN 桶。
+CATALOG_API_HOSTS = ("snssdk.com", "douyin.com", "iesdouyin.com", "amemv.com",
+                     "bytedance.com", "bytedanceapi.com", "volcengineapi.com")
 # 保留历史域名集合供离线研究工具使用，生产原画取址及下载不再按此集合筛选。
 MEDIA_HOSTS = ("douyinvod.com", "douyin.com", "iesdouyin.com", "snssdk.com",
                "amemv.com", "ixigua.com", "365yg.com", "toutiaovod.com", "bytecdn.cn", "bytecdn.com",
@@ -71,6 +95,18 @@ class ParseError(RuntimeError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
         self.code = code
+
+
+def _verified_video_track(media: dict) -> dict:
+    """登记、探测和下载采用相同的容器证据要求。"""
+    if not media.get("has_audio") or not media.get("has_video"):
+        raise ParseError("incomplete_media", "该文件不是同时包含音视频轨道的完整 MP4")
+    if not media.get("duration_seconds") or media["duration_seconds"] <= 0:
+        raise ParseError("incomplete_media", "无法从 MP4 确认有效时长")
+    track = next((t for t in media["tracks"] if t.get("type") == "vide"), {})
+    if min(track.get("width", 0), track.get("height", 0)) <= 0:
+        raise ParseError("incomplete_media", "无法从 MP4 视频轨确认有效分辨率")
+    return track
 
 
 def _exception_chain(error: BaseException):
@@ -302,6 +338,14 @@ def _content_md5(headers) -> str | None:
     return digest.hex() if len(digest) == 16 else None
 
 
+def _media_url_expiry(url: str) -> str | None:
+    """读取已支持的显式到期参数；dy_q 和路径片段不作为到期时间。"""
+    query = parse_qs(urlsplit(url).query)
+    return next((query[key][0] for key in
+                 ("x-expires", "expires", "x-tos-expires", "url_expire", "expire")
+                 if query.get(key)), None)
+
+
 def signed_query(params: dict, cookies: dict) -> str | None:
     """使用平台下发的访客标识计算网页请求签名。"""
     uifid = next((cookies.get(k) for k in UIFID_NAMES if cookies.get(k)), None)
@@ -335,7 +379,8 @@ class OriginalParser:
                  user_agent: str | None = None, auto_guest: bool = True,
                  detail_mode: str = "http", browser_profile: str = "windows",
                  refresh_guest_on_rejection: bool = True,
-                 allow_external_asset_recovery: bool | None = None):
+                 allow_external_asset_recovery: bool | None = None,
+                 allow_source_candidate: bool | None = None):
         if detail_mode not in ("http", "browser"):
             raise ValueError("detail_mode 必须是 http 或 browser")
         if browser_profile not in ("current", "native", "windows"):
@@ -343,8 +388,11 @@ class OriginalParser:
         if detail_mode == "browser" and (cookies is not None or not auto_guest):
             raise ValueError("浏览器页面解析模式仅支持自动访客，不能同时指定外部 Cookie 或关闭自动访客")
         self.allow_external_asset_recovery = allow_external_asset_recovery
+        self.allow_source_candidate = _source_candidate_enabled(allow_source_candidate)
         self.catalog_blocked_external = False
         self.play_default_note = ""
+        self._web_catalog_observations: list[dict] = []
+        self.web_attempt_work_id: str | None = None
         self._signer = None
         self._signer_ua = None
         self.timeout = timeout
@@ -486,6 +534,28 @@ class OriginalParser:
         detail = data.get("aweme_detail")
         if not isinstance(detail, dict) or str(detail.get("aweme_id")) != aweme_id:
             raise ParseError("detail_unavailable", "平台未返回该作品详情，作品可能不可见")
+        return detail
+
+    def _pc_detail(self, aweme_id: str) -> dict | None:
+        """请求 PC 网页详情；只用于补充手机详情未下发的 bit_rate 档位。"""
+        params = {**PC_DETAIL_PARAMS, "aweme_id": aweme_id}
+        signed = signed_query(params, self.cookies)
+        if not signed:
+            return None
+        url = DETAIL_URL + "?" + signed
+        try:
+            data = self._json(url, headers={
+                "User-Agent": self.user_agent, **signed_headers(signed),
+                "Referer": f"https://www.douyin.com/video/{aweme_id}",
+            }, stage="PC Web 详情接口")
+        except ParseError as exc:
+            if exc.code in ("upstream_forbidden", "credentials_required",
+                            "credentials_rejected", "upstream_non_json", "upstream_error"):
+                return None
+            raise
+        detail = data.get("aweme_detail")
+        if not isinstance(detail, dict) or str(detail.get("aweme_id")) != aweme_id:
+            return None
         return detail
 
     def _a_bogus_signer(self):
@@ -634,15 +704,12 @@ class OriginalParser:
             # 平台把某个转码档登记成了默认档：不能当原片。
             self.play_default_note = "；平台默认档与某个转码档字节数完全相同"
             return None
-        query = parse_qs(urlsplit(final_url).query)
-        expires_at = next((query.get(key, [None])[0] for key in
-                           ("x-expires", "expires", "x-tos-expires", "url_expire", "expire", "dy_q")
-                           if query.get(key, [None])[0]), None)
+        expires_at = _media_url_expiry(final_url)
         return {
             "url": final_url, "urls": [final_url],
-            "quality": "source", "level": "原画（官方默认档）",
-            "official_quality": "original", "file_id": video_id,
-            "size": size, "source_evidence": "official_play_default",
+            "quality": "play_default", "level": "官方默认播放档",
+            "official_quality": None, "file_id": video_id,
+            "size": size, "source_evidence": PLAY_DEFAULT_EVIDENCE,
             # 原片分辨率不一定等于详情里转码档的分辨率，交给 probe 从 moov 回填。
             "width": 0, "height": 0, "bit_rate": 0,
             "codec": None, "fps": None, "file_hash": file_hash,
@@ -651,11 +718,65 @@ class OriginalParser:
 
     def source_streams(self, detail: dict) -> tuple[dict, list[dict]]:
         """返回首组明确原画候选；parse 会继续尝试后续组直到媒体校验通过。"""
+        self._web_catalog_observations.clear()
         groups = self._source_stream_groups(detail)
         try:
             return next(groups)
         finally:
             groups.close()
+
+    @property
+    def web_catalog_observations(self) -> list[dict]:
+        """本次已检查的目录；仅包含固定标签、布尔值及计数。"""
+        return [dict(item) for item in self._web_catalog_observations]
+
+    @property
+    def web_catalog_only_transcodes(self) -> bool:
+        observations = self._web_catalog_observations
+        return ({o["stage"] for o in observations} >= {"original", "source"}
+                and all(o["valid"] and o["rows"] == o["normal_rows"] for o in observations))
+
+    @classmethod
+    def _web_catalog_snapshot(cls, stage: str, payload, video_id: str) -> dict:
+        stats = dict(stage=stage, valid=False, rows=0, normal_rows=0, original_rows=0,
+                     source_rows=0, unknown_rows=0, max_size_bytes=None)
+        info = payload.get("video_info") if isinstance(payload, dict) else None
+        data = info.get("data") if isinstance(info, dict) else None
+        if not isinstance(data, dict):
+            return stats
+        codes = (payload.get("code"), info.get("code"), data.get("status"))
+        if (not all(type(code) is int for code in codes) or codes != (0, 0, 10)
+                or not video_id or data.get("video_id") != video_id):
+            return stats
+        rows = data.get("video_list")
+        if isinstance(rows, dict):
+            rows = list(rows.values())
+        if not isinstance(rows, list) or not rows:
+            return stats
+        stats["valid"] = True
+        stats["rows"] = len(rows)
+        for row in rows:
+            if (not isinstance(row, dict)
+                    or ("video_meta" in row and not isinstance(row["video_meta"], dict))):
+                stats["valid"] = False
+                stats["unknown_rows"] += 1
+                continue
+            item, = cls._video_rows({"video_list": [row]})
+            quality = item.get("quality")
+            quality = quality.lower() if isinstance(quality, str) else ""
+            size = item.get("size")
+            if isinstance(size, str) and re.fullmatch(r"[0-9]{1,19}", size):
+                size = int(size)
+            sized = type(size) is int and size > 0
+            if sized:
+                stats["max_size_bytes"] = max(stats["max_size_bytes"] or 0, size)
+            if quality in ("original", "source"):
+                stats[quality + "_rows"] += 1
+            elif quality in ("normal", "adapt", "low", "adapt_low", "adapt_lower", "adapt_lowest") and sized:
+                stats["normal_rows"] += 1
+            else:
+                stats["unknown_rows"] += 1
+        return stats
 
     def _source_stream_groups(self, detail: dict):
         """按需尝试详情内嵌模型、官方两种选档和原片分发，不预先请求所有路线。"""
@@ -668,8 +789,11 @@ class OriginalParser:
         model = video.get("video_model")
         last_error = None
         issued_candidates = []
+        normal_candidates = []
 
         def collect_group(payload):
+            if self.allow_source_candidate:
+                normal_candidates.extend(self._normal_candidates(payload, video_id))
             data, candidates = self._source_candidates(payload, video_id, allow_missing_urls=True)
             issued_candidates.extend(dict(candidate) for candidate in candidates)
             playable = [candidate for candidate in candidates if candidate["urls"]]
@@ -691,6 +815,7 @@ class OriginalParser:
         # 网页详情已下发的完整模型也有独立原画/地址；不能只把它当作 fallback 容器。
         if model.get("video_list"):
             embedded = {"code": 0, "video_info": {"code": 0, "data": model}}
+            self._web_catalog_observations.append(self._web_catalog_snapshot("embedded", embedded, video_id))
             try:
                 group = collect_group(embedded)
             except ParseError as exc:
@@ -700,15 +825,17 @@ class OriginalParser:
             else:
                 yield group
         try:
-            request_urls = self._fallback_source_urls(model, video_id)
+            request_urls = self._fallback_source_urls(model)
         except ParseError as exc:
             if exc.code != "source_unavailable":
                 raise
             request_urls = []
             last_error = exc
         transcode_sizes = self._transcode_sizes(video)
-        for request_url in request_urls:
+        for stage, request_url in zip(("original", "source"), request_urls):
+            self._web_catalog_observations.append(self._web_catalog_snapshot(stage, None, video_id))
             payload = self._json(request_url, stage="原画接口")
+            self._web_catalog_observations[-1] = self._web_catalog_snapshot(stage, payload, video_id)
             try:
                 group = collect_group(payload)
             except ParseError as exc:
@@ -753,6 +880,31 @@ class OriginalParser:
         if play_default is not None:
             yield ({"status": 10, "video_id": video_id,
                     "video_duration": play_default["duration_seconds"]}, [play_default])
+        # The page may issue a different catalog from either selected view.
+        # Keep the original URL byte-for-byte and only pay for it on a miss.
+        if request_urls:
+            issued_url = self._issued_catalog_url(model)
+            if issued_url not in request_urls:
+                self._web_catalog_observations.append(self._web_catalog_snapshot("issued", None, video_id))
+                payload = self._json(issued_url, stage="网页原样播放目录")
+                self._web_catalog_observations[-1] = self._web_catalog_snapshot("issued", payload, video_id)
+                try:
+                    group = collect_group(payload)
+                except ParseError as exc:
+                    if exc.code != "source_unavailable":
+                        raise
+                    last_error = exc
+                else:
+                    yield group
+        pc_candidates = self._pc_bitrate_candidates(detail)
+        if pc_candidates:
+            yield ({"status": 10, "video_id": video_id,
+                    "video_duration": pc_candidates[0]["duration_seconds"]}, pc_candidates)
+        if self.allow_source_candidate and normal_candidates:
+            source_candidate = self._source_candidate(normal_candidates, video_id)
+            if source_candidate is not None:
+                yield ({"status": 10, "video_id": video_id,
+                        "video_duration": source_candidate["duration_seconds"]}, [source_candidate])
         if last_error is None:
             last_error = ParseError("source_unavailable", "官方接口未返回可用原画")
         # 此字段是响应中的上下文标记，不能单独解释为何当前未取得原片。
@@ -767,16 +919,19 @@ class OriginalParser:
                          f"{blocked_note}") from last_error
 
     @staticmethod
-    def _fallback_source_urls(model: dict, video_id: str) -> list[str]:
+    def _issued_catalog_url(model: dict) -> str:
         fallback = model.get("fallback_api")
         url = fallback.get("fallback_api") if isinstance(fallback, dict) else fallback
         if not isinstance(url, str):
             raise ParseError("source_unavailable", "平台未下发备用播放接口")
-        p = urlsplit(check_url(url, ("snssdk.com",)))
-        if not re.fullmatch(r"/video/fplay/1/[a-fA-F0-9]{32}/" + re.escape(video_id), p.path):
-            raise ParseError("source_unavailable", "备用播放接口结构已变化")
-        if parse_qs(p.query).get("aid", [""])[0] != "392139":
-            raise ParseError("source_unavailable", "备用播放接口的应用标识不符合当前实现")
+        # aid、主机路径和 CDN 桶都不固定；按平台下发的地址原样请求，
+        # 响应身份仍由 video_id 和后续媒体校验确认。
+        check_url(url, CATALOG_API_HOSTS)
+        return url
+
+    @staticmethod
+    def _fallback_source_urls(model: dict) -> list[str]:
+        p = urlsplit(OriginalParser._issued_catalog_url(model))
         # 保留官方签发的上下文，仅修改已验证的选择参数。
         original_params = parse_qs(p.query, keep_blank_values=True)
         original_params.pop("logo_type", None)
@@ -804,10 +959,7 @@ class OriginalParser:
         url = self._dispatch_official_original(record)
         if url is None:
             return None
-        query = parse_qs(urlsplit(url).query)
-        expires_at = next((query[key][0] for key in
-                           ("x-expires", "expires", "x-tos-expires", "url_expire", "expire", "dy_q")
-                           if query.get(key)), None)
+        expires_at = _media_url_expiry(url)
         return {**candidate, "url": url, "urls": [url], "expires_at": expires_at,
                 "level": "原画（官方重新分发）"}
 
@@ -926,9 +1078,7 @@ class OriginalParser:
                     raise _request_parse_error(exc, stage="媒体响应读取") from exc
 
         media = inspect_mp4(read_at, size)
-        if not media["has_video"] or not media["has_audio"]:
-            raise ParseError("incomplete_media", "该地址不是同时包含音视频轨道的完整 MP4")
-        video_track = next(track for track in media["tracks"] if track.get("type") == "vide")
+        video_track = _verified_video_track(media)
         if expected_duration and abs(media["duration_seconds"] - expected_duration) > 1:
             raise ParseError("identity_mismatch",
                              f"该地址时长 {media['duration_seconds']:.3f} 秒与作品详情 "
@@ -1001,10 +1151,7 @@ class OriginalParser:
         final_url = self._dispatch_official_original(record)
         if final_url is None:
             return None
-        query = parse_qs(urlsplit(final_url).query)
-        expires_at = next((query.get(key, [None])[0] for key in
-                           ("x-expires", "expires", "url_expire", "dy_q")
-                           if query.get(key, [None])[0]), None)
+        expires_at = _media_url_expiry(final_url)
         return {
             "url": final_url,
             "urls": [final_url],
@@ -1028,6 +1175,230 @@ class OriginalParser:
     def _candidate_rank(candidate: dict) -> tuple:
         return (candidate["official_quality"] in ("original", "source"),
                 candidate["width"] * candidate["height"], candidate["bit_rate"], candidate["size"])
+
+    @staticmethod
+    def _video_hashes(video: dict) -> set[str]:
+        hashes: set[str] = set()
+
+        def add(value) -> None:
+            text = str(value or "").lower()
+            if re.fullmatch(r"[a-f0-9]{32}", text):
+                hashes.add(text)
+
+        def add_addr(addr) -> None:
+            if isinstance(addr, dict):
+                add(addr.get("file_hash"))
+
+        for key in ("play_addr", "play_addr_h264", "play_addr_265", "download_addr"):
+            add_addr(video.get(key))
+        for row in video.get("bit_rate") or []:
+            if not isinstance(row, dict):
+                continue
+            add_addr(row.get("play_addr"))
+            add_addr(row)
+            add_addr(row.get("play_addr_264"))
+            add_addr(row.get("play_addr_h264"))
+        model = video.get("video_model")
+        if isinstance(model, str):
+            try:
+                model = json.loads(model)
+            except ValueError:
+                model = None
+        if isinstance(model, dict):
+            for row in OriginalParser._video_rows(model):
+                add(row.get("file_hash"))
+        return hashes
+
+    def _pc_bitrate_candidates(self, mobile_detail: dict) -> list[dict]:
+        """PC 网页详情额外下发的 bit_rate 行；只接受手机详情没有的档位。"""
+        aweme_id = str(mobile_detail.get("aweme_id") or "")
+        if not aweme_id:
+            return []
+        pc_detail = self._pc_detail(aweme_id)
+        if not pc_detail:
+            return []
+        mobile_video = mobile_detail.get("video") or {}
+        pc_video = pc_detail.get("video") or {}
+        known_sizes = self._transcode_sizes(mobile_video)
+        known_hashes = self._video_hashes(mobile_video)
+        duration = float(pc_video.get("duration") or mobile_video.get("duration") or 0) / 1000
+        audio_rows = []
+        for row in pc_video.get("bit_rate_audio") or []:
+            if not isinstance(row, dict):
+                continue
+            meta = row.get("audio_meta") or {}
+            try:
+                size = int(meta.get("size") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if size <= 0:
+                continue
+            raw_urls = meta.get("url_list")
+            audio_urls = []
+            if isinstance(raw_urls, dict):
+                raw_urls = [raw_urls.get("main_url"), raw_urls.get("backup_url")]
+            for url in raw_urls or []:
+                if not isinstance(url, str):
+                    continue
+                try:
+                    url = check_url(url)
+                except ParseError:
+                    continue
+                if url not in audio_urls:
+                    audio_urls.append(url)
+            if audio_urls:
+                audio_rows.append({
+                    "urls": audio_urls, "size": size,
+                    "file_hash": str(meta.get("file_hash") or "").lower() or None,
+                    "file_id": meta.get("file_id"), "quality": meta.get("quality"),
+                })
+        audio_rows.sort(key=lambda item: item["size"], reverse=True)
+        best_audio = audio_rows[0] if audio_rows else None
+        candidates = []
+        for row in pc_video.get("bit_rate") or []:
+            if not isinstance(row, dict):
+                continue
+            addr = row.get("play_addr")
+            if not isinstance(addr, dict):
+                continue
+            try:
+                size, width = int(addr.get("data_size") or 0), int(addr.get("width") or 0)
+                height, bit_rate = int(addr.get("height") or 0), int(row.get("bit_rate") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            file_hash = str(addr.get("file_hash") or "").lower()
+            if size <= 0 or min(width, height) <= 0:
+                continue
+            if not re.fullmatch(r"[a-f0-9]{32}", file_hash):
+                continue
+            if size in known_sizes or file_hash in known_hashes:
+                continue
+            urls = []
+            for url in addr.get("url_list") or []:
+                if not isinstance(url, str):
+                    continue
+                try:
+                    url = check_url(url)
+                except ParseError:
+                    continue
+                if url not in urls:
+                    urls.append(url)
+            if not urls:
+                continue
+            if bit_rate <= 0 and duration > 0:
+                bit_rate = round(size * 8 / duration)
+            codec = "bytevc1" if (row.get("is_bytevc1") or "bytevc1" in str(addr.get("url_key") or "")) else (
+                "h265" if row.get("is_h265") else "h264")
+            candidates.append({
+                "url": urls[0], "urls": urls, "quality": "pc_web_bitrate",
+                "level": ("PC Web 独有播放档（DASH 分轨）" if best_audio else "PC Web 独有播放档"),
+                "official_quality": None, "source_evidence": PC_BITRATE_EVIDENCE,
+                "file_id": str(addr.get("url_key") or file_hash), "file_hash": file_hash,
+                "size": size, "width": width, "height": height,
+                "bit_rate": bit_rate, "codec": codec, "fps": None,
+                "audio_url": best_audio["urls"][0] if best_audio else None,
+                "audio_urls": best_audio["urls"] if best_audio else [],
+                "audio_size": best_audio["size"] if best_audio else 0,
+                "audio_hash": best_audio["file_hash"] if best_audio else None,
+                "audio_file_id": best_audio["file_id"] if best_audio else None,
+                "audio_quality": best_audio["quality"] if best_audio else None,
+                "dash_mux_required": bool(best_audio),
+                "expires_at": _media_url_expiry(urls[0]),
+                "duration_seconds": duration,
+            })
+        candidates.sort(key=self._candidate_rank, reverse=True)
+        return candidates
+
+    @classmethod
+    def _normal_candidates(cls, payload: dict, video_id: str) -> list[dict]:
+        """收集可用于源候选的普通档；不改变正式原画选档。"""
+        info = payload.get("video_info") or {}
+        data = info.get("data") or {}
+        if (payload.get("code") != 0 or info.get("code") != 0
+                or data.get("status") != 10 or data.get("video_id") != video_id):
+            return []
+        rows = []
+        for row in cls._video_rows(data):
+            quality = str(row.get("quality") or "").lower()
+            if quality in ("original", "source"):
+                continue
+            if (row.get("vtype") != "mp4" or row.get("encrypt")
+                    or row.get("spade_a") or row.get("encryption_method")):
+                continue
+            try:
+                width, height = int(row.get("vwidth") or 0), int(row.get("vheight") or 0)
+                size, bit_rate = int(row.get("size") or 0), int(row.get("bitrate") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if min(width, height, size) <= 0 or bit_rate < 0:
+                continue
+            urls = []
+            for key in ("main_url", "backup_url_1", "backup_url_2", "backup_url_3", "backup_url"):
+                if not row.get(key):
+                    continue
+                try:
+                    url = decode_url(row[key], data.get("key_seed", ""))
+                except (ValueError, TypeError, UnicodeError):
+                    continue
+                try:
+                    url = check_url(url)
+                except ParseError:
+                    continue
+                if url not in urls:
+                    urls.append(url)
+            if not urls:
+                continue
+            rows.append({
+                "url": urls[0], "urls": urls, "quality": quality or "normal",
+                "level": "普通档", "official_quality": quality or "normal",
+                "source_evidence": "normal", "size": size,
+                "width": width, "height": height, "bit_rate": bit_rate,
+                "codec": row.get("codec_type"),
+                "fps": row.get("float_fps") or row.get("fps"),
+                "file_hash": row.get("file_hash"), "file_id": row.get("file_id"),
+                "expires_at": row.get("url_expire") or data.get("url_expire"),
+                "duration_seconds": data.get("video_duration"),
+            })
+        return rows
+
+    def _source_candidate(self, candidates: list[dict], video_id: str) -> dict | None:
+        """最高普通档的容器 comment 携带独立源 VID 时返回显式源候选。
+
+        这只是"最接近源的公开普通档"，不是平台 original；只有 probe 成功
+        且 comment 中的 vid 与详情播放 VID 不同才会返回。
+        """
+        seen, ordered = set(), []
+        for candidate in candidates:
+            key = (candidate.get("file_id"), candidate.get("file_hash"),
+                   candidate.get("size"), tuple(candidate.get("urls") or []))
+            if key in seen:
+                continue
+            seen.add(key)
+            ordered.append(candidate)
+        ordered.sort(key=lambda item: (item["width"] * item["height"],
+                                       item["bit_rate"], item["size"]), reverse=True)
+        for candidate in ordered[:3]:
+            try:
+                media = self.probe(candidate)
+            except ParseError as exc:
+                if exc.code in ("upstream_forbidden", "upstream_rate_limited", "network_tls_error"):
+                    raise
+                continue
+            comment = str((media.get("tags") or {}).get("comment") or "")
+            match = re.search(r"vid:([A-Za-z0-9_-]{8,128})", comment)
+            if not match or match.group(1) == video_id:
+                continue
+            selected = dict(candidate)
+            selected.update({
+                "level": "源候选（最高普通档；容器内嵌独立源 VID）",
+                "source_evidence": SOURCE_CANDIDATE_EVIDENCE,
+                "source_vid": match.group(1),
+                "source_vid_matches_detail": False,
+                "source_candidate": True,
+                "_probe": media,
+            })
+            return selected
+        return None
 
     def _source_candidates(self, payload: dict, video_id: str, *,
                            allow_missing_urls: bool = False) -> tuple[dict, list[dict]]:
@@ -1125,6 +1496,109 @@ class OriginalParser:
         candidates.sort(key=self._candidate_rank, reverse=True)
         return data, candidates
 
+    def _probe_track(self, url: str, expected_size: int, kind: str):
+        with self._get(url, headers={"Range": "bytes=0-15"}) as response:
+            if response.status_code == 444:
+                raise ParseError("upstream_forbidden", "媒体接口拒绝了请求")
+            if response.status_code == 429:
+                raise ParseError("upstream_rate_limited", "媒体接口返回 HTTP 429，请稍后重试")
+            match = re.fullmatch(r"bytes 0-15/(\d+)", response.headers.get("Content-Range", ""))
+            if response.status_code != 206 or not match:
+                raise ParseError("probe_failed", "CDN 不支持有效的范围读取")
+            size = int(match.group(1))
+            try:
+                first = response.raw.read(16, decode_content=True)
+            except _REQUEST_ERRORS as exc:
+                raise _request_parse_error(exc, stage="媒体响应读取") from exc
+            final_url = response.url
+            if first[4:8] != b"ftyp":
+                raise ParseError("probe_failed", "下载响应不是 MP4 文件")
+        if expected_size and size != expected_size:
+            raise ParseError("size_mismatch", "CDN 实际大小与视频元数据不一致")
+
+        def read_at(offset, count, media_url=final_url, media_size=size):
+            with self._get(media_url, headers={"Range": f"bytes={offset}-{offset + count - 1}"}) as r:
+                if r.status_code == 444:
+                    raise ParseError("upstream_forbidden", "媒体接口拒绝了范围读取")
+                if r.status_code == 429:
+                    raise ParseError("upstream_rate_limited", "媒体接口返回 HTTP 429，请稍后重试")
+                expected = f"bytes {offset}-{offset + count - 1}/{media_size}"
+                if r.status_code != 206 or r.headers.get("Content-Range") != expected:
+                    raise ParseError("probe_failed", "CDN 范围读取响应不一致")
+                try:
+                    return r.raw.read(count, decode_content=True)
+                except _REQUEST_ERRORS as exc:
+                    raise _request_parse_error(exc, stage="媒体响应读取") from exc
+
+        try:
+            media = inspect_mp4(read_at, size)
+        except ValueError as exc:
+            raise ParseError("probe_failed", f"DASH 分轨 MP4 元数据无效：{exc}") from exc
+        if (media.get("duration_seconds") or 0) <= 0:
+            raise ParseError("probe_failed", "无法从 DASH 分轨确认有效时长")
+        if kind == "video" and not media.get("has_video"):
+            raise ParseError("probe_failed", "媒体文件不包含视频轨")
+        if kind == "audio" and not media.get("has_audio"):
+            raise ParseError("probe_failed", "媒体文件不包含音频轨")
+        return media, size, final_url
+
+    def probe_dash(self, candidate: dict) -> dict:
+        """校验 PC Web 隐藏档位的视频轨和独立音频轨，必要时合并。"""
+        video = audio = None
+        video_url = candidate.get("url")
+        last = None
+        for url in candidate.get("urls") or []:
+            try:
+                video = self._probe_track(url, int(candidate.get("size") or 0), "video")
+                video_url = video[2]
+                break
+            except ParseError as exc:
+                if exc.code in ("upstream_forbidden", "upstream_rate_limited", "network_tls_error"):
+                    raise
+                last = exc
+        if video is None:
+            raise ParseError("probe_failed", f"所有PC视频轨校验失败：{last}")
+        audio_url = candidate.get("audio_url")
+        for url in candidate.get("audio_urls") or []:
+            try:
+                audio = self._probe_track(url, int(candidate.get("audio_size") or 0), "audio")
+                audio_url = audio[2]
+                break
+            except ParseError as exc:
+                if exc.code in ("upstream_forbidden", "upstream_rate_limited", "network_tls_error"):
+                    raise
+                last = exc
+        if audio is None:
+            raise ParseError("probe_failed", f"所有PC音频轨校验失败：{last}")
+        video_media, video_size, video_final = video
+        audio_media, audio_size, audio_final = audio
+        video_track = next((track for track in video_media["tracks"] if track.get("type") == "vide"), {})
+        if min(video_track.get("width", 0), video_track.get("height", 0)) <= 0:
+            raise ParseError("probe_failed", "PC 视频轨缺少分辨率")
+        if candidate.get("width") and candidate.get("height"):
+            if (video_track.get("width"), video_track.get("height")) != (candidate["width"], candidate["height"]):
+                raise ParseError("identity_mismatch", "PC 视频轨分辨率与元数据不一致")
+        duration = video_media["duration_seconds"]
+        audio_duration = audio_media["duration_seconds"]
+        if abs(duration - audio_duration) > 1:
+            raise ParseError("identity_mismatch", "PC 音视频轨时长不一致")
+        declared_duration = candidate.get("duration_seconds") or 0
+        if declared_duration > 0 and math.isfinite(declared_duration):
+            if any(abs(value - declared_duration) > 1 for value in (duration, audio_duration)):
+                raise ParseError("identity_mismatch", "PC 分轨时长与作品元数据不一致")
+        candidate["url"] = video_final
+        candidate["audio_url"] = audio_final
+        candidate["audio_urls"] = [audio_final]
+        candidate["urls"] = [video_final]
+        return {
+            "ok": True, "actual_size": video_size + audio_size,
+            "has_video": True, "has_audio": True, "dash": True,
+            "video_size": video_size, "audio_size": audio_size,
+            "duration_seconds": duration,
+            "tracks": video_media["tracks"] + audio_media["tracks"],
+            "tags": video_media.get("tags") or {},
+        }
+
     def probe(self, candidate: dict) -> dict:
         last = None
         for url in candidate["urls"]:
@@ -1163,21 +1637,18 @@ class OriginalParser:
                             raise _request_parse_error(exc, stage="媒体响应读取") from exc
 
                 media = inspect_mp4(read_at, size)
-                if not media["has_video"] or not media["has_audio"]:
-                    raise ParseError("incomplete_media", "视频候选不是同时包含音视频轨道的完整 MP4")
+                video_track = _verified_video_track(media)
                 expected_duration = float(candidate.get("duration_seconds") or 0)
-                if not media["duration_seconds"] or (expected_duration and
-                        abs(media["duration_seconds"] - expected_duration) > 1):
+                if expected_duration and abs(media["duration_seconds"] - expected_duration) > 1:
                     raise ParseError("identity_mismatch", "实际 MP4 时长与视频元数据不一致")
-                video_track = next(t for t in media["tracks"] if t.get("type") == "vide")
                 declared = (candidate.get("width"), candidate.get("height"))
                 if declared[0] and declared[1]:
                     if (video_track.get("width"), video_track.get("height")) != declared:
                         raise ParseError("identity_mismatch", "实际 MP4 分辨率与视频元数据不一致")
                 else:
                     # 未声明的分辨率从真实容器回填；分辨率本身不是原画身份证据。
-                    candidate["width"] = int(video_track.get("width") or 0)
-                    candidate["height"] = int(video_track.get("height") or 0)
+                    candidate["width"] = video_track["width"]
+                    candidate["height"] = video_track["height"]
                 candidate["url"] = final_url
                 return {"ok": True, "actual_size": size, **media}
             except (ParseError, ValueError, requests.RequestException, OSError) as exc:
@@ -1193,8 +1664,11 @@ class OriginalParser:
         raise ParseError("probe_failed", f"所有视频地址校验失败：{last}")
 
     def parse(self, text: str, *, with_probe: bool = True) -> dict:
+        self._web_catalog_observations.clear()
+        self.web_attempt_work_id = None
         started = time.monotonic()
         aweme_id = self.resolve_id(text)
+        self.web_attempt_work_id = aweme_id
         detail = self.detail(aweme_id)
         selected = None
         probe = None
@@ -1204,19 +1678,34 @@ class OriginalParser:
         try:
             for _, candidates in groups:
                 for candidate in candidates:
-                    if with_probe:
-                        fresh_urls = [url for url in candidate["urls"] if url not in attempted_urls]
-                        if not fresh_urls:
-                            continue
-                        candidate["urls"] = fresh_urls
-                        attempted_urls.update(fresh_urls)
-                        try:
-                            probe = self.probe(candidate)
-                        except ParseError as exc:
-                            if exc.code != "probe_failed":
-                                raise
-                            errors.append(str(exc))
-                            continue
+                    precomputed = candidate.pop("_probe", None)
+                    if precomputed is not None:
+                        probe = precomputed
+                        attempted_urls.update(candidate.get("urls") or [])
+                    elif with_probe:
+                        if candidate.get("dash_mux_required"):
+                            try:
+                                probe = self.probe_dash(candidate)
+                            except ParseError as exc:
+                                if exc.code != "probe_failed":
+                                    raise
+                                errors.append(str(exc))
+                                continue
+                            attempted_urls.update(candidate.get("urls") or [])
+                            attempted_urls.update(candidate.get("audio_urls") or [])
+                        else:
+                            fresh_urls = [url for url in candidate["urls"] if url not in attempted_urls]
+                            if not fresh_urls:
+                                continue
+                            candidate["urls"] = fresh_urls
+                            attempted_urls.update(fresh_urls)
+                            try:
+                                probe = self.probe(candidate)
+                            except ParseError as exc:
+                                if exc.code != "probe_failed":
+                                    raise
+                                errors.append(str(exc))
+                                continue
                     selected = candidate
                     break
                 if selected is not None:
@@ -1246,20 +1735,40 @@ class OriginalParser:
             })
         ordered = [selected] + [c for c in candidates if c is not selected]
         evidence = selected.get("source_evidence") or ""
-        message = ("原画解析成功" if evidence in ("official_quality", "official_play_hash",
-                                                 "official_play_default") else
-                   f"按原片桶识别为原画：{selected['level']}")
+        original_selected = evidence in ("official_quality", "official_play_hash")
+        if original_selected:
+            message = "原画解析成功"
+        elif evidence == PLAY_DEFAULT_EVIDENCE:
+            message = "返回官方默认播放档（原画身份未经确认）"
+        elif evidence == PC_BITRATE_EVIDENCE:
+            message = "返回 PC Web 独有播放档（原画身份未经确认）"
+        elif evidence == SOURCE_CANDIDATE_EVIDENCE:
+            message = "返回源候选（非平台原画）"
+        else:
+            message = "返回播放档（原画身份未经确认）"
+        dash = bool(selected.get("dash_mux_required"))
+        size_bytes = (probe.get("actual_size") if probe and probe.get("dash") else
+                      (selected["size"] + int(selected.get("audio_size") or 0)
+                       if dash else selected["size"]))
         return {"code": 0, "msg": message, "data": {
             "aweme_id": aweme_id, "desc": detail.get("desc", ""),
             "author": (detail.get("author") or {}).get("nickname", ""),
             "share_url": f"https://www.douyin.com/video/{aweme_id}",
             "provider": "douyin-official-source", "url": selected["url"],
-            "size_bytes": selected["size"], "width": selected["width"], "height": selected["height"],
+            "audio_url": selected.get("audio_url") if dash else None,
+            "audio_urls": selected.get("audio_urls") if dash else None,
+            "audio_size_bytes": selected.get("audio_size") if dash else None,
+            "dash_mux_required": dash,
+            "size_bytes": size_bytes, "width": selected["width"], "height": selected["height"],
             "duration_seconds": probe["duration_seconds"] if probe else selected["duration_seconds"],
             "expires_at": selected["expires_at"],
-            "source_selected": True, "fallback_used": False, "fallback_reason": None,
+            "source_selected": original_selected, "fallback_used": not original_selected,
+            "fallback_reason": None if original_selected else "source_unverified",
             "quality": selected["quality"], "official_quality": selected["official_quality"],
             "source_evidence": selected.get("source_evidence"),
+            "source_candidate": evidence == SOURCE_CANDIDATE_EVIDENCE,
+            "source_vid": selected.get("source_vid"),
+            "source_vid_matches_detail": selected.get("source_vid_matches_detail"),
             "level": selected["level"], "reference_match": None,
             "video_list": ordered, "probe": probe,
             "cost_ms": round((time.monotonic() - started) * 1000),
@@ -1278,6 +1787,8 @@ class OriginalParser:
             result.update(fresh)
             refreshed = True
         try:
+            if result["data"].get("dash_mux_required"):
+                return self._download_dash(result, destination, reference=reference, max_bytes=max_bytes)
             return self._download_once(result, destination, reference=reference, max_bytes=max_bytes)
         except ParseError as exc:
             if refreshed or exc.code != "download_failed":
@@ -1285,7 +1796,132 @@ class OriginalParser:
             fresh = self.parse(result["data"]["aweme_id"])
             result.clear()
             result.update(fresh)
+            if result["data"].get("dash_mux_required"):
+                return self._download_dash(result, destination, reference=reference, max_bytes=max_bytes)
             return self._download_once(result, destination, reference=reference, max_bytes=max_bytes)
+
+    def _download_dash_part(self, urls, expected_size: int, expected_hash: str | None,
+                            max_bytes: int, suffix: str) -> tuple[Path, int, str, bool]:
+        destination = self._dash_temp_dir  # type: ignore[attr-defined]
+        errors = []
+        for url in urls:
+            temporary = None
+            try:
+                md5, total = hashlib.md5(), 0
+                with self._get(url) as response:
+                    if response.status_code not in (200, 206):
+                        raise ParseError("download_failed", f"CDN 返回 HTTP {response.status_code}")
+                    with tempfile.NamedTemporaryFile(dir=destination, prefix="dash.",
+                                                     suffix=suffix, delete=False) as stream:
+                        temporary = Path(stream.name)
+                        try:
+                            for chunk in response.iter_content(256 * 1024):
+                                total += len(chunk)
+                                if total > max_bytes or (expected_size and total > expected_size):
+                                    raise ParseError("size_mismatch", "下载超过声明大小或设置上限")
+                                stream.write(chunk)
+                                md5.update(chunk)
+                        except _REQUEST_ERRORS as exc:
+                            raise _request_parse_error(exc, stage="DASH 轨道下载读取") from exc
+                if expected_size and total != expected_size:
+                    raise ParseError("size_mismatch", "DASH 轨道大小与元数据不一致")
+                # DASH 分轨的 file_hash 可能对应源对象而不是分段容器；
+                # 是否一致只记录，不阻断，最终以大小、轨道和合并后媒体校验为准。
+                hash_match = expected_hash is None or md5.hexdigest() == expected_hash.lower()
+                return temporary, total, md5.hexdigest(), hash_match
+            except (_REQUEST_ERRORS + (ParseError,)) as exc:
+                if _is_tls_error(exc):
+                    raise _request_parse_error(exc, stage="DASH 轨道下载") from exc
+                if isinstance(exc, ParseError) and exc.code == "network_tls_error":
+                    raise
+                if temporary:
+                    temporary.unlink(missing_ok=True)
+                errors.append(str(exc))
+        raise ParseError("download_failed", "所有 DASH 轨道地址失败：" + "; ".join(errors))
+
+    def _download_dash(self, result: dict, destination: Path, *, reference: Path | None = None,
+                       max_bytes: int = 2 * 1024**3) -> dict:
+        if destination.exists():
+            raise ParseError("file_exists", "目标文件已存在，请使用另一个输出文件名")
+        data = result["data"]
+        candidate = data["video_list"][0]
+        audio_urls = list(dict.fromkeys(data.get("audio_urls") or candidate.get("audio_urls") or []))
+        if not audio_urls:
+            raise ParseError("download_failed", "DASH 候选缺少音频地址")
+        import shutil
+        ffmpeg = shutil.which("ffmpeg")
+        if not ffmpeg:
+            raise ParseError("ffmpeg_missing", "DASH 音视频合并需要 ffmpeg，请先安装并加入 PATH")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        self._dash_temp_dir = destination.parent
+        video_tmp = audio_tmp = merged_tmp = None
+        try:
+            video_urls = list(dict.fromkeys([data["url"], *candidate.get("urls", [])]))
+            video_tmp, video_size, video_md5, video_hash_match = self._download_dash_part(
+                video_urls, int(candidate.get("size") or 0), candidate.get("file_hash"),
+                max_bytes, ".video.mp4")
+            audio_tmp, audio_size, audio_md5, audio_hash_match = self._download_dash_part(
+                audio_urls, int(candidate.get("audio_size") or 0), candidate.get("audio_hash"),
+                max_bytes, ".audio.m4a")
+            with tempfile.NamedTemporaryFile(dir=destination.parent, prefix=destination.name + ".",
+                                             suffix=".merged.part", delete=False) as stream:
+                merged_tmp = Path(stream.name)
+            process = subprocess.run(
+                [ffmpeg, "-y", "-v", "error", "-i", str(video_tmp), "-i", str(audio_tmp),
+                 "-map", "0:v:0", "-map", "1:a:0", "-c", "copy", "-movflags", "+faststart",
+                 "-f", "mp4", str(merged_tmp)],
+                capture_output=True, text=True)
+            if process.returncode != 0 or not merged_tmp.exists():
+                raise ParseError("download_failed", "ffmpeg 合并失败：" + process.stderr.strip()[:200])
+            merged_size = merged_tmp.stat().st_size
+            if merged_size > max_bytes:
+                raise ParseError("size_mismatch", "合并文件超过设置上限")
+            media = inspect_file(merged_tmp)
+            video_track = _verified_video_track(media)
+            expected_duration = float(candidate.get("duration_seconds") or 0)
+            if expected_duration and abs(media["duration_seconds"] - expected_duration) > 1:
+                raise ParseError("identity_mismatch", "合并文件时长与视频元数据不一致")
+            if candidate.get("width") and candidate.get("height"):
+                if (video_track.get("width"), video_track.get("height")) != (candidate["width"], candidate["height"]):
+                    raise ParseError("identity_mismatch", "合并文件分辨率与视频元数据不一致")
+            sha, merged_md5 = hashlib.sha256(), hashlib.md5()
+            with merged_tmp.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    sha.update(chunk)
+                    merged_md5.update(chunk)
+            sha_hex, md5_hex = sha.hexdigest(), merged_md5.hexdigest()
+            reference_match, reference_sha = None, None
+            if reference:
+                with reference.open("rb") as stream:
+                    h = hashlib.sha256()
+                    for block in iter(lambda: stream.read(1024 * 1024), b""):
+                        h.update(block)
+                reference_sha = h.hexdigest()
+                reference_match = merged_size == reference.stat().st_size and sha_hex == reference_sha
+            with destination.open("xb") as stream, merged_tmp.open("rb") as source:
+                try:
+                    shutil.copyfileobj(source, stream, 1024 * 1024)
+                except BaseException:
+                    stream.close()
+                    destination.unlink(missing_ok=True)
+                    raise
+            record = {"path": str(destination.resolve()), "bytes": merged_size,
+                      "md5": md5_hex,
+                      "sha256": sha_hex, "official_hash_match": None,
+                      "reference_match": reference_match, "reference_sha256": reference_sha,
+                      "media": media, "dash_mux": True,
+                      "video_md5": video_md5, "audio_md5": audio_md5,
+                      "video_hash_match": video_hash_match,
+                      "audio_hash_match": audio_hash_match,
+                      "video_bytes": video_size, "audio_bytes": audio_size}
+            data["reference_match"] = reference_match
+            data["download"] = record
+            return record
+        finally:
+            for path in (video_tmp, audio_tmp, merged_tmp):
+                if path:
+                    path.unlink(missing_ok=True)
+            self._dash_temp_dir = None  # type: ignore[attr-defined]
 
     def _download_once(self, result: dict, destination: Path, *, reference: Path | None = None,
                        max_bytes: int = 2 * 1024**3) -> dict:
@@ -1326,13 +1962,10 @@ class OriginalParser:
                 if official_md5 and md5.hexdigest() != official_md5.lower():
                     raise ParseError("hash_mismatch", "下载文件 MD5 与官方视频哈希不一致")
                 media = inspect_file(temporary)
-                if not media["has_audio"] or not media["has_video"]:
-                    raise ParseError("incomplete_media", "完整文件缺少音频或视频轨道")
+                video_track = _verified_video_track(media)
                 expected_duration = float(candidate.get("duration_seconds") or 0)
-                if expected_duration and (not media.get("duration_seconds") or
-                        abs(media["duration_seconds"] - expected_duration) > 1):
+                if expected_duration and abs(media["duration_seconds"] - expected_duration) > 1:
                     raise ParseError("identity_mismatch", "完整文件时长与视频元数据不一致")
-                video_track = next((track for track in media.get("tracks", []) if track.get("type") == "vide"), {})
                 if candidate.get("width") and candidate.get("height"):
                     if (video_track.get("width"), video_track.get("height")) != (candidate["width"], candidate["height"]):
                         raise ParseError("identity_mismatch", "完整文件分辨率与视频元数据不一致")

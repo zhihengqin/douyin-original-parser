@@ -42,13 +42,13 @@ def phase(available=False, availability="valid_directory_without_original", sess
 
 
 class SessionDiagnosticTests(unittest.TestCase):
-    def test_real_selector_flow_reports_two_normal_directories_without_secrets_or_catalog(self):
+    def test_real_selector_flow_reports_normal_directories_without_secrets_or_catalog(self):
         with patch.object(DiagnosticParser, "_json", return_value=normal_payload()), \
                 patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
             result = analyze_detail(WORK, detail(), {"sessionid": SECRET}, "test")
         self.assertFalse(result["original_verified"])
         self.assertEqual(result["availability"], "valid_directory_without_original")
-        self.assertEqual(len(result["directories"]), 2)
+        self.assertEqual([r["selector"] for r in result["directories"]], ["original", "source", "issued"])
         text = json.dumps(result)
         self.assertNotIn(SECRET, text)
         self.assertNotIn("https://", text)
@@ -74,7 +74,7 @@ class SessionDiagnosticTests(unittest.TestCase):
                 patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
             result = analyze_detail(WORK, detail(), {}, "test")
         self.assertEqual(result["error_code"], "source_unavailable")
-        self.assertEqual([row["selector"] for row in result["directories"]], ["original", "source"])
+        self.assertEqual([row["selector"] for row in result["directories"]], ["original", "source", "issued"])
         self.assertEqual(result["availability"], "inconclusive")
         self.assertNotIn(SECRET, json.dumps(result))
 
@@ -87,7 +87,7 @@ class SessionDiagnosticTests(unittest.TestCase):
         with patch.object(DiagnosticParser, "_json", return_value=response), \
                 patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")):
             result = analyze_detail(WORK, work, {}, "test")
-        self.assertEqual([row["selector"] for row in result["directories"]], ["inline", "original", "source"])
+        self.assertEqual([row["selector"] for row in result["directories"]], ["inline", "original", "source", "issued"])
         self.assertEqual(result["directories"][0]["rows"][0]["quality"], "normal")
         self.assertEqual(result["availability"], "valid_directory_without_original")
 

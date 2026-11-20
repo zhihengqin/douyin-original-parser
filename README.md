@@ -1,14 +1,22 @@
 # 抖音原画独立解析程序
 
-输入抖音链接，直接访问平台官方接口，优先返回经过完整媒体校验的官方 `source/original` 原画；各个取址入口都没有可用候选时返回 `source_unavailable`（获取原画失败）。支持完整 MP4 校验、下载、与本地样本做 SHA-256 对照，以及本地 HTTP API。
+输入抖音链接，优先返回经过媒体校验的官方 `source/original` 档位。兼容播放档单独标明来源，无可用候选时返回 `source_unavailable`（获取原画失败）。支持 MP4 校验、下载、与本地样本做 SHA-256 对照，以及本地 HTTP API。
+
+**2026-11-18 原片复现与地址刷新修复：**作品 `7702453019425672467` 在禁用历史记录读取后，现有官方 `original` 路线仍可取得 96,704,180 字节原片；完整下载与用户自建参考文件逐字节一致。另修复部分分发路径将 `dy_q` 误作到期时间、提前消耗下载刷新机会的问题，115 项相关测试通过。新样本成功不代表此前困难作品均已恢复，详情见[本轮验证与修复](docs/new-sample-signature-repair-2026-11-18.md)。
 
 **2026-11-17 研究状态：**已补齐多接口模型审计、复现 Java 小帅协议，并核对实际文件及 HDR 色彩信息；部分目标的原画首次发现仍未解决。最新范围与限制见[接口覆盖复核](docs/original-investigation-2026-11-17-coverage-audit.md)和[小帅接口实测](docs/original-investigation-2026-11-17-snapany-java.md)。历史实验工具及资料的使用边界见 [tools/README.md](tools/README.md)。
 
 **2026-11-16 新一轮算法与媒体修复：**现已利用详情内嵌 `video_meta` 原画、逐路媒体校验与当前官方身份重新分发，补齐 `zjcdn.com`，并修复 QuickTime 的轨道处理器覆盖问题。作品 `7698054262056552561` 已完整下载 **40,087,514 字节 / 1080×1920 / HEVC+AAC**，MD5 与本轮官方原画回包匹配。两条重点 HDR 作品共检查204条主备地址、17个不同媒体对象，仍未恢复原片；同轮检查的 `7706218040236444937` 也仍失败。代码变化、完整下载证据、公开来源和可复现全档审计见[本轮修复与验收](docs/original-investigation-2026-11-16-astar.md)。随后新增的 `7708319942491344154` 也未取得原片，Web、精选 H5、App 专用详情与容器 VID 检查见[第三轮当前链接验收](docs/original-investigation-2026-11-16-astar-round3.md)。
 
-下载优先比较官方元数据或 CDN `Content-MD5`；平台未提供哈希时，校验实际大小、完整音视频、时长和分辨率，并计算本地 MD5/SHA-256，`download.official_hash_match` 为 `null`。存在官方哈希时必须匹配，文件完成校验后才保存到目标路径。
+单文件 MP4 下载时，解析器核对官方元数据或 CDN `Content-MD5` 提供的整文件摘要。没有摘要时，解析器核对大小、音视频轨道、时长和分辨率，并计算本地 MD5 和 SHA-256。DASH 分轨使用下文的校验方式。
 
-**当前选档策略：**优先使用官方 `quality=original/source` 档位，以及由官方原片分发接口重新签发并通过媒体校验的原片。保留已有的 `ratio=default` 兼容通道（`source_evidence=official_play_default`），并排除详情与 fplay 的全部已知转码大小；这一兼容通道不等同于取得官方 `original/source` 档位声明，仅凭大小不同不能保证所有未知文件均是上传原件。普通 `normal/adapt`、DASH 分轨以及仅凭 `tos-cn-v-*` 桶名识别的地址不作为原画候选。
+**当前选档策略：**优先使用官方 `quality=original/source` 档位，以及由官方原片分发接口重新签发并通过媒体校验的原片。保留已有的 `ratio=default` 兼容通道（`source_evidence=official_play_default`），并排除详情与 fplay 的全部已知转码大小；这一兼容通道不等同于取得官方 `original/source` 档位声明，仅凭大小不同不能保证所有未知文件均是上传原件。普通 `normal/adapt` 档不会因使用 DASH 或某个 CDN 桶而被选中。原画候选不按 CDN 桶名或备用目录 `aid` 过滤：桶名只用于诊断，备用目录的 `aid`、主机、路径和查询按平台下发原样保留。
+
+**PC Web 独有档位（2026-11-20 实测）**　两条样本的桌面播放器详情都给出了手机详情中未出现的视频轨和独立音频轨。解析器用大小和哈希排除手机详情的已知档位，分别校验两条轨道。结果标为 `source_evidence=official_web_pc_bitrate`，没有平台原画声明时 `official_quality` 为空。两条样本均已验证可合并播放。作品 `7701401474567343403` 的合并文件为 14,213,396 字节，同作品已登记并经官方分发验证的外部参考文件为 91,804,327 字节，两者的视频流 SHA-256 也不同。尚无作者上传文件可供核对。
+
+DASH 下载需要 PATH 中的 `ffmpeg`。CLI `--download` 复制两条轨道到一个 MP4，然后核对成品的轨道、时长和分辨率。`data.size_bytes` 是输入轨道的大小之和，`data.download.bytes` 是输出 MP4 的实际大小，封装开销会使两者不同。轨道的 `file_hash` 可能标识源对象，下载结果分别记录 `video_md5`、`audio_md5` 及与上游值的比较结果。合并文件有独立的 SHA-256 和 MD5，`download.official_hash_match` 为 `null`。
+
+**源候选（`source_candidate`，默认关闭）：**官方原画全部失败时，可显式开启 `--allow-source-candidate`（或环境变量 `DOUYIN_ALLOW_SOURCE_CANDIDATE=1`；HTTP 请求字段 `allow_source_candidate: true`）返回最高普通档作为源候选。仅当该档是完整 MP4、时长/分辨率通过媒体校验，且容器 `udta/meta/ilst` 的 `comment` 中携带的 `vid:` 与详情播放 VID 不同才返回；结果标记 `source_evidence=platform_source_candidate`、`source_candidate=true`，不是平台 `original`，也不会写入 `original_metadata.json`。容器内嵌 VID 只是源文件谱系证据，不能由它直接取原画：直接用它请求 `/aweme/v1/play/`、fplay 或 app 主机均为 404 或 `error check params`。HTTP 回包对源候选额外返回 `source_candidate`、`source_evidence`、`official_quality`、`source_vid`；单文件原画成功回包只含 `url`，调用方必须依据 `source_candidate` 区分。
 
 **2026-11-16 当前链接验收：**仅输入作品 `7707993970332290314` 的链接，并禁用全部历史原片记录与参考资产后，两个官方取址分支均只返回 9 个转码档，首次原片发现仍未修复。该作品依靠已有参考资产 MD5 的官方重签成功，不属于仅链接解析成功；`DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY=1` 也不具备从链接发现未知哈希的能力。实际对照与补查边界见[仅输入链接的验收记录](docs/original-investigation-2026-11-16-link-only.md)。
 
@@ -60,7 +68,25 @@ sudo bash deploy/linux/install.sh
 
 也可以编辑 **parse_links.py** 顶部的 `LINKS`，再执行 `.venv/bin/python parse_links.py`。结果保存在本项目的 `output` 目录。把 `DOWNLOAD` 改为 `True` 即同时下载。任意链接解析失败时脚本退出码为 `2`，不会再显示“退出代码为 0”。
 
-`parse_links.py` 同样支持 `--allow-external`（放行本地已核对过的外部来源原片身份，仍走官方分发重签与媒体校验）；PyCharm 里不想带参数时，把该文件顶部的 `ALLOW_EXTERNAL` 设成 `True` 即可，`None` 表示跟随环境变量 `DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY`。除 `--allow-external` 之外的参数会被拒绝并返回退出码 `2`。
+也可以直接传一个或多个作品 ID 或链接，例如 `python parse_links.py 7707954213745085746`。已有路径没有取得可用原画时，如果网页还给出了未请求过的备用目录，解析器会按原地址读取一次，记为 `issued`，仍核验视频身份、原画标签和媒体。若有效 Web 目录均只有普通档，脚本会记下作品号、时间和档位摘要。稍后运行 `python parse_links.py --retry-pending`，会逐条复查待查作品一次；成功后从列表移出。复查由你手动启动，不在后台轮询，也不保证平台届时提供原画。历史保存在 `output/web_attempts.sqlite3`，与最后一次成功结果 JSON 分开。临时媒体地址和凭据不写入此历史。
+
+`parse_links.py` 同样支持 `--allow-external`（放行本地已核对过的外部来源原片身份，仍走官方分发重签与媒体校验）；PyCharm 里不想带参数时，把该文件顶部的 `ALLOW_EXTERNAL` 设成 `True` 即可，`None` 表示跟随环境变量 `DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY`。待查复核强制关闭外部来源恢复；`--retry-pending` 不能与链接或 `--allow-external` 混用。
+
+### 用一个作品链接取回已归档的授权母版
+
+如果要求每个自有或授权作品都能凭链接取回上传原文件，发布时应保存原 MP4，并在拿到作品 ID 后将它与该文件关联。以下命令仅访问本地归档，不需要 Cookie、平台签名、媒体直链或用户提供的 MD5。
+
+```bash
+# 发布者在取得作品页链接后登记一次。
+python -m original_parser.masters --archive /srv/authorized-masters add "https://www.douyin.com/video/<作品ID>" upload.mp4
+
+# 之后只需提供作品页链接；输出目录可以由调用方预设。
+python -m original_parser.masters --archive /srv/authorized-masters fetch "https://www.douyin.com/video/<作品ID>" --output output/master.mp4
+```
+
+登记时检查 MP4 时长和音视频轨道并计算整文件 SHA-256。取回时再次验证字节数和 SHA-256，再写出原始字节。该入口不覆盖已有文件，不把归档文件当成平台原画目录发现。未归档的作品返回 `source_unavailable`。目前接受能直接识别作品 ID 的链接；不含作品 ID 的分享短链须先在浏览器打开。归档目录应由内容方管理，关联由提供母版的运营方确认。
+
+对未归档的第三方作品，单链接首次取回取决于平台是否通过允许下载的入口提供原画文件。开放平台的[视频数据查询](https://open.douyin.com/platform/resource/docs/openapi/video-management/douyin/search-video/video-data/)公开响应没有上传原文件地址；`original/source` 是平台的档位声明，与发布者上传文件逐字节一致还需要原文件或可信摘要核对。两条样本的浏览器检查见[单链接验收记录](docs/one-link-original-2026-11-20.md)。
 
 ### 登记一条已有的原片直链（`--register-original`）
 
@@ -89,7 +115,7 @@ sudo bash deploy/linux/install.sh
 
 ## Linux 生产部署：三个 Java 实例共用服务
 
-当前主解析节点为已验证可用的 `172.31.0.4`，目录仍为 `/opt/software/python`，三个 Java 实例主调用地址为 `http://172.31.0.4:8765`。HTTP 服务新增统一串行队列、任务间隔、同作品请求合并、有效期缓存和连续失败暂停。已有服务升级及适用范围见 [请求保护说明](deploy/REQUEST_PROTECTION.md)，首次部署见 [Linux 部署说明](deploy/README.md)。备用解析节点若被启用，各进程的保护状态独立。
+当前主解析节点为已验证可用的 `172.31.0.4`，目录仍为 `/opt/software/python`，三个 Java 实例主调用地址为 `http://172.31.0.4:8765`。HTTP服务共用队列，默认由3个实际工作线程并行解析，保留每线程任务间隔、同作品请求合并、有效期缓存和连续失败暂停。已有服务升级及适用范围见 [请求保护说明](deploy/REQUEST_PROTECTION.md)，首次部署见 [Linux 部署说明](deploy/README.md)。备用解析节点若被启用，各进程的保护状态独立。
 
 ## HTTP 接口
 
@@ -102,7 +128,7 @@ cd /opt/software/python
 
 默认监听 `127.0.0.1`，提供 `GET /health`、`POST /parse` 和 `POST /api/v1/resolve`。
 
-默认最多同时受理 6 个 HTTP 请求，实际访问上游始终串行，每个完整任务结束后默认随机间隔 3～6 秒，可由 `REQUEST_INTERVAL` 调整。同作品完整链接/ID 自动合并，只有经过媒体校验的官方原画结果最多缓存 5 分钟，并提前 60 秒避开地址到期；`source_unavailable` 不缓存。累计 3 次限制类错误后冷却 15 分钟，真实解析成功清零。冷却返回 HTTP 503 和 `Retry-After`，满队列或等待超时返回 HTTP 429。参数及短链、进程内状态等边界见 [请求保护说明](deploy/REQUEST_PROTECTION.md)。这些措施降低重复访问，不保证不会被平台限制。
+默认最多同时受理6个HTTP请求，包含等待者；由3个工作线程实际并行解析，可用`--parse-workers`或`PARSE_WORKERS`调整（1～32）。每个线程完成完整任务后默认随机等待0.5～1秒，可由`REQUEST_INTERVAL`调整。浏览器模式也允许相同数量的独立浏览器任务。同作品完整链接/ID自动合并，只有经过媒体校验的官方原画结果最多缓存5分钟，并提前60秒避开地址到期；`source_unavailable`不缓存。累计3次限制类错误后全进程冷却15分钟，冷却结束只允许一个试探任务，旧批次迟到成功不会提前结束冷却。冷却返回HTTP 503和`Retry-After`，满队列或等待超时返回HTTP 429。健康检查的`protection.workers`和`protection.active`分别表示实际线程数和正在解析的任务数。参数及短链、进程内状态等边界见 [请求保护说明](deploy/REQUEST_PROTECTION.md)。
 
 下载或转存发现旧直链失效时，调用方可在解析请求中传入 `"force_refresh": true`。服务会清除当前作品及凭据范围内的旧成功缓存，重新执行取址和媒体校验；相同作品的在途请求仍合并，排队、任务间隔和冷却规则继续生效。刷新失败不会回落到原来的缓存地址。该参数必须是 JSON 布尔值，默认 `false`。播放地址是有时效的临时链接，业务方应在消费失败后重新解析原作品链接，不能长期复用保存的 CDN 地址。
 
@@ -112,7 +138,7 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://127.0.0.
   -d '{"url":"https://www.douyin.com/video/7685326449011608873","with_probe":true}'
 ```
 
-核心响应结构（成功时只返回播放地址）：
+单文件 MP4 的 HTTP 成功回包如下。
 
 ```json
 {
@@ -124,7 +150,7 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://127.0.0.
 }
 ```
 
-HTTP 成功回包只保留最高画质链接，不再返回 `video_list`、备用地址、官方文件 MD5 和媒体探测结果；这些内容仍保留在 CLI 输出和 `--json` 结果文件中。依赖 `source_selected`、`official_quality`、`probe` 等字段的调用方需要同步调整。NiKa 旧 Java 客户端会将这种成功响应误报为“请求异常 / ServiceException”，需同步发布兼容精简响应的 `nika-basic`，具体排查见[部署说明](deploy/README.md)。
+单文件原画的 HTTP 成功回包只保留播放链接，不再返回 `video_list`、备用地址、官方文件 MD5 和媒体探测结果；这些内容仍保留在 CLI 输出和 `--json` 结果文件中。依赖 `source_selected`、`official_quality`、`probe` 等字段的调用方需要同步调整。NiKa 旧 Java 客户端会将这种成功响应误报为“请求异常 / ServiceException”，需同步发布兼容精简响应的 `nika-basic`，具体排查见[部署说明](deploy/README.md)。
 
 例如作品 `7704212621922159898` 缺少原画时，返回 HTTP 502，响应如下：
 
@@ -136,19 +162,39 @@ HTTP 成功回包只保留最高画质链接，不再返回 `video_list`、备�
 }
 ```
 
-成功响应优先返回已验证的官方 `original/source` 档位地址。当前还保留前述 `ratio=default` 兼容通道；它通过媒体完整性校验并排除已知转码大小，但不具备同等强度的官方档位声明。CLI 完整结果用 `source_evidence` 区分两者；这个精简 HTTP 响应不包含该字段，因此不能仅凭 HTTP 成功就判断上游明确声明了 `original`。CDN 桶名、分辨率和码率不单独作为原画身份证据。
+CLI 完整结果中的 `source_evidence` 区分本次平台明确标注的 `original/source` 与按已知身份重新分发的文件。精简 HTTP 回包保留默认播放档的 `official_play_default` 和 PC Web 播放档的 `official_web_pc_bitrate`；收到这两个值时，调用方应将结果显示为播放档。
+
+请求可传 `"allow_source_candidate": true`（必须是 JSON 布尔值）显式开启源候选。源候选成功时回包会额外带标记：
+
+```json
+{
+  "code": 0,
+  "msg": "返回源候选（非平台原画）",
+  "data": {
+    "url": "https://平台CDN/临时播放地址",
+    "source_candidate": true,
+    "source_evidence": "platform_source_candidate",
+    "official_quality": "normal",
+    "source_vid": "容器内嵌源 VID"
+  }
+}
+```
+
+单文件原画成功回包只含 `url`。调用方必须检查 `source_candidate`，不能把源候选当作原画；服务端默认关闭源候选，只有请求显式开启或进程设置 `DOUYIN_ALLOW_SOURCE_CANDIDATE=1` 才可能返回。
+
+PC Web 独有档位返回 `dash_mux_required: true` 时，`url` 指向视频轨，`audio_url` 指向音频轨，`size_bytes` 为两轨合计大小。NiKa 等 HTTP 调用方须同时保存两条轨道并合并，单独保存 `url` 只会得到无声视频。CLI `--download` 可直接生成完整 MP4。
 
 NiKa 的独立 `selfhosted` 渠道，页面名称为“自建原画（抖音）”，与 Snapany、muzzz 并列。Java 后端访问配置的 Python `/parse`，支持排队限流、在线检查和媒体校验。本次策略升级需更新 Python 服务并发布 NiKa 后端；旧 NiKa 后端会拒绝转码结果。已启用自建渠道的页面无需改动。部署配置和启用步骤见 [部署说明](deploy/README.md)。HTTP 示例服务不自带公网鉴权，跨机器部署时使用后端可达的内网地址。
 
 ## 核心算法与已有项目的区别
 
 1. 提取作品 ID，支持视频链接、`modal_id`、分享文案和短链。
-2. 初始化或复用匿名访客凭据，计算 `x-secsdk-web-signature`，请求官方 Web 详情，使用 `aid=392139` 取得非空 `video_model`。普通 `aid=6383` 的 `bit_rate` 只用于此前的转码档对比，不作为本程序的原画结果。
-3. 先检查 `video_model.video_list` 中平铺或 `video_meta` 包装的原画候选，再按需访问 `video_model.fallback_api` 签发的 `/video/fplay/1/{签名}/{video_id}` 路径。保留完整查询（包括原有 `stream_type`、`encode_user_tag` 等上下文），删除 `logo_type`，覆盖 `force_fids=Base64("original")` 与 `codec_type=5`；随后兼容仅切换 `stream_type=source` 的入口。每一路候选均完成媒体校验，地址全部失效才继续后续路线，同一完整地址不重复探测，遇到限流停止。
-4. 校验响应的视频资源 ID、档位声明与媒体格式。上述候选均不可用时，先尝试用本次官方原画回包中的 `file_id/file_hash` 重新分发，再尝试本地可信身份记录，最后进入已有的 `ratio=default` 兼容通道。默认档要求 `206`、MP4 头、实际大小不属于详情与已观察 fplay 的转码集合，并校验时长、音视频轨道及分辨率；大小不同本身不是上传原文件的充分证明。全部取址入口均无候选时报 `source_unavailable`，曾取得原画候选但所有地址均校验失败时报 `probe_failed`。所有候选均排除媒体加密、无效地址格式和无效元数据。原画地址及其下载跳转不再限制固定 CDN 域名，仍检查 HTTP/HTTPS 地址格式；输入作品链接继续限定抖音平台域名。算法全貌见 `docs/original-source-algorithm-2026-11-16.md`。
+2. 初始化或复用匿名访客凭据，计算 `x-secsdk-web-signature`，请求官方 Web 详情，使用 `aid=392139` 取得非空 `video_model`。PC 视频页的 `aid=6383` 详情（`request_source=600`、`origin_type=video_page`）会额外下发手机详情没有的 `video.bit_rate` 隐藏档位，作为原画补充入口。
+3. 先检查 `video_model.video_list` 中平铺或 `video_meta` 包装的原画候选，再按需访问 `video_model.fallback_api` 下发的目录地址。主机、路径、`aid`、签名和完整查询（包括原有 `stream_type`、`encode_user_tag` 等上下文）均按平台原样保留，不要求固定桶名或固定 `aid`；删除 `logo_type`，覆盖 `force_fids=Base64("original")` 与 `codec_type=5`；随后兼容仅切换 `stream_type=source` 的入口。每一路候选均完成媒体校验，地址全部失效才继续后续路线，同一完整地址不重复探测，遇到限流停止。
+4. 校验响应的视频资源 ID、档位声明与媒体格式。上述候选均不可用时，先尝试用本次官方原画回包中的 `file_id/file_hash` 重新分发，再尝试本地可信身份记录，最后进入已有的 `ratio=default` 兼容通道；仍无候选时请求 PC Web 详情，取手机详情没有的 `video.bit_rate` 行，分别校验视频轨和 `bit_rate_audio` 音频轨（DASH 分轨由 `--download` 合并），识别为 `official_web_pc_bitrate`。默认档要求 `206`、MP4 头、实际大小不属于详情与已观察 fplay 的转码集合，并校验时长、音视频轨道及分辨率；大小不同本身不是上传原文件的充分证明。全部取址入口均无候选时报 `source_unavailable`，曾取得原画候选但所有地址均校验失败时报 `probe_failed`。所有候选均排除媒体加密、无效地址格式和无效元数据。原画地址及其下载跳转不再限制固定 CDN 域名，仍检查 HTTP/HTTPS 地址格式；输入作品链接继续限定抖音平台域名。算法全貌见 `docs/original-source-algorithm-2026-11-16.md`。
 5. 还原播放地址。本轮格式为 Base64 后的 `a8 00 01 00` 头部加 AES-CBC 密文；响应提供 32 字节 `key_seed`。派生方式为 `SHA512(SHA512(seed) + 固定64字节常量)`，前 16 字节作为 AES key，接下来 16 字节作为 IV；按 PKCS#7 去填充得到 URL。代码在 `original_parser/codec.py`。普通 URL、普通 Base64 URL 也支持。
 6. 用 Range 请求核对真实大小并读取 MP4 moov，确认视频、音频、时长和分辨率。支持 moov 位于文件尾部；不用下载整个视频即可完成常规解析校验。
-7. 下载时核对文件大小，存在官方 MD5 时必须匹配；未提供官方哈希时，校验完整文件的音视频轨道、时长和分辨率，记录本地 MD5/SHA-256，并明确返回 `official_hash_match=null`。可再与本地参考文件做 SHA-256 比较。地址过期或全部镜像下载失败会重新解析一次。
+7. 单文件 MP4 下载时核对文件大小，存在官方 MD5 时必须匹配；未提供官方哈希时，校验完整文件的音视频轨道、时长和分辨率，记录本地 MD5/SHA-256，并明确返回 `official_hash_match=null`。可再与本地参考文件做 SHA-256 比较。地址过期或全部镜像下载失败会重新解析一次。
 
 链接提取思路参考 `douyinVd`，网页签名公式参考 `dtk/signing/native/websign.py`，匿名访客初始化参考 `dtk-parse`，档位与音轨校验吸收现有项目的经验。2026-10-16 的原片选档参考 [ucmao/media-parser 的第一候选请求](https://github.com/ucmao/media-parser/blob/36e57ff489d23e1037050c9de7f0a39598f8caee/src/parsers/doubao_parser.py#L351)，并已在抖音作品和本程序默认请求头下验证；没有照搬豆包专属的查询 `key_seed` 前置条件或请求头。关键是 **保留平台取址上下文、选择原片及还原播放地址**。已有 NiKa 第三方客户端只包含调用第三方服务的鉴权与选档逻辑，没有其内部取址算法。
 
@@ -229,7 +275,7 @@ cd /opt/software/python
 ### 集中请求与平台限制（2026-09-28）
 
 - **问题与处理：**三个 Java 实例共用解析服务时会提交集中或重复请求。增加统一串行队列、任务间隔、同作品合并、有效期缓存及限制错误冷却，相关提交为 `6ba0017`。这是降低请求与限制风险的措施，不能据此认定每次空响应都由请求频率引起。
-- **当前行为：**默认任务间隔为 3～6 秒，以进程启动参数为准；累计 3 次限制类失败后冷却 900 秒，真实解析成功清零。冷却返回 HTTP 503、`code=upstream_cooldown` 和 `Retry-After`；队列满或等待超时返回 HTTP 429。需结合响应 `code` 区分本服务排队和上游 HTTP 429。
+- **当前行为：**默认任务间隔为 0.5～1 秒，以进程启动参数为准；累计 3 次限制类失败后冷却 900 秒，真实解析成功清零。冷却返回 HTTP 503、`code=upstream_cooldown` 和 `Retry-After`；队列满或等待超时返回 HTTP 429。需结合响应 `code` 区分本服务排队和上游 HTTP 429。
 - **再次出现时：**检查 `/health` 的 `protection.state`、`retry_after` 及日志，按重试时间等待。不要反复重启来绕过冷却，也不要同时启动多份 CLI 批量解析。多个 Python 进程的保护状态独立，详细边界见 [请求保护说明](deploy/REQUEST_PROTECTION.md)。
 
 ### 空内容与非 JSON（2026-10-16 补充诊断）
@@ -289,8 +335,8 @@ cd /opt/software/python
 以下记录的是 2026-11-06 的临时降级策略，不代表当前行为。当前实现已经恢复严格原画模式：普通转码档不会作为成功结果返回，也不会缓存。
 
 - **历史行为：**保留完整上下文的原画请求优先；没有可用原画时选择最高可用完整 MP4，并标记实际档位。
-- **历史标记：**普通转码曾返回 `fallback_used=true`、`fallback_reason=source_unavailable` 及实际 `quality`、`official_quality`、`level`。当前成功回包只返回 `data.url`，不再包含这些选档字段。
-- **当前边界：**只有官方 `original/source` 档位或已验证 `file_hash` 的官方原片分发结果才会成功；普通转码、桶名推断、网页转码、DASH 分轨和媒体校验失败均返回 `source_unavailable` 或“获取原画失败”。
+- **历史标记：**普通转码曾返回 `fallback_used=true`、`fallback_reason=source_unavailable` 及实际 `quality`、`official_quality`、`level`。单文件原画的 HTTP 成功回包只返回 `data.url`。
+- **当时边界**　该次撤回后只接受官方 `original/source` 档位和用已验证 `file_hash` 分发的结果。PC Web 独有档位及其 DASH 下载行为见文首的 2026-11-20 记录。
 - **当前缓存：**只有通过媒体校验的官方原画结果缓存；普通档、失败结果和没有媒体校验的结果不缓存。
 - **验证：**83 项 Python 离线测试通过；NiKa `mvn -o -pl nika-modules/nika-basic -am -DskipTests compile` 成功。使用编译后的真实 Java 客户端调用本地 Python HTTP 服务，下面三条均通过解析及媒体校验；`/api/v1/resolve` 复用 `/parse` 的缓存并保留实际档位。Java 校验也验证了无音轨、大小不符、来源或标记缺失等结果被拒绝，旧版原画响应仍兼容。临时服务已停止。
 

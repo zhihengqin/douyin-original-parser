@@ -29,8 +29,9 @@ _RESTRICTION_CODES = frozenset({
 
 @dataclass(frozen=True)
 class GuardConfig:
-    # 相邻上游任务之间的等待区间（秒）：在下限与上限之间随机取值；两个值相同表示固定间隔。
-    interval_range: tuple[float, float] = (3, 6)
+    # 每个工作线程完成任务后的等待区间（秒）；相同作品仍只执行一次。
+    interval_range: tuple[float, float] = (0.5, 1.0)
+    worker_count: int = 3
     cache_ttl: float = 300
     cache_max_entries: int = 128
     max_pending: int = 6
@@ -59,6 +60,7 @@ class GuardConfig:
         if values[0] > values[1]:
             raise ValueError("interval_range lower bound must not exceed the upper bound")
         for name, minimum, maximum in (
+            ("worker_count", 1, 32),
             ("cache_max_entries", 0, 10000),
             ("max_pending", 0, 1000),
             ("failure_threshold", 1, 1000),
@@ -89,6 +91,8 @@ class _Task:
     done: bool = False
     result: dict | None = None
     error: BaseException | None = None
+    generation: int = 0
+    probe: bool = False
 
 
 @dataclass
@@ -133,17 +137,19 @@ class RequestGuard:
         self._pending: deque[_Task] = deque()
         self._tasks: dict[Hashable, _Task] = {}
         self._cache: OrderedDict[Hashable, _Cached] = OrderedDict()
-        self._active: _Task | None = None
+        self._active: dict[Hashable, _Task] = {}
         self._shutdown = False
         self._state = "closed"
         self._consecutive_failures = 0
         self._cooldown_until = 0.0
-        self._next_start = 0.0
+        self._generation = 0
         self._counts = dict(requests=0, cache_hits=0, coalesced=0, started=0,
                             completed=0, rejected=0, timeouts=0)
-        self._thread = threading.Thread(target=self._work,
-                                        name="parser-request-guard", daemon=True)
-        self._thread.start()
+        self._threads = [threading.Thread(target=self._work,
+                                         name=f"parser-request-guard-{index + 1}", daemon=True)
+                         for index in range(self.config.worker_count)]
+        for thread in self._threads:
+            thread.start()
 
     def run(self, key: Hashable, loader: Callable[[], dict], *, force_refresh: bool = False) -> dict:
         """Run one complete parse, or join an identical request already queued.
@@ -179,16 +185,16 @@ class RequestGuard:
                         (self._state == "open" and now < self._cooldown_until)):
                     self._counts["rejected"] += 1
                     raise self._cooldown_error()
-                # With no waiting slots configured, admit the first job when
-                # idle so that the worker can take its sole execution slot.
-                if (len(self._pending) >= self.config.max_pending
-                        and (self._active is not None or self._pending)):
+                # 空闲工作线程各自可接一条，额外等待任务受队列容量约束。
+                capacity = self.config.max_pending + self.config.worker_count - len(self._active)
+                if len(self._pending) >= capacity:
                     self._counts["rejected"] += 1
                     raise GuardError("busy", "解析等待队列已满，请稍后重试",
                                      self.config.interval_upper)
-                if self._state == "open":
+                probe = self._state == "open"
+                if probe:
                     self._state = "half_open"
-                task = _Task(key=key, loader=loader)
+                task = _Task(key=key, loader=loader, generation=self._generation, probe=probe)
                 self._tasks[key] = task
                 self._pending.append(task)
             task.waiters += 1
@@ -211,8 +217,8 @@ class RequestGuard:
                 if not task.done and not task.started and task.waiters == 0:
                     self._pending.remove(task)
                     self._tasks.pop(task.key, None)
-                    # A half-open request that never ran is not a failed probe.
-                    if self._state == "half_open":
+                    # 尚未执行的探测无人等待时，恢复到冷却状态，允许后续请求重新探测。
+                    if task.probe and task.generation == self._generation and self._state == "half_open":
                         self._state = "open"
                     self._condition.notify_all()
 
@@ -224,7 +230,8 @@ class RequestGuard:
             return {
                 "state": self._state,
                 "shutdown": self._shutdown,
-                "active": int(self._active is not None),
+                "workers": self.config.worker_count,
+                "active": len(self._active),
                 "pending": len(self._pending),
                 "inflight": len(self._tasks),
                 "cached": len(self._cache),
@@ -240,10 +247,10 @@ class RequestGuard:
                 return
             self._shutdown = True
             self._cancel_pending(self._closed_error())
-            if self._active is not None:
-                self._active.error = self._closed_error()
-                self._active.done = True
-                self._tasks.pop(self._active.key, None)
+            for task in self._active.values():
+                task.error = self._closed_error()
+                task.done = True
+                self._tasks.pop(task.key, None)
             self._cache.clear()
             self._condition.notify_all()
 
@@ -335,12 +342,14 @@ class RequestGuard:
 
     def _open_circuit(self) -> None:
         self._state = "open"
+        self._generation += 1
         self._cooldown_until = self._clock() + self.config.cooldown
         self._cancel_pending(self._cooldown_error())
-        _LOG.warning("parser_cooldown_open failures=%s retry_after=%s",
+        _LOG.warning("解析服务进入冷却，限制失败次数=%s，建议等待秒数=%s",
                      self._consecutive_failures, self._retry_after())
 
     def _work(self) -> None:
+        next_start = 0.0
         while True:
             with self._condition:
                 while True:
@@ -349,13 +358,13 @@ class RequestGuard:
                     if not self._pending:
                         self._condition.wait()
                         continue
-                    delay = self._next_start - self._clock()
+                    delay = next_start - self._clock()
                     if delay > 0:
                         self._condition.wait(delay)
                         continue
                     task = self._pending.popleft()
                     task.started = True
-                    self._active = task
+                    self._active[task.key] = task
                     self._counts["started"] += 1
                     break
             result, error = None, None
@@ -365,13 +374,12 @@ class RequestGuard:
                     raise TypeError("parse loader must return a dictionary")
                 result = copy.deepcopy(result)
             except BaseException as exc:
-                # Keep the daemon alive and release waiters even if a loader
-                # terminates abnormally; do not retain its traceback/locals.
+                # 单个任务异常不能终止工作线程，也不长期保留调用栈。
                 error = _detached_error(exc)
             with self._condition:
                 self._counts["completed"] += 1
-                self._next_start = self._clock() + self._sample_interval()
-                self._active = None
+                next_start = self._clock() + self._sample_interval()
+                self._active.pop(task.key, None)
                 self._tasks.pop(task.key, None)
                 if not self._shutdown:
                     task.result, task.error = result, error
@@ -379,18 +387,20 @@ class RequestGuard:
                                  and not isinstance(result.get("code"), bool))
                     code = (getattr(error, "code", None) if error is not None
                             else result.get("code"))
+                    # 冷却前已发出的旧任务可以返回结果，但不能提前关闭新一轮冷却。
+                    current_generation = task.generation == self._generation
                     if succeeded:
-                        self._consecutive_failures = 0
-                        self._state = "closed"
-                        self._cooldown_until = 0.0
+                        if current_generation:
+                            self._consecutive_failures = 0
+                            self._state = "closed"
+                            self._cooldown_until = 0.0
                         try:
                             self._save_cache(task.key, result)
                         except Exception:
-                            # Caching is optional: malformed cache metadata
-                            # must never terminate the worker or strand callers.
+                            # 缓存异常不能终止工作线程或使等待者失去结果。
                             self._cache.pop(task.key, None)
-                            _LOG.warning("parser_cache_skipped reason=cache_error")
-                    else:
+                            _LOG.warning("解析结果缓存写入失败，已跳过缓存")
+                    elif current_generation:
                         if isinstance(code, str) and code in _RESTRICTION_CODES:
                             self._consecutive_failures += 1
                         if (self._state == "half_open" or

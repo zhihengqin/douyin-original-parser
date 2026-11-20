@@ -39,6 +39,26 @@ class SourceAuditTests(unittest.TestCase):
         collector.collect({"url_list": ["https://v1.douyinvod.com/a.mp4"], "data_size": 987654321}, "web")
         self.assertFalse(report_candidate(collector.candidates()[0])["explicit_original"])
 
+    def test_cover_variants_do_not_become_media_or_decode_failures(self):
+        collector = CandidateCollector()
+        collector.collect({
+            "format": "mp4",
+            "cover_original_scale": {"url_list": [
+                "https://p3-sign.douyinpic.com/cover.jpeg?signature=private",
+                "https://v1.douyinvod.com/cover.jpeg"]},
+            "gaussian_cover": {"url_list": [
+                "https://p3-sign.douyinpic.com/blurred.jpeg?signature=private",
+                "https://v1.douyinvod.com/blurred.jpeg"]},
+            "play_addr": {"data_size": 100, "url_list": [
+                "https://v1.douyinvod.com/video.mp4"]},
+        }, "native_detail")
+        groups = collector.candidates()
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(collector.decode_failures, 0)
+        self.assertEqual(groups[0]["observations"][0]["path"], "video.play_addr")
+        self.assertNotIn("cover_original_scale", json.dumps(report_candidate(groups[0])))
+        self.assertNotIn("gaussian_cover", json.dumps(report_candidate(groups[0])))
+
     def test_dictionary_url_list_preserves_identity_without_claiming_original(self):
         collector = CandidateCollector()
         collector.collect({"audio_meta": {"file_id": "a" * 32, "file_hash": "b" * 32,

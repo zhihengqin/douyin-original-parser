@@ -18,7 +18,8 @@ export PYTHONDONTWRITEBYTECODE=1
 "${PROJECT_ROOT}/.venv/bin/python" -m original_parser.check_runtime
 ARGS=(run.py --serve --host "${HOST_ADDRESS}" --port "${PORT}" --max-concurrent "${MAX_CONCURRENT}")
 ARGS+=(--detail-mode "${DETAIL_MODE}" --browser-profile "${BROWSER_PROFILE}")
-ARGS+=(--request-interval "${REQUEST_INTERVAL:-3-6}")
+ARGS+=(--parse-workers "${PARSE_WORKERS:-3}")
+ARGS+=(--request-interval "${REQUEST_INTERVAL:-0.5-1}")
 ARGS+=(--cache-ttl "${CACHE_TTL:-300}" --cache-max-entries "${CACHE_MAX_ENTRIES:-128}")
 ARGS+=(--queue-wait-timeout "${QUEUE_WAIT_TIMEOUT:-150}" --failure-threshold "${FAILURE_THRESHOLD:-3}")
 ARGS+=(--cooldown-seconds "${COOLDOWN_SECONDS:-900}")

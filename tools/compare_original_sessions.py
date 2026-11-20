@@ -83,21 +83,9 @@ class DiagnosticParser(OriginalParser):
     def __init__(self, **kwargs):
         super().__init__(auto_guest=False, **kwargs)
         self.directories = []
-        self._directory_selectors = []
 
     def _catalog_original_candidate(self, detail, video_id):
         return None
-
-    def _source_stream_groups(self, detail):
-        model = (detail.get("video") or {}).get("video_model")
-        if isinstance(model, str):
-            try:
-                model = json.loads(model)
-            except ValueError:
-                model = None
-        self._directory_selectors = (["inline"] if isinstance(model, dict) and model.get("video_list") else [])
-        self._directory_selectors.extend(("original", "source"))
-        return super()._source_stream_groups(detail)
 
     def _source_candidates(self, payload, video_id, *, allow_missing_urls=False):
         # 每份目录只在第一遍收集身份时记录；第二遍只生成原有地址失败诊断。
@@ -105,8 +93,10 @@ class DiagnosticParser(OriginalParser):
             info = payload.get("video_info") or {}
             data = info.get("data") or {}
             rows = self._video_rows(data)
+            observations = self.web_catalog_observations
+            stage = observations[-1]["stage"] if observations else "unknown"
             self.directories.append({
-                "selector": self._directory_selectors.pop(0) if self._directory_selectors else "unknown",
+                "selector": "inline" if stage == "embedded" else stage,
                 "code": safe_number(payload.get("code")),
                 "info_code": safe_number(info.get("code")),
                 "status": safe_number(data.get("status")),

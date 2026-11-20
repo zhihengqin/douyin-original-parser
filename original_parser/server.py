@@ -6,24 +6,40 @@ import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .client import OriginalParser, ParseError, load_credentials, resolve_id_local
+from .client import (PC_BITRATE_EVIDENCE, PLAY_DEFAULT_EVIDENCE, OriginalParser, ParseError,
+                     load_credentials, resolve_id_local)
 from .guard import GuardConfig, GuardError, RequestGuard
 
 logger = logging.getLogger(__name__)
 
 
 def public_result(result: dict) -> dict:
-    """对外只返回最高画质链接，其余档位、镜像和探测信息不进入回包。"""
+    """保留短响应；没有原画证据的播放档带来源标记。"""
     data = result.get("data")
     if not isinstance(data, dict):
         return result
-    return {"code": result.get("code"), "msg": result.get("msg"),
-            "data": {"url": data.get("url")}}
+    public = {"url": data.get("url")}
+    if data.get("source_candidate"):
+        public.update({
+            "source_candidate": True,
+            "source_evidence": data.get("source_evidence"),
+            "official_quality": data.get("official_quality"),
+            "source_vid": data.get("source_vid"),
+        })
+    elif data.get("source_evidence") in (PC_BITRATE_EVIDENCE, PLAY_DEFAULT_EVIDENCE):
+        public["source_evidence"] = data["source_evidence"]
+    if data.get("dash_mux_required"):
+        public.update({
+            "audio_url": data.get("audio_url"),
+            "dash_mux_required": True,
+            "size_bytes": data.get("size_bytes"),
+        })
+    return {"code": result.get("code"), "msg": result.get("msg"), "data": public}
 
 
 def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
           detail_mode="http", browser_profile="windows", guard_config=None,
-          allow_external_asset_recovery=None):
+          allow_external_asset_recovery=None, allow_source_candidate=None):
     if not 1 <= max_concurrent <= 32:
         raise ValueError("同时受理的 HTTP 请求数必须在 1 到 32 之间")
     if detail_mode not in ("http", "browser") or browser_profile not in ("current", "native", "windows"):
@@ -31,6 +47,9 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
     if detail_mode == "browser" and cookie_file is not None:
         raise ValueError("浏览器页面模式不能同时指定外部 Cookie")
     config = guard_config or GuardConfig()
+    if detail_mode == "browser":
+        from .browser_detail import configure_browser_concurrency
+        configure_browser_concurrency(config.worker_count)
     slots = threading.BoundedSemaphore(max_concurrent)
     guard = RequestGuard(config)
 
@@ -80,6 +99,9 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 force_refresh = payload.get("force_refresh", False)
                 if not isinstance(force_refresh, bool):
                     raise ValueError("force_refresh 必须为布尔值")
+                request_source_candidate = payload.get("allow_source_candidate", None)
+                if request_source_candidate is not None and not isinstance(request_source_candidate, bool):
+                    raise ValueError("allow_source_candidate 必须为布尔值")
                 aweme_id, normalized_url = resolve_id_local(text)
             except (ValueError, UnicodeError) as exc:
                 self.send_json(400, {"code": "invalid_input", "msg": str(exc), "data": None})
@@ -98,16 +120,20 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 if cookie_file:
                     credential_scope = hashlib.sha256(json.dumps(
                         [cookies, user_agent], sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+                effective_source_candidate = (request_source_candidate
+                                              if request_source_candidate is not None
+                                              else allow_source_candidate)
                 key = (credential_scope, "id" if aweme_id else "link",
-                       aweme_id or normalized_url, with_probe)
+                       aweme_id or normalized_url, with_probe, effective_source_candidate)
 
                 def parse_once():
-                    # 此函数只在唯一工作线程运行；短链的跳转也受统一排队控制。
+                    # 每条任务在线程内独立创建会话，短链、详情、取址及媒体校验共用解析并发上限。
                     with OriginalParser(cookies=cookies, user_agent=user_agent,
                                         auto_guest=cookie_file is None,
                                         detail_mode=detail_mode, browser_profile=browser_profile,
                                         refresh_guest_on_rejection=False,
-                                        allow_external_asset_recovery=allow_external_asset_recovery) as parser:
+                                        allow_external_asset_recovery=allow_external_asset_recovery,
+                                        allow_source_candidate=effective_source_candidate) as parser:
                         return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
 
                 result = guard.run(key, parse_once, force_refresh=force_refresh)
@@ -130,15 +156,18 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
 
     try:
         with ThreadingHTTPServer((host, port), Handler) as server:
-            print(f"原画解析服务：http://{host}:{port}，最多受理 {max_concurrent} 个请求，上游串行，按 Ctrl+C 停止", flush=True)
+            print(f"原画解析服务：http://{host}:{port}，最多受理 {max_concurrent} 个请求，解析工作线程 {config.worker_count} 个，按 Ctrl+C 停止", flush=True)
             logger.info("detail_mode=%s browser_profile=%s credential_mode=%s", detail_mode, browser_profile,
                         "external_file" if cookie_file else "auto_guest")
             logger.info("external_asset_recovery=%s",
                         "env" if allow_external_asset_recovery is None else allow_external_asset_recovery)
+            logger.info("source_candidate=%s",
+                        "env" if allow_source_candidate is None else allow_source_candidate)
             logger.info("protection interval=%s-%ss cache_ttl=%ss pending=%s wait=%ss threshold=%s cooldown=%ss",
                         config.interval_range[0], config.interval_range[1],
                         config.cache_ttl, config.max_pending,
                         config.wait_timeout, config.failure_threshold, config.cooldown)
+            logger.info("解析工作线程数=%s，每个线程独立执行任务后等待随机间隔", config.worker_count)
             try:
                 server.serve_forever()
             except KeyboardInterrupt:

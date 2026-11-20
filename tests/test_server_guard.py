@@ -41,7 +41,7 @@ class LocalService:
 
     def __init__(self, parse=None, *, config=None, **settings):
         self.parse = parse or (lambda text, probe, options: response_payload(text, with_probe=probe))
-        self.config = config or GuardConfig(interval_range=(0, 0), wait_timeout=2)
+        self.config = config or GuardConfig(worker_count=1, interval_range=(0, 0), wait_timeout=2)
         self.settings = settings
         self.constructed = []
         self.parsed = []
@@ -124,11 +124,74 @@ class LocalService:
 
 
 class ServerGuardTests(unittest.TestCase):
+    def test_public_result_marks_source_candidate_and_keeps_official_slim(self):
+        official = {"code": 0, "msg": "原画解析成功", "data": {
+            "url": "https://video.douyinvod.com/official.mp4",
+            "source_evidence": "official_quality", "source_candidate": False}}
+        self.assertEqual(server.public_result(official)["data"],
+                         {"url": "https://video.douyinvod.com/official.mp4"})
+        candidate = {"code": 0, "msg": "返回源候选（非平台原画）", "data": {
+            "url": "https://video.douyinvod.com/candidate.mp4",
+            "source_candidate": True, "source_evidence": "platform_source_candidate",
+            "official_quality": "normal", "source_vid": "v-alt"}}
+        self.assertEqual(server.public_result(candidate)["data"], {
+            "url": "https://video.douyinvod.com/candidate.mp4",
+            "source_candidate": True, "source_evidence": "platform_source_candidate",
+            "official_quality": "normal", "source_vid": "v-alt"})
+
+    def test_allow_source_candidate_is_validated_and_forwarded(self):
+        with LocalService() as service:
+            status, _, _ = service.request({"url": AWEME, "allow_source_candidate": True})
+            invalid = service.request({"url": AWEME, "allow_source_candidate": "yes"})
+        self.assertEqual(status, 200)
+        self.assertEqual(invalid[0], 400)
+        self.assertIs(service.constructed[0]["allow_source_candidate"], True)
+
+    def test_compatible_playback_results_are_identifiable_in_the_public_response(self):
+        url = "https://video.douyinvod.com/video.mp4"
+        audio = "https://video.douyinvod.com/audio.m4a"
+        for kind in ("official_web_pc_bitrate", "official_play_default"):
+            with self.subTest(kind=kind):
+                data = dict(url=url, source_evidence=kind)
+                if kind == "official_web_pc_bitrate":
+                    data.update(dash_mux_required=True, audio_url=audio, size_bytes=1024)
+                result = server.public_result(dict(code=0, data=data))["data"]
+                self.assertEqual(result, data)
+
+    def test_http_requests_really_parse_in_parallel_and_same_video_coalesces(self):
+        release = threading.Event()
+
+        def parse(text, probe, _options):
+            self.assertTrue(release.wait(2))
+            return response_payload(text, with_probe=probe)
+
+        config = GuardConfig(worker_count=3, interval_range=(0, 0), wait_timeout=2)
+        with LocalService(parse, config=config) as service, \
+                concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            try:
+                futures = [pool.submit(service.request, {"url": key})
+                           for key in (AWEME, OTHER, "7685326449011608874")]
+                deadline = time.monotonic() + 1
+                while service.health()["protection"]["active"] < 3 and time.monotonic() < deadline:
+                    time.sleep(0.002)
+                self.assertEqual(service.health()["protection"]["active"], 3)
+                shared = pool.submit(service.request, {"url": AWEME})
+                deadline = time.monotonic() + 1
+                while service.health()["protection"]["coalesced"] < 1 and time.monotonic() < deadline:
+                    time.sleep(0.002)
+                self.assertEqual(service.health()["protection"]["coalesced"], 1)
+            finally:
+                release.set()
+            for future in futures + [shared]:
+                self.assertEqual(future.result(2)[0], 200)
+            self.assertEqual(len(service.parsed), 3)
+            self.assertEqual(len(service.constructed), 3)
+
     def test_missing_dependency_is_service_unavailable_without_upstream_cooldown(self):
         def unavailable(*_):
             raise ParseError("dependency_missing", "a_bogus 签名依赖加载失败（gmssl）")
 
-        config = GuardConfig(interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
+        config = GuardConfig(worker_count=1, interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
         with LocalService(unavailable, config=config) as service:
             status, headers, body = service.request({"url": AWEME})
             health = service.health()
@@ -142,7 +205,7 @@ class ServerGuardTests(unittest.TestCase):
         def unavailable(*_):
             raise ParseError("network_tls_error", "作品详情接口 HTTPS 请求失败（证书校验失败）；请检查解析节点的 CA 证书、系统时间和 HTTPS 代理配置")
 
-        config = GuardConfig(interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
+        config = GuardConfig(worker_count=1, interval_range=(0, 0), wait_timeout=2, failure_threshold=1)
         with LocalService(unavailable, config=config) as service:
             status, headers, body = service.request({"url": AWEME})
             health = service.health()
@@ -244,7 +307,7 @@ class ServerGuardTests(unittest.TestCase):
         def restricted(*_):
             raise ParseError("upstream_empty_response", "视频页面详情接口返回 HTTP 200 空内容")
 
-        config = GuardConfig(interval_range=(0, 0), wait_timeout=2, failure_threshold=3, cooldown=900)
+        config = GuardConfig(worker_count=1, interval_range=(0, 0), wait_timeout=2, failure_threshold=3, cooldown=900)
         with LocalService(restricted, config=config) as service:
             for _ in range(3):
                 status, _, body = service.request({"url": AWEME})
@@ -268,7 +331,7 @@ class ServerGuardTests(unittest.TestCase):
             self.assertTrue(release.wait(2))
             return response_payload()
 
-        config = GuardConfig(interval_range=(0, 0), max_pending=0, wait_timeout=0.15)
+        config = GuardConfig(worker_count=1, interval_range=(0, 0), max_pending=0, wait_timeout=0.15)
         with LocalService(blocked, config=config) as service:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                 try:
@@ -347,9 +410,10 @@ class GuardCliTests(unittest.TestCase):
             status = cli.main([
                 "--serve", "--host", "0.0.0.0", "--port", "9876", "--max-concurrent", "8",
                 "--detail-mode", "browser", "--browser-profile", "windows",
-                "--request-interval", "12", "--cache-ttl", "180", "--cache-max-entries", "20",
+                "--parse-workers", "4", "--request-interval", "12", "--cache-ttl", "180", "--cache-max-entries", "20",
                 "--queue-size", "4", "--queue-wait-timeout", "90",
                 "--failure-threshold", "2", "--cooldown-seconds", "600",
+                "--allow-source-candidate",
             ])
         self.assertEqual(status, 0)
         self.assertEqual(serve_mock.call_args.args, ("0.0.0.0", 9876))
@@ -357,14 +421,16 @@ class GuardCliTests(unittest.TestCase):
         self.assertEqual(settings["max_concurrent"], 8)
         self.assertEqual(settings["detail_mode"], "browser")
         self.assertEqual(settings["browser_profile"], "windows")
+        self.assertIs(settings["allow_source_candidate"], True)
         self.assertEqual(settings["guard_config"], GuardConfig(
-            interval_range=(12, 12), cache_ttl=180, cache_max_entries=20, max_pending=4,
+            interval_range=(12, 12), worker_count=4, cache_ttl=180, cache_max_entries=20, max_pending=4,
             wait_timeout=90, failure_threshold=2, cooldown=600,
         ))
 
     def test_invalid_numeric_configuration_does_not_start_service(self):
         for flag, value in (("--request-interval", "nan"), ("--cache-ttl", "inf"),
-                            ("--queue-wait-timeout", "0"), ("--queue-size", "-1")):
+                            ("--queue-wait-timeout", "0"), ("--queue-size", "-1"),
+                            ("--parse-workers", "0"), ("--parse-workers", "33")):
             with self.subTest(flag=flag, value=value), \
                     patch.object(server, "serve") as serve_mock, \
                     patch("sys.stdout", new_callable=io.StringIO), \

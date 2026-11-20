@@ -241,7 +241,9 @@ curl --fail-with-body --connect-timeout 5 --max-time 180 -X POST http://172.31.0
 
 ## 5. 三实例请求保护
 
-Java 的 `max-concurrent: 2` 是每个后端的限制，三个实例合计最多提交 6 个请求。Python 的 `MAX_CONCURRENT=6` 表示同时受理数量，包含等待者；实际访问上游只有一个任务，完成后默认随机间隔 3～6 秒，以实际 `REQUEST_INTERVAL` 配置为准。同作品合并和有效期缓存会减少实际执行次数。
+Java的`max-concurrent: 2`是每个后端的限制，三个实例合计最多提交6个请求。Python的`MAX_CONCURRENT=6`表示HTTP同时受理数量，包含等待者；`PARSE_WORKERS=3`表示实际并行解析数。每个工作线程完成后默认随机间隔0.5～1秒，以实际`REQUEST_INTERVAL`配置为准。浏览器模式的并发数也与工作线程数对齐，每个任务使用独立浏览器上下文。同作品合并和有效期缓存继续减少重复请求。
+
+本次多线程需要升级Python代码。使用`upgrade.sh --no-units`保留现有详情模式和自定义参数后，在有效的systemd环境配置中设置`Environment=PARSE_WORKERS=3`和`Environment=REQUEST_INTERVAL=0.5-1`，执行`systemctl daemon-reload`及`systemctl restart douyin-original-parser`。可从健康检查`protection.workers=3`、`protection.active`确认线程配置及实际在途数。此服务用于仍采用自建解析的流程；NiKa新入库3.1素材使用小帅版的策略在Java侧独立控制。
 
 默认成功结果最多缓存 5 分钟，提前 60 秒避开地址到期；累计 3 次限制类失败后冷却 15 分钟，真实解析成功清零。队列满或等待超时返回 HTTP 429；冷却期间无有效缓存返回 HTTP 503，并提供重试时间。参数、升级和验收见 [请求保护说明](REQUEST_PROTECTION.md)。
 

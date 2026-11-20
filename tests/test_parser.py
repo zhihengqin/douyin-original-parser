@@ -289,7 +289,7 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "source_unavailable")
         self.assertIn("获取原画失败", str(caught.exception))
         self.assertIn("未返回 original/source 原画档位", str(caught.exception))
-        self.assertEqual(request.call_count, 2)
+        self.assertEqual(request.call_count, 3)
         decode.assert_not_called()
 
     def test_hdr_source_work_reports_platform_not_listing_original(self):
@@ -746,7 +746,7 @@ class PlayDefaultTests(unittest.TestCase):
         row.update({"quality": "normal", "size": 68568404, "vwidth": 1280, "vheight": 720})
         row["main_url"] = FIXTURE["decoded_url"].replace(
             "/tos-cn-v-0000c2287/", "/tos-cn-ve-51/")
-        return patch.object(parser, "_json", side_effect=[response, copy.deepcopy(response)])
+        return patch.object(parser, "_json", return_value=response)
 
     def test_default_ratio_resolves_original_without_any_file_hash(self):
         with OriginalParser(auto_guest=False) as parser:
@@ -756,7 +756,7 @@ class PlayDefaultTests(unittest.TestCase):
         candidate = candidates[0]
         self.assertEqual(candidate["size"], 140778272)
         self.assertEqual(candidate["source_evidence"], "official_play_default")
-        self.assertEqual(candidate["official_quality"], "original")
+        self.assertIsNone(candidate["official_quality"])
         self.assertEqual((candidate["width"], candidate["height"]), (0, 0))
         params = parse_qs(urlsplit(get.call_args.args[0]).query)
         self.assertEqual(urlsplit(get.call_args.args[0]).netloc, "www.douyin.com")

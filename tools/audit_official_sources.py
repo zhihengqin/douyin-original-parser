@@ -26,7 +26,7 @@ from original_parser.codec import decode_url
 from original_parser.media import inspect_mp4
 
 AUDIT_HOSTS = tuple(dict.fromkeys((*MEDIA_HOSTS, "zjcdn.com")))
-EXCLUDED_FIELDS = {"cover", "origin_cover", "dynamic_cover", "big_thumbs",
+EXCLUDED_FIELDS = {"cover", "origin_cover", "cover_original_scale", "gaussian_cover", "dynamic_cover", "big_thumbs",
                    "y_cover", "y_cover_hor", "animated_cover", "audio",
                    "bit_rate_audio", "audio_list", "token_auth"}
 ADDRESS_FIELDS = ("main_url", "backup_url", "backup_url_1", "backup_url_2", "backup_url_3")

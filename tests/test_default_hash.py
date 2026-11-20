@@ -81,11 +81,11 @@ class DefaultHashTests(unittest.TestCase):
         self.assertEqual(candidate["file_hash"], digest.hex())
 
     def test_download_without_payload_hash_uses_official_response_digest(self):
-        body = b"complete-file-payload"
+        from tests.test_parser import mp4
+        body = mp4()
         response = Response(body, {"Content-MD5": base64.b64encode(hashlib.md5(body).digest()).decode()})
         with tempfile.TemporaryDirectory() as folder, OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "_get", return_value=response), \
-                patch("original_parser.client.inspect_file", return_value={"has_audio": True, "has_video": True}):
+                patch.object(parser, "_get", return_value=response):
             path = Path(folder) / "original.mp4"
             record = parser._download_once(result_for(body), path)
             self.assertTrue(record["official_hash_match"])
