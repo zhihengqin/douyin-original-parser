@@ -107,7 +107,6 @@ class ParserBreakpointCaptureTests(unittest.TestCase):
                 patch.dict("os.environ", {"DOUYIN_ALLOW_EXTERNAL_ASSET_RECOVERY": "1"}), \
                 patch.object(CaptureParser, "detail", return_value=detail), \
                 patch.object(CaptureParser, "_fallback_source_urls", return_value=[]), \
-                patch.object(CaptureParser, "_play_default_candidate", return_value=None), \
                 patch.object(OriginalParser, "_catalog_original_candidate",
                              side_effect=AssertionError("production catalog read")) as catalog, \
                 patch.object(client, "_read_original_records",
@@ -157,31 +156,6 @@ class ParserBreakpointCaptureTests(unittest.TestCase):
             finally:
                 sys.settrace(original_trace)
                 capture.close()
-
-    def test_default_no_candidate_is_a_normal_return(self):
-        with tempfile.TemporaryDirectory() as folder, OriginalParser(auto_guest=False) as parser:
-            capture = BreakpointCapture(Path(folder))
-            try:
-                with capture.installed(parser):
-                    result = parser._play_default_candidate({"video": {}}, VIDEO)
-            finally:
-                capture.close()
-            self.assertIsNone(result)
-            self.assertIn("breakpoint_return", [row["event"] for row in capture.events])
-            self.assertNotIn("breakpoint_unwind", [row["event"] for row in capture.events])
-
-    def test_default_exception_is_unwinding_not_a_normal_none(self):
-        detail = {"video": {"duration": 2000, "play_addr": {"data_size": 500}}}
-        with tempfile.TemporaryDirectory() as folder, OriginalParser(auto_guest=False) as parser:
-            capture = BreakpointCapture(Path(folder))
-            try:
-                with patch.object(parser, "_a_bogus_query", side_effect=RuntimeError("private")), \
-                        self.assertRaises(RuntimeError), capture.installed(parser):
-                    parser._play_default_candidate(detail, VIDEO)
-            finally:
-                capture.close()
-            self.assertIn("breakpoint_unwind", [row["event"] for row in capture.events])
-            self.assertNotIn("breakpoint_return", [row["event"] for row in capture.events])
 
 
 if __name__ == "__main__":

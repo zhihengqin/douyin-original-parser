@@ -22,15 +22,16 @@ AWEME = "7689381368630906122"
 OTHER = "7685326449011608873"
 
 
-def response_payload(aweme_id=AWEME, *, with_probe=True, marker="original"):
+def response_payload(aweme_id=AWEME, *, with_probe=True, marker="original",
+                     url="https://video.douyinvod.com/example.mp4"):
     expiry = int(time.time()) + 3600
     return {"code": 0, "msg": "原画解析成功", "data": {
-        "aweme_id": aweme_id, "url": "https://video.douyinvod.com/example.mp4",
+        "aweme_id": aweme_id, "url": url,
         "source_selected": True, "fallback_used": False,
-        "source_evidence": "official_quality",
-        "probe": {"ok": True} if with_probe else None,
+        "quality": "source", "official_quality": "original", "source_evidence": "official_quality",
+        "probe": {"ok": True, "has_audio": True, "has_video": True} if with_probe else None,
         "expires_at": expiry,
-        "video_list": [{"expires_at": expiry, "quality": "source",
+        "video_list": [{"url": url, "expires_at": expiry, "quality": "source", "official_quality": "original",
                         "source_evidence": "official_quality"}],
         "marker": marker,
     }}
@@ -124,39 +125,24 @@ class LocalService:
 
 
 class ServerGuardTests(unittest.TestCase):
-    def test_public_result_marks_source_candidate_and_keeps_official_slim(self):
-        official = {"code": 0, "msg": "原画解析成功", "data": {
-            "url": "https://video.douyinvod.com/official.mp4",
-            "source_evidence": "official_quality", "source_candidate": False}}
-        self.assertEqual(server.public_result(official)["data"],
-                         {"url": "https://video.douyinvod.com/official.mp4"})
-        candidate = {"code": 0, "msg": "返回源候选（非平台原画）", "data": {
-            "url": "https://video.douyinvod.com/candidate.mp4",
-            "source_candidate": True, "source_evidence": "platform_source_candidate",
-            "official_quality": "normal", "source_vid": "v-alt"}}
-        self.assertEqual(server.public_result(candidate)["data"], {
-            "url": "https://video.douyinvod.com/candidate.mp4",
-            "source_candidate": True, "source_evidence": "platform_source_candidate",
-            "official_quality": "normal", "source_vid": "v-alt"})
-
-    def test_allow_source_candidate_is_validated_and_forwarded(self):
-        with LocalService() as service:
-            status, _, _ = service.request({"url": AWEME, "allow_source_candidate": True})
-            invalid = service.request({"url": AWEME, "allow_source_candidate": "yes"})
-        self.assertEqual(status, 200)
-        self.assertEqual(invalid[0], 400)
-        self.assertIs(service.constructed[0]["allow_source_candidate"], True)
-
-    def test_compatible_playback_results_are_identifiable_in_the_public_response(self):
-        url = "https://video.douyinvod.com/video.mp4"
-        audio = "https://video.douyinvod.com/audio.m4a"
-        for kind in ("official_web_pc_bitrate", "official_play_default"):
-            with self.subTest(kind=kind):
-                data = dict(url=url, source_evidence=kind)
-                if kind == "official_web_pc_bitrate":
-                    data.update(dash_mux_required=True, audio_url=audio, size_bytes=1024)
-                result = server.public_result(dict(code=0, data=data))["data"]
-                self.assertEqual(result, data)
+    def test_unverified_and_split_results_never_expose_media_or_fill_cache(self):
+        for fields in (
+            {"source_evidence": "official_web_pc_bitrate"},
+            {"source_evidence": "official_play_default"},
+            {"source_evidence": "platform_source_candidate"},
+            {"source_evidence": "unknown"},
+            {"dash_mux_required": True, "audio_url": "https://video.douyinvod.com/audio.m4a"},
+            {"probe": {"ok": True, "has_video": True, "has_audio": False}},
+            {"probe": None},
+        ):
+            result = response_payload()
+            result["data"].update(fields)
+            with self.subTest(fields=fields), LocalService(lambda *_: result) as service:
+                for path in ("/parse", "/api/v1/resolve"):
+                    status, _, body = service.request({"url": AWEME}, path=path)
+                    self.assertEqual((status, body["code"], body["data"]), (502, "source_unavailable", None))
+                    self.assertNotIn("douyinvod", json.dumps(body))
+                self.assertEqual(len(service.parsed), 2)
 
     def test_http_requests_really_parse_in_parallel_and_same_video_coalesces(self):
         release = threading.Event()
@@ -216,16 +202,16 @@ class ServerGuardTests(unittest.TestCase):
         self.assertNotIn("Retry-After", headers)
         self.assertEqual(health["protection"]["state"], "closed")
 
-    def test_missing_original_is_returned_as_parse_error(self):
-        def unavailable(*_):
-            raise ParseError("source_unavailable", "获取原画失败：仅返回普通转码档")
+    def test_missing_or_unreachable_original_error_omits_upstream_media_urls(self):
+        for code in ("source_unavailable", "probe_failed"):
+            def unavailable(*_):
+                raise ParseError(code, "校验失败：https://video.douyinvod.com/example.mp4?token=private")
 
-        with LocalService(unavailable) as service:
-            status, _, body = service.request({"url": AWEME})
-        self.assertEqual(status, 502)
-        self.assertEqual(body["code"], "source_unavailable")
-        self.assertIn("获取原画失败", body["msg"])
-        self.assertIsNone(body["data"])
+            with self.subTest(code=code), LocalService(unavailable) as service:
+                status, _, body = service.request({"url": AWEME})
+                self.assertEqual((status, body["code"], body["data"]), (502, code, None))
+                self.assertIn("获取原画失败", body["msg"])
+                self.assertNotIn("token", json.dumps(body))
 
     def eventually(self, predicate, timeout=1):
         deadline = time.monotonic() + timeout
@@ -270,25 +256,25 @@ class ServerGuardTests(unittest.TestCase):
             self.assertEqual(options["browser_profile"], "native")
             self.assertTrue(options["auto_guest"])
 
-    def test_probe_choices_are_separate_and_unverified_results_are_not_cached(self):
+    def test_clients_cannot_skip_verification_even_on_a_cache_hit(self):
         with LocalService() as service:
             skipped = service.request({"url": AWEME, "with_probe": False})
             verified = service.request({"url": AWEME, "with_probe": True})
             verified_again = service.request({"url": AWEME})
             skipped_again = service.request({"url": AWEME, "with_probe": False})
             self.assertEqual(verified[2], verified_again[2])
-            self.assertEqual(skipped[2]["data"]["url"], verified[2]["data"]["url"])
-            self.assertEqual(skipped_again[2]["data"]["url"], skipped[2]["data"]["url"])
-            self.assertEqual(service.parsed, [(AWEME, False), (AWEME, True), (AWEME, False)])
+            self.assertEqual(verified[0], 200)
+            for status, _, body in (skipped, skipped_again):
+                self.assertEqual((status, body["code"], body["data"]), (400, "invalid_input", None))
+            self.assertEqual(service.parsed, [(AWEME, True)])
 
     def test_force_refresh_bypasses_cache_and_updates_both_public_endpoints(self):
         calls = []
 
         def parse(text, with_probe, options):
             calls.append(text)
-            result = response_payload(text, with_probe=with_probe)
-            result["data"]["url"] = f"https://video.douyinvod.com/attempt-{len(calls)}.mp4"
-            return result
+            return response_payload(text, with_probe=with_probe,
+                                    url=f"https://video.douyinvod.com/attempt-{len(calls)}.mp4")
 
         with LocalService(parse) as service:
             initial = service.request({"url": AWEME})
@@ -358,6 +344,8 @@ class ServerGuardTests(unittest.TestCase):
                 {"url": "https://example.com/video/" + AWEME},
                 {"url": "https://www.douyin.com.attacker.example/video/" + AWEME},
                 {"url": "not a video"}, {"url": AWEME, "with_probe": "true"},
+                {"url": AWEME, "allow_source_candidate": True},
+                {"url": AWEME, "allow_source_candidate": "yes"},
                 {"url": AWEME, "force_refresh": "true"},
                 {"url": AWEME, "force_refresh": 1},
                 {"url": AWEME, "force_refresh": None},
@@ -374,9 +362,8 @@ class ServerGuardTests(unittest.TestCase):
         def parse(text, with_probe, options):
             self.assertFalse(options["auto_guest"])
             self.assertFalse(options["refresh_guest_on_rejection"])
-            result = response_payload(text, with_probe=with_probe)
-            result["data"]["url"] = f"https://video.douyinvod.com/{options['cookies']['sessionid']}.mp4"
-            return result
+            return response_payload(text, with_probe=with_probe,
+                                    url=f"https://video.douyinvod.com/{options['cookies']['sessionid']}.mp4")
 
         with tempfile.TemporaryDirectory() as directory:
             cookie_file = Path(directory) / "credentials.json"
@@ -413,7 +400,6 @@ class GuardCliTests(unittest.TestCase):
                 "--parse-workers", "4", "--request-interval", "12", "--cache-ttl", "180", "--cache-max-entries", "20",
                 "--queue-size", "4", "--queue-wait-timeout", "90",
                 "--failure-threshold", "2", "--cooldown-seconds", "600",
-                "--allow-source-candidate",
             ])
         self.assertEqual(status, 0)
         self.assertEqual(serve_mock.call_args.args, ("0.0.0.0", 9876))
@@ -421,7 +407,6 @@ class GuardCliTests(unittest.TestCase):
         self.assertEqual(settings["max_concurrent"], 8)
         self.assertEqual(settings["detail_mode"], "browser")
         self.assertEqual(settings["browser_profile"], "windows")
-        self.assertIs(settings["allow_source_candidate"], True)
         self.assertEqual(settings["guard_config"], GuardConfig(
             interval_range=(12, 12), worker_count=4, cache_ttl=180, cache_max_entries=20, max_pending=4,
             wait_timeout=90, failure_threshold=2, cooldown=600,

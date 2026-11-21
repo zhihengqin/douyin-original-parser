@@ -55,6 +55,19 @@ class RangeResponse:
 
 
 class SourcePipelineTests(unittest.TestCase):
+    def test_downloadable_work_without_declared_original_returns_no_default(self):
+        work = detail()
+        work["video_control"] = {"allow_download": True}
+        normal = payload([source_row(quality="normal")])
+        with OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser, "_json", return_value=normal), \
+                patch.object(parser, "_catalog_original_candidate", return_value=None), \
+                patch.object(parser, "_get") as get:
+            with self.assertRaises(ParseError) as caught:
+                parser.source_streams(work)
+            self.assertEqual(caught.exception.code, "source_unavailable")
+            get.assert_not_called()
+
     def test_checked_original_in_unmodified_issued_catalog(self):
         work = detail()
         m = json.loads(work["video"]["video_model"])
@@ -66,14 +79,12 @@ class SourcePipelineTests(unittest.TestCase):
                 patch.object(parser, "detail", return_value=work), \
                 patch.object(parser, "_json", side_effect=[ordinary, ordinary, payload([source_row()])]) as req, \
                 patch.object(parser, "_catalog_original_candidate", return_value=None), \
-                patch.object(parser, "_play_default_candidate", return_value=None), \
-                patch.object(parser, "probe", return_value={"ok": True, "duration_seconds": 2}) as probe, \
+                patch.object(parser, "probe", return_value={"ok": True, "duration_seconds": 2, "has_audio": True, "has_video": True}) as probe, \
                 patch("original_parser.client._remember_original_record"):
             result = parser.parse(WORK)["data"]
             self.assertEqual(req.call_args.args[0], url)
             self.assertEqual(result["official_quality"], "original")
             self.assertEqual(result["source_evidence"], "official_quality")
-            self.assertEqual(parser.web_catalog_observations[-1]["stage"], "issued")
             probe.assert_called_once()
 
     def test_issued_catalog_accepts_any_official_aid_and_path(self):
@@ -104,117 +115,23 @@ class SourcePipelineTests(unittest.TestCase):
         self.assertEqual(candidates[0]["official_quality"], "original")
         self.assertIn("/tos-cn-ve-51/", candidates[0]["url"])
 
-    def test_source_candidate_requires_opt_in_and_independent_container_vid(self):
+    def test_transcodes_and_extra_pc_tracks_never_supply_a_single_original(self):
         normal = payload([source_row(quality="normal")])
-        media = {"ok": True, "duration_seconds": 2,
-                 "tags": {"comment": f"vid:{VID}-alternate"}}
-        with OriginalParser(auto_guest=False, allow_source_candidate=True) as parser, \
-                patch.object(parser, "_json", side_effect=[normal, normal, normal]), \
-                patch.object(parser, "probe", return_value=media) as probe:
-            _, candidates = parser.source_streams(detail())
-        candidate = candidates[0]
-        self.assertTrue(candidate["source_candidate"])
-        self.assertEqual(candidate["source_evidence"], "platform_source_candidate")
-        self.assertEqual(candidate["source_vid"], f"{VID}-alternate")
-        self.assertEqual(candidate["official_quality"], "normal")
-        self.assertIn("源候选", candidate["level"])
-        probe.assert_called_once()
-
-    def test_source_candidate_is_not_returned_without_opt_in(self):
-        normal = payload([source_row(quality="normal")])
-        with OriginalParser(auto_guest=False, allow_source_candidate=False) as parser, \
-                patch.object(parser, "_json", side_effect=[normal, normal, normal]), \
-                patch.object(parser, "probe") as probe:
-            with self.assertRaises(ParseError) as caught:
-                parser.source_streams(detail())
-        self.assertEqual(caught.exception.code, "source_unavailable")
-        probe.assert_not_called()
-
-    def test_source_candidate_requires_independent_container_vid(self):
-        for comment in (f"vid:{VID}", "", "not-a-vid"):
-            normal = payload([source_row(quality="normal")])
-            media = {"ok": True, "duration_seconds": 2, "tags": {"comment": comment}}
-            with self.subTest(comment=comment), \
-                    OriginalParser(auto_guest=False, allow_source_candidate=True) as parser, \
-                    patch.object(parser, "_json", side_effect=[normal, normal, normal]), \
-                    patch.object(parser, "probe", return_value=media):
-                with self.assertRaises(ParseError) as caught:
-                    parser.source_streams(detail())
-            self.assertEqual(caught.exception.code, "source_unavailable")
-
-    def test_parse_marks_source_candidate_without_recording_original(self):
-        normal = payload([source_row(quality="normal")])
-        media = {"ok": True, "actual_size": 1000, "duration_seconds": 2,
-                 "has_video": True, "has_audio": True,
-                 "tags": {"comment": f"vid:{VID}-alternate"}}
-        with OriginalParser(auto_guest=False, allow_source_candidate=True) as parser, \
-                patch.object(parser, "detail", return_value=detail()), \
-                patch.object(parser, "_json", side_effect=[normal, normal, normal]), \
-                patch.object(parser, "probe", return_value=media) as probe, \
+        work = detail()
+        work["video"].update(bit_rate=[{"play_addr": {"url_list": [CDN + "video.mp4"]}}],
+                             bit_rate_audio=[{"play_addr": {"url_list": [CDN + "audio.mp4"]}}])
+        with patch.dict("os.environ", {"DOUYIN_ALLOW_SOURCE_CANDIDATE": "1"}), \
+                OriginalParser(auto_guest=False) as parser, \
+                patch.object(parser, "detail", return_value=work), \
+                patch.object(parser, "_json", return_value=normal), \
+                patch.object(parser, "_catalog_original_candidate", return_value=None), \
+                patch.object(parser, "_get") as get, \
                 patch("original_parser.client._remember_original_record") as remember:
-            result = parser.parse(WORK)
-        data = result["data"]
-        self.assertTrue(data["source_candidate"])
-        self.assertEqual(data["source_evidence"], "platform_source_candidate")
-        self.assertEqual(data["source_vid"], f"{VID}-alternate")
-        self.assertEqual(result["msg"], "返回源候选（非平台原画）")
-        probe.assert_called_once()
+            with self.assertRaises(ParseError) as caught:
+                parser.parse(WORK)
+        self.assertEqual(caught.exception.code, "source_unavailable")
+        get.assert_not_called()
         remember.assert_not_called()
-
-    def test_pc_web_hidden_bitrate_is_used_with_dash_audio(self):
-        mobile = detail()
-        pc = {"aweme_id": WORK, "video": {
-            "duration": 2000,
-            "bit_rate": [
-                {"play_addr": {"data_size": 500, "file_hash": "a" * 32, "width": 720,
-                               "height": 1280, "url_list": [CDN + "known.mp4"]}},
-                {"play_addr": {"data_size": 9000, "file_hash": "b" * 32, "width": 720,
-                               "height": 1280, "url_key": "hidden",
-                               "url_list": [CDN + "tos-cn-v-0051/hidden.mp4"]},
-                 "bit_rate": 9000},
-            ],
-            "bit_rate_audio": [{"audio_meta": {
-                "size": 1000, "file_hash": "c" * 32, "quality": "adapt",
-                "url_list": {"main_url": CDN + "tos-cn-v-0051/audio.m4a"}}}],
-        }}
-        normal = payload([source_row(quality="normal")])
-        with OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "detail", return_value=mobile), \
-                patch.object(parser, "_pc_detail", return_value=pc), \
-                patch.object(parser, "_json", side_effect=[normal, normal, normal]), \
-                patch.object(parser, "probe_dash", return_value={
-                    "ok": True, "dash": True, "actual_size": 10000,
-                    "duration_seconds": 2}) as probe_dash:
-            result = parser.parse(WORK)
-        data = result["data"]
-        self.assertEqual(data["source_evidence"], "official_web_pc_bitrate")
-        self.assertIsNone(data["official_quality"])
-        self.assertFalse(data["source_selected"])
-        self.assertTrue(data["dash_mux_required"])
-        self.assertEqual(data["url"], CDN + "tos-cn-v-0051/hidden.mp4")
-        self.assertEqual(data["audio_url"], CDN + "tos-cn-v-0051/audio.m4a")
-        self.assertEqual(data["size_bytes"], 10000)
-        self.assertIn("原画身份未经确认", result["msg"])
-        probe_dash.assert_called_once()
-
-    def test_pc_web_known_mobile_tiers_are_excluded(self):
-        mobile = detail()
-        pc = {"aweme_id": WORK, "video": {
-            "duration": 2000,
-            "bit_rate": [
-                {"play_addr": {"data_size": 500, "file_hash": "a" * 32, "width": 720,
-                               "height": 1280, "url_list": [CDN + "known.mp4"]}},
-                {"play_addr": {"data_size": 9000, "file_hash": "b" * 32, "width": 720,
-                               "height": 1280, "url_key": "hidden",
-                               "url_list": [CDN + "tos-cn-v-0051/hidden.mp4"]}},
-            ],
-        }}
-        with OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "_pc_detail", return_value=pc):
-            candidates = parser._pc_bitrate_candidates(mobile)
-        self.assertEqual(len(candidates), 1)
-        self.assertEqual(candidates[0]["source_evidence"], "official_web_pc_bitrate")
-        self.assertEqual(candidates[0]["size"], 9000)
 
     def test_issued_catalog_for_other_video_is_rejected(self):
         ordinary = payload([source_row(quality="normal")])
@@ -222,8 +139,7 @@ class SourcePipelineTests(unittest.TestCase):
         wrong["video_info"]["data"]["video_id"] = "another-video"
         with OriginalParser(auto_guest=False) as parser, \
                 patch.object(parser, "_json", side_effect=[ordinary, ordinary, wrong]), \
-                patch.object(parser, "_catalog_original_candidate", return_value=None), \
-                patch.object(parser, "_play_default_candidate", return_value=None):
+                patch.object(parser, "_catalog_original_candidate", return_value=None):
             with self.assertRaises(ParseError) as error:
                 parser.source_streams(detail())
             self.assertEqual(error.exception.code, "identity_mismatch")
@@ -262,33 +178,18 @@ class SourcePipelineTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "identity_mismatch")
         request.assert_not_called()
 
-    def test_transcode_sizes_include_wrapped_model_but_exclude_declared_original(self):
-        work = detail([{"video_meta": source_row(quality="low", size=700)},
-                       {"video_meta": source_row(size=900)}])
-        self.assertEqual(OriginalParser._transcode_sizes(work["video"]), {500, 700})
-
-    def test_default_matching_extra_fplay_transcode_is_rejected(self):
-        with OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "_json", return_value=payload([source_row(quality="low", size=700)])), \
-                patch.object(parser, "_catalog_original_candidate", return_value=None), \
-                patch.object(parser, "_a_bogus_query", return_value="ratio=default"), \
-                patch.object(parser, "_get", return_value=RangeResponse(700)):
-            with self.assertRaises(ParseError) as caught:
-                parser.source_streams(detail())
-        self.assertEqual(caught.exception.code, "source_unavailable")
-        self.assertIn("转码档字节数完全相同", str(caught.exception))
-
-    def test_missing_model_does_not_prevent_independent_default_dispatch(self):
+    def test_missing_model_does_not_trigger_default_download(self):
         work = detail()
         del work["video"]["video_model"]
         with OriginalParser(auto_guest=False) as parser, \
                 patch.object(parser, "_json") as request, \
                 patch.object(parser, "_catalog_original_candidate", return_value=None), \
-                patch.object(parser, "_a_bogus_query", return_value="ratio=default"), \
-                patch.object(parser, "_get", return_value=RangeResponse()):
-            _, candidates = parser.source_streams(work)
-        self.assertEqual(candidates[0]["source_evidence"], "official_play_default")
+                patch.object(parser, "_get") as get:
+            with self.assertRaises(ParseError) as caught:
+                parser.source_streams(work)
+        self.assertEqual(caught.exception.code, "source_unavailable")
         request.assert_not_called()
+        get.assert_not_called()
 
     def test_parse_continues_from_broken_inline_and_first_route_to_second(self):
         responses = [payload([source_row("expired.mp4")]), payload([source_row("valid.mp4")])]
@@ -307,7 +208,7 @@ class SourcePipelineTests(unittest.TestCase):
 
     def test_failed_exact_url_is_not_probed_again_across_routes(self):
         response = payload([source_row()])
-        media = {"ok": True, "duration_seconds": 2}
+        media = {"ok": True, "duration_seconds": 2, "has_audio": True, "has_video": True}
         with OriginalParser(auto_guest=False) as parser, \
                 patch.object(parser, "detail", return_value=detail([source_row()])), \
                 patch.object(parser, "_json", side_effect=[response, payload([source_row("fresh.mp4")])]), \
@@ -319,7 +220,7 @@ class SourcePipelineTests(unittest.TestCase):
 
     def test_current_original_identity_can_refresh_without_catalog(self):
         row = {**source_row(), "file_hash": "b" * 32}
-        media = {"ok": True, "duration_seconds": 2}
+        media = {"ok": True, "duration_seconds": 2, "has_audio": True, "has_video": True}
         with OriginalParser(auto_guest=False) as parser, \
                 patch.object(parser, "detail", return_value=detail([row])), \
                 patch.object(parser, "_json", return_value=payload([row])), \
@@ -343,7 +244,7 @@ class SourcePipelineTests(unittest.TestCase):
                     with OriginalParser(auto_guest=False) as parser, \
                             patch.object(parser, "detail", return_value=detail(inline)), \
                             patch.object(parser, "_json", return_value=payload(fallback)), \
-                            patch.object(parser, "probe", return_value={"ok": True, "duration_seconds": 2}) as probe, \
+                            patch.object(parser, "probe", return_value={"ok": True, "duration_seconds": 2, "has_audio": True, "has_video": True}) as probe, \
                             patch.object(parser, "_dispatch_official_original", return_value=CDN + "renewed.mp4") as dispatch, \
                             patch.object(parser, "_catalog_original_candidate", side_effect=AssertionError("catalog used")), \
                             patch("original_parser.client._remember_original_record"):

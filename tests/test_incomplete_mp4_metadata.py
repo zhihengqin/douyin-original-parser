@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from original_parser.client import OriginalParser, ParseError
-from tests.test_parser import AWEME, VID, Response, mp4
+from tests.test_parser import AWEME, VID, Response, mp4, verified_result
 
 
 MEDIA_URL = "https://v11.douyinvod.com/fixture.mp4"
@@ -41,7 +41,7 @@ class IncompleteMediaTests(unittest.TestCase):
                 row = candidate(content)
                 with self.assertRaises(ParseError) as caught:
                     parser.probe(row)
-                self.assertEqual(caught.exception.code, "probe_failed")
+                self.assertEqual(caught.exception.code, "incomplete_media")
                 self.assertNotIn("url", row)
 
     def test_registration_rejects_metadata_before_writing(self):
@@ -61,7 +61,7 @@ class IncompleteMediaTests(unittest.TestCase):
             with self.subTest(case=name), tempfile.TemporaryDirectory() as folder, \
                     OriginalParser(auto_guest=False) as parser, \
                     patch.object(parser, "_get", side_effect=respond_with(content)):
-                result = {"data": {"url": MEDIA_URL, "video_list": [candidate(content)]}}
+                result = verified_result(candidate(content))
                 with self.assertRaises(ParseError) as caught:
                     parser._download_once(result, Path(folder) / "out.mp4")
                 self.assertEqual(caught.exception.code, "download_failed")
@@ -74,7 +74,7 @@ class IncompleteMediaTests(unittest.TestCase):
                 patch.object(parser, "_get", side_effect=respond_with(content)):
             probe = parser.probe(row)
             self.assertEqual((row["width"], row["height"], probe["duration_seconds"]), (1920, 1080, 2))
-            result = {"data": {"url": MEDIA_URL, "video_list": [row]}}
+            result = verified_result(row, probe=probe)
             dest = Path(folder) / "out.mp4"
             record = parser._download_once(result, dest)
             self.assertTrue(record["official_hash_match"])

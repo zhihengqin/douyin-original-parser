@@ -1,6 +1,6 @@
 # Linux 无 Docker：三个 NiKa 实例共用一个原画解析服务
 
-**当前策略：**优先返回经过媒体校验的官方 `original/source` 档位或可信身份重新分发的原片；仍保留 `ratio=default` 兼容通道，该通道排除已知转码大小并检查媒体完整性，但没有同等强度的官方原画档位声明。所有取址路径均无候选时返回 `source_unavailable`（消息包含“获取原画失败”），不会直接选择 `normal/adapt` 或按最大文件降级。精简 HTTP 成功回包不含 `source_evidence`，需用 CLI 完整结果区分来源。2026-11-06 的“最高可用画质降级”只保留在历史调查记录中，不是当前部署行为。
+**当前策略：**只返回通过媒体校验的单个原画 MP4。来源必须是平台明确标注的 `original/source`，或按已核验的原片身份取回的文件。仅有普通播放档或独立媒体轨时不返回下载地址；CLI 的完整 JSON 会列出成功文件的来源。
 
 更新时需要替换 Python 源码、用服务的 `.venv/bin/python` 同步 `requirements.txt`，再重启解析服务。新版 `deploy.sh` 和 `upgrade.sh` 会自动安装依赖并检查签名功能；依赖失败时不会继续启动服务。已有启动参数和已启用自建渠道的前端无需改动。当前 HTTP 成功响应仅含 `data.url`，仍要求旧完整字段的 Java 客户端会把成功结果判为失败；需配套发布兼容该响应的 NiKa `nika-basic` 后端，详见下面的 `ServiceException` 排查说明。
 

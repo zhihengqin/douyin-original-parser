@@ -3,7 +3,6 @@
 用法：python tools/probe_repo_algorithm.py LINK --out report.json --direct
 仅使用匿名访客和官方接口；不读登录文件、原片目录或参考样本，不保存临时 URL。
 exit 0 表示发现官方 original/source 且 MP4 校验通过；exit 2 表示尚未证实。
-默认档即使可下载、体积不同，也只报告为待确认候选。
 """
 
 from __future__ import annotations
@@ -23,12 +22,11 @@ import requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from original_parser.client import (  # noqa: E402
-    MEDIA_HOSTS, PLATFORM_HOSTS, PLAY_URL, OriginalParser, ParseError, check_url,
+    PLATFORM_HOSTS, OriginalParser, ParseError, check_url,
 )
 from tools.probe_official_vid_lineage import inspect_identity, rows_of  # noqa: E402
 
 MAX_HTML_BYTES = 4 * 1024 * 1024
-MAX_DEFAULT_VIDS = 2
 MAX_SOURCE_CANDIDATES = 3
 MAX_HTTP_REQUESTS = 64
 MAX_RANGE_BYTES = 8 * 1024 * 1024
@@ -85,28 +83,6 @@ def number(value) -> int:
 
 def safe_vid(value) -> str | None:
     return value if isinstance(value, str) and VID.fullmatch(value) else None
-
-
-def selected_address(video: dict) -> dict:
-    """jiji262 的 highest/original 选择：完整尺寸时按像素、码率、短边排序。"""
-    candidates = []
-    for row in video.get("bit_rate") or []:
-        if not isinstance(row, dict) or not isinstance(row.get("play_addr"), dict):
-            continue
-        addr = row["play_addr"]
-        w = number(addr.get("width") or row.get("width"))
-        h = number(addr.get("height") or row.get("height"))
-        if w and h:
-            edge, pixels = min(w, h), w * h
-        else:
-            # Upstream estimates the missing short edge from a known long edge.
-            long_edge = max(w, h)
-            edge = min(((360, 640), (480, 854), (540, 960), (720, 1280),
-                        (1080, 1920), (1440, 2560)),
-                       key=lambda pair: abs(pair[1] - long_edge))[0] if long_edge else 0
-            pixels = long_edge * edge
-        candidates.append(((pixels, number(row.get("bit_rate")), edge), addr))
-    return max(candidates, key=lambda item: item[0])[1] if candidates else video.get("play_addr") or {}
 
 
 def validate_detail(detail: dict, work: str) -> dict:
@@ -217,49 +193,6 @@ def probe_fplay(parser: OriginalParser, video: dict) -> list[dict]:
     return results
 
 
-def probe_default(parser: OriginalParser, video: dict, *, origin: str) -> dict:
-    addr = selected_address(video)
-    vid = addr.get("uri") or video.get("vid") or (video.get("download_addr") or {}).get("uri")
-    if not isinstance(vid, str) or not VID.fullmatch(vid):
-        raise ValueError("invalid_default_video_id")
-    params = {"video_id": vid, "ratio": "default", "line": "0", "is_play_url": "1",
-              "watermark": "0", "source": "PackSourceEnum_PUBLISH"}
-    if video.get("is_need_set_cookie"):
-        params["ss_is_p_v_ss"] = "1"
-    # Same fingerprint class and A-Bogus construction as jiji262 at 4255c983.
-    # We do not execute upstream application startup or import its downloader.
-    from original_parser.abogus import ABogus, BrowserFingerprintGenerator
-    signer = ABogus(fp=BrowserFingerprintGenerator.generate_fingerprint("Chrome"),
-                    user_agent=parser.user_agent)
-    signed, _, ua, _ = signer.generate_abogus(urlencode(params), "")
-    item = {"route": "play_default", "origin": origin, "requested_vid": vid,
-            "selected_size": number(addr.get("data_size")),
-            "need_set_cookie": bool(video.get("is_need_set_cookie")),
-            "signature": "a_bogus", "original_verified": False}
-    with parser._get(PLAY_URL + "?" + signed, headers={
-            "User-Agent": ua, "Range": "bytes=0-0", "Accept-Encoding": "identity",
-            "Referer": "https://www.douyin.com/", "Origin": "https://www.douyin.com",
-            "Accept": "*/*"}) as response:
-        item["http_status"] = response.status_code
-        if response.status_code not in (200, 206):
-            item["outcome"] = "http_rejected"
-            return item
-        content_type = response.headers.get("Content-Type", "").split(";", 1)[0].lower().strip()
-        match = re.fullmatch(r"bytes 0-0/(\d+)", response.headers.get("Content-Range", ""))
-        if response.status_code != 206 or not content_type.startswith("video/") or not match:
-            item["outcome"] = "not_a_verifiable_range_response"
-            return item
-        size = int(match.group(1))
-        final_url = check_url(response.url, MEDIA_HOSTS)
-        if len(response.raw.read(2, decode_content=False)) != 1:
-            raise ValueError("range_length_mismatch")
-    item.update(inspect_identity(parser, final_url, size))
-    item["size_matches_known_transcode"] = size in parser._transcode_sizes(video)
-    item["outcome"] = "default_candidate_identity_unconfirmed"
-    # Deliberately do not promote this file using size, duration or bucket names.
-    return item
-
-
 def share_detail(parser: OriginalParser, work: str, *, trailing_slash: bool = False,
                  user_agent: str = MOBILE_UA, request_headers: dict | None = None) -> tuple[dict | None, dict]:
     item = {"route": "mobile_share_ssr", "original_verified": False}
@@ -307,37 +240,20 @@ def probe_link(parser: OriginalParser, link: str) -> dict:
               "catalog_used": False, "reference_used": False,
               "login_file_used": False, "third_party_parser_used": False,
               "routes": [], "original_verified": False}
-    default_vids = set()
-
-    def check_detail(detail: dict, origin: str):
-        video = validate_detail(detail, work)
-        report["routes"].extend(probe_fplay(parser, video))
-        addr = selected_address(video)
-        vid = addr.get("uri") or video.get("vid") or (video.get("download_addr") or {}).get("uri")
-        if vid not in default_vids and len(default_vids) < MAX_DEFAULT_VIDS:
-            default_vids.add(vid)
-            try:
-                report["routes"].append(probe_default(parser, video, origin=origin))
-            except FAILURES as exc:
-                report["routes"].append({"route": "play_default", "origin": origin,
-                                         "original_verified": False, **failure(exc)})
-
     try:
         detail = parser.detail(work)
         video = validate_detail(detail, work)
         report["detail"] = {"aweme_id_matches": True,
                             "vid": safe_vid((video.get("play_addr") or {}).get("uri")),
-                            "selected_vid": safe_vid(selected_address(video).get("uri")),
-                            "bit_rate_rows": len(video.get("bit_rate") or []),
                             "model_present": bool(video.get("video_model"))}
-        check_detail(detail, "official_http_detail")
+        report["routes"].extend(probe_fplay(parser, video))
     except FAILURES as exc:
         report["detail"] = failure(exc)
     try:
         shared, item = share_detail(parser, work)
         report["routes"].append(item)
         if shared:
-            check_detail(shared, "mobile_share_ssr")
+            report["routes"].extend(probe_fplay(parser, validate_detail(shared, work)))
     except FAILURES as exc:
         report["routes"].append({"route": "mobile_share_ssr", **failure(exc)})
     report["original_verified"] = any(r.get("original_verified") for r in report["routes"])

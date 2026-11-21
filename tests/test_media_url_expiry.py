@@ -1,7 +1,6 @@
 """Issued-time query values must not consume the download refresh allowance."""
 
 import copy
-import io
 import tempfile
 import unittest
 from pathlib import Path
@@ -17,33 +16,15 @@ NOW = 2_000_000_000
 CDN = "https://v3.douyinvod.com/77359400/video.mp4"
 
 
-class Raw(io.BytesIO):
-    def read(self, size=-1, **_):
-        return super().read(size)
-
-
-class RangeResponse:
-    def __init__(self, url):
-        self.status_code = 206
-        self.url = url
-        self.headers = {"Content-Range": "bytes 0-15/1000"}
-        self.raw = Raw(b"\x00\x00\x00\x10ftypisom0000")
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_):
-        self.raw.close()
-
-
 def result_for(url):
     expiry = _media_url_expiry(url)
     return {"code": 0, "data": {
         "aweme_id": WORK, "url": url, "expires_at": expiry,
         "source_selected": True, "fallback_used": False,
-        "source_evidence": "official_play_hash", "probe": {"ok": True},
+        "quality": "source", "official_quality": "original", "source_evidence": "official_play_hash",
+        "probe": {"ok": True, "has_audio": True, "has_video": True},
         "video_list": [{"url": url, "urls": [url], "expires_at": expiry,
-                        "quality": "source", "source_evidence": "official_play_hash"}],
+                        "quality": "source", "official_quality": "original", "source_evidence": "official_play_hash"}],
     }}
 
 
@@ -63,7 +44,7 @@ class MediaUrlExpiryTests(unittest.TestCase):
             CDN + "?expire=500&url_expire=400&x-tos-expires=300&expires=200&x-expires=100"), "100")
         self.assertEqual(_media_url_expiry(CDN + "?x-expires=&expires=200"), "200")
 
-    def test_all_three_dispatch_paths_use_explicit_expiry_only(self):
+    def test_original_dispatch_paths_use_explicit_expiry_only(self):
         detail = {"aweme_id": WORK, "video": {"duration": 2000}}
         record = {"aweme_id": WORK, "video_id": VID, "file_id": VID,
                   "file_hash": "a" * 32, "size": 1000, "width": 640,
@@ -73,14 +54,11 @@ class MediaUrlExpiryTests(unittest.TestCase):
                                 (f"dy_q={NOW - 1}&expire={NOW + 3600}", str(NOW + 3600))):
             url = CDN + "?" + query
             with self.subTest(query=query), OriginalParser(auto_guest=False) as parser:
-                with patch.object(parser, "_get", return_value=RangeResponse(url)), \
-                        patch.object(parser, "_a_bogus_query", return_value="synthetic=1"):
-                    default = parser._play_default_candidate(detail, VID, transcode_sizes={500})
                 with patch.object(parser, "_dispatch_official_original", return_value=url), \
                         patch("original_parser.client._read_original_records", return_value={WORK: record}):
                     refreshed = parser._redispatch_source_candidate(detail, VID, candidate)
                     catalog = parser._catalog_original_candidate(detail, VID)
-                for kind, value in (("default", default), ("redispatch", refreshed), ("catalog", catalog)):
+                for kind, value in (("redispatch", refreshed), ("catalog", catalog)):
                     with self.subTest(path=kind):
                         self.assertIsNotNone(value)
                         self.assertEqual(value["url"], url)

@@ -59,12 +59,9 @@ def leaves(obj, path="$"):
 
 def observe(p, work, private):
     row = dict(work=work, started=clock(), requests=[])
-    get_json = p._json
+    read_catalog = p._read_catalog
 
-    def wrapped(url, **kwargs):
-        if "/video/fplay/" not in urlsplit(url).path:
-            return get_json(url, **kwargs)
-        stage = p.web_catalog_observations[-1]["stage"]
+    def wrapped(url, stage):
         entry = dict(stage=stage, host=urlsplit(url).hostname, started=clock(),
                      initiator=sys._getframe(1).f_code.co_name + " -> _json (Python)")
         row["requests"].append(entry)
@@ -98,7 +95,7 @@ def observe(p, work, private):
 
         p.session.hooks["response"].append(received)
         try:
-            body = get_json(url, **kwargs)
+            body = read_catalog(url, stage)
             info = body.get("video_info") or {}
             d = info.get("data") or {}
             vs = p._video_rows(d)
@@ -119,13 +116,12 @@ def observe(p, work, private):
             p.session.hooks["response"].remove(received)
             entry["json_call_ms"] = round((time.perf_counter()-started)*1000, 2)
 
-    with patch.object(p, "_json", wrapped):
+    with patch.object(p, "_read_catalog", wrapped):
         try:
             data = p.parse(work)["data"]
             row.update(outcome=data["source_evidence"], probe_ok=data["probe"]["ok"])
         except ParseError as e:
             row["outcome"] = e.code
-    row["catalog_observations"] = p.web_catalog_observations
     return row
 
 

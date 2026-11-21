@@ -83,6 +83,11 @@ class DiagnosticParser(OriginalParser):
     def __init__(self, **kwargs):
         super().__init__(auto_guest=False, **kwargs)
         self.directories = []
+        self.selector = "inline"
+
+    def _read_catalog(self, url, selector):
+        self.selector = selector
+        return super()._read_catalog(url, selector)
 
     def _catalog_original_candidate(self, detail, video_id):
         return None
@@ -93,10 +98,8 @@ class DiagnosticParser(OriginalParser):
             info = payload.get("video_info") or {}
             data = info.get("data") or {}
             rows = self._video_rows(data)
-            observations = self.web_catalog_observations
-            stage = observations[-1]["stage"] if observations else "unknown"
             self.directories.append({
-                "selector": "inline" if stage == "embedded" else stage,
+                "selector": self.selector,
                 "code": safe_number(payload.get("code")),
                 "info_code": safe_number(info.get("code")),
                 "status": safe_number(data.get("status")),

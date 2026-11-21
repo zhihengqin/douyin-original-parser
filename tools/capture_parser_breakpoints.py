@@ -23,7 +23,7 @@ from original_parser.client import OriginalParser, ParseError, load_credentials,
 
 QUALITIES = frozenset({"original", "source", "normal", "low", "high", "adapt",
                       "adapt_low", "adapt_lowest", "adapt_lower", "adapt_high", "conflicting"})
-EVIDENCE = frozenset({"official_quality", "official_play_default", "official_play_hash"})
+EVIDENCE = frozenset({"official_quality", "official_play_hash"})
 FIELDS = ("size", "size_bytes", "width", "height", "vwidth", "vheight", "bitrate",
           "bit_rate", "duration_seconds", "video_duration", "status", "code")
 
@@ -116,7 +116,7 @@ def endpoint(url):
 
 
 class BreakpointCapture:
-    METHODS = ("_json", "detail", "_source_candidates", "_play_default_candidate", "probe", "parse")
+    METHODS = ("_json", "detail", "_source_candidates", "probe", "parse")
 
     def __init__(self, directory):
         self.events = []
@@ -146,8 +146,7 @@ class BreakpointCapture:
         elif event == "exception":
             state = {}
             if method == "_source_candidates":
-                state = {"selector_state": {key: number(frame.f_locals.get(key))
-                         for key in ("source_count", "normal_count")},
+                state = {"selector_state": {"source_count": number(frame.f_locals.get("source_count"))},
                          "candidate_count": len(frame.f_locals.get("candidates", []))}
             self.emit("breakpoint_exception", **coordinate, **error_summary(arg[1]), **state)
         elif event == "return":
@@ -167,9 +166,6 @@ class BreakpointCapture:
                 self.emit("breakpoint_return", **coordinate, probe={
                     key: number(arg.get(key)) for key in ("actual_size", "duration_seconds")},
                     has_video=bool(arg.get("has_video")), has_audio=bool(arg.get("has_audio")))
-            else:
-                self.emit("breakpoint_return", **coordinate,
-                          candidate=row_summary(arg) if isinstance(arg, dict) else None)
         return self.trace
 
     @contextmanager

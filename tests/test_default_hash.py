@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from original_parser.client import OriginalParser, ParseError, _content_md5
-from tools import verify_play_default
+from tests.test_parser import verified_result
 
 
 class Raw(io.BytesIO):
@@ -35,51 +35,10 @@ class Response:
 
 def result_for(body):
     url = "https://v3.douyinvod.com/video.mp4"
-    return {"data": {"url": url, "video_list": [
-        {"urls": [url], "size": len(body), "file_hash": None}], "expires_at": None}}
+    return verified_result({"urls": [url], "size": len(body), "file_hash": None})
 
 
-class DefaultHashTests(unittest.TestCase):
-    def test_cli_keeps_cookie_file_out_of_work_ids(self):
-        for argv in (["check", "111", "--cookie-file", "private.json", "222"],
-                     ["check", "--cookie-file", "private.json", "111", "222"]):
-            with self.subTest(argv=argv), \
-                    patch.object(verify_play_default, "load_credentials", return_value=({}, "test-ua")) as load, \
-                    patch.object(verify_play_default, "OriginalParser") as factory, \
-                    patch.object(Path, "mkdir"), patch.object(Path, "write_text"), \
-                    patch("sys.stdout", new_callable=io.StringIO):
-                parser = factory.return_value.__enter__.return_value
-                parser.detail.return_value = {"video": {"play_addr": {"uri": "vid"}}}
-                parser._transcode_sizes.return_value = set()
-                parser._play_default_candidate.return_value = None
-                parser.play_default_note = ""
-                self.assertEqual(verify_play_default.main(argv), 0)
-                self.assertEqual([call.args[0] for call in parser.detail.call_args_list], ["111", "222"])
-                load.assert_called_once_with(Path("private.json"))
-                factory.assert_called_once_with(cookies={}, user_agent="test-ua", auto_guest=False)
-
-    def test_cli_missing_cookie_file_value_fails_before_loading_credentials(self):
-        with patch.object(verify_play_default, "load_credentials") as load, \
-                patch.object(verify_play_default, "OriginalParser") as factory, \
-                patch("sys.stderr", new_callable=io.StringIO):
-            with self.assertRaises(SystemExit) as caught:
-                verify_play_default.main(["check", "111", "--cookie-file"])
-        self.assertEqual(caught.exception.code, 2)
-        load.assert_not_called()
-        factory.assert_not_called()
-
-    def test_default_keeps_cdn_digest_for_later_full_download(self):
-        digest = hashlib.md5(b"whole file").digest()
-        response = Response(b"\0\0\0\x10ftypisom0000", status=206, headers={
-            "Content-Range": "bytes 0-15/1000", "Content-MD5": base64.b64encode(digest).decode()})
-        detail = {"aweme_id": "7700000000000000001", "video": {
-            "duration": 2000, "play_addr": {"data_size": 500}}}
-        with OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "_a_bogus_query", return_value="ratio=default"), \
-                patch.object(parser, "_get", return_value=response):
-            candidate = parser._play_default_candidate(detail, "video-id")
-        self.assertEqual(candidate["file_hash"], digest.hex())
-
+class DownloadHashTests(unittest.TestCase):
     def test_download_without_payload_hash_uses_official_response_digest(self):
         from tests.test_parser import mp4
         body = mp4()

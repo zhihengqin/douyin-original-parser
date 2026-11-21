@@ -28,7 +28,6 @@ def main(argv: list[str]) -> int:
         lines.append(f"aweme_id={aweme_id}")
         lines.append(f"keys={sorted(video)}")
         lines.append(f"vid={video_id} HDR={video.get('is_source_HDR')} duration={video.get('duration')}")
-        lines.append(f"gear_sizes={sorted(parser._transcode_sizes(video))}")
         lines.append(f"token_auth={list((video.get('token_auth') or {}).keys()) if isinstance(video.get('token_auth'), dict) else video.get('token_auth')}")
 
         base = {"video_id": video_id, "line": "0", "is_play_url": "1",

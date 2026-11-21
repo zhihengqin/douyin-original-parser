@@ -25,17 +25,18 @@ class Clock:
 def verified_result(*, expiry=None, marker="original"):
     if expiry is None:
         expiry = time.time() + 3600
+    url = "https://video.douyinvod.com/example.mp4"
     return {
         "code": 0,
         "data": {
             "aweme_id": "7689381368630906122",
             "source_selected": True,
             "fallback_used": False,
-            "source_evidence": "official_quality",
-            "probe": {"ok": True},
+            "quality": "source", "official_quality": "original", "source_evidence": "official_quality",
+            "probe": {"ok": True, "has_video": True, "has_audio": True},
             "expires_at": expiry,
-            "url": "https://video.douyinvod.com/example.mp4",
-            "video_list": [{"expires_at": expiry, "quality": "source",
+            "url": url,
+            "video_list": [{"url": url, "expires_at": expiry, "quality": "source", "official_quality": "original",
                             "source_evidence": "official_quality"}],
             "marker": marker,
         },
@@ -248,14 +249,11 @@ class GuardTests(unittest.TestCase):
             "video", lambda: self.fail("Refresh must respect cooldown"), force_refresh=True))
         self.assertEqual(guard.snapshot()["started"], 2)
 
-    def test_cache_honors_earliest_mirror_expiry_and_safety_margin(self):
+    def test_cache_honors_earliest_selected_file_expiry_and_safety_margin(self):
         clock = Clock()
         guard = self.guard(clock, cache_ttl=300, expiry_margin=60)
         result = verified_result(expiry=clock.wall + 1000)
-        result["data"]["video_list"].append({
-            "expires_at": str(int(clock.wall + 80)), "quality": "source",
-            "source_evidence": "official_quality",
-        })
+        result["data"]["video_list"][0]["expires_at"] = str(int(clock.wall + 80))
         calls = []
 
         def load():
@@ -297,16 +295,18 @@ class GuardTests(unittest.TestCase):
             variants.append((f"expiry={expiry}", value))
         for name, mutate in [
             ("missing selected expiry", lambda d: d.pop("expires_at")),
-            ("unknown mirror expiry", lambda d: d["video_list"].append({"expires_at": None})),
-            ("missing mirror expiry", lambda d: d["video_list"].append({})),
-            ("numeric milliseconds mirror expiry", lambda d: d["video_list"].append({
-                "expires_at": int(clock.wall * 1000)})),
-            ("string milliseconds mirror expiry", lambda d: d["video_list"].append({
-                "expires_at": str(int(clock.wall * 1000))})),
+            ("unknown row expiry", lambda d: d["video_list"][0].update(expires_at=None)),
+            ("missing row expiry", lambda d: d["video_list"][0].pop("expires_at")),
+            ("numeric milliseconds row expiry", lambda d: d["video_list"][0].update(
+                expires_at=int(clock.wall * 1000))),
+            ("string milliseconds row expiry", lambda d: d["video_list"][0].update(
+                expires_at=str(int(clock.wall * 1000)))),
             ("without probe", lambda d: d.update(probe=None)),
             ("failed probe", lambda d: d.update(probe={"ok": False})),
             ("not original", lambda d: d.update(source_selected=False)),
             ("fallback marker", lambda d: d.update(fallback_used=True)),
+            ("split media", lambda d: d["video_list"][0].update(audio_url="https://media.example/audio.m4a")),
+            ("legacy merged download", lambda d: d.update(download={"dash_mux": True})),
             ("non-original evidence", lambda d: d.update(source_evidence="transcode")),
             ("non-source candidate", lambda d: d["video_list"][0].update(quality="normal")),
             ("non-original candidate evidence", lambda d: d["video_list"][0].update(
@@ -328,6 +328,15 @@ class GuardTests(unittest.TestCase):
                 guard.run("video", load)
                 guard.run("video", load)
                 self.assertEqual(len(calls), 2)
+
+    def test_stale_entry_with_separate_audio_is_evicted_and_reparsed(self):
+        guard = self.guard()
+        guard.run("video", lambda: verified_result(marker="stale"))
+        with guard._condition:
+            guard._cache["video"].result["data"]["dash_mux_required"] = True
+        fresh = guard.run("video", lambda: verified_result(marker="fresh"))
+        self.assertEqual(fresh["data"]["marker"], "fresh")
+        self.assertEqual(guard.snapshot()["cache_hits"], 0)
 
     def test_cache_capacity_uses_recently_used_entries(self):
         guard = self.guard(cache_max_entries=2)

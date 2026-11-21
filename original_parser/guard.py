@@ -18,7 +18,7 @@ from collections.abc import Callable, Hashable
 from dataclasses import dataclass
 from typing import Any
 
-from .client import ParseError
+from .client import ParseError, require_single_original
 
 _LOG = logging.getLogger(__name__)
 _RESTRICTION_CODES = frozenset({
@@ -281,39 +281,27 @@ class RequestGuard:
         entry = self._cache.get(key)
         if entry is None:
             return None
+        try:
+            require_single_original(entry.result)
+        except ParseError:
+            del self._cache[key]
+            return None
         self._cache.move_to_end(key)
         return entry.result
 
     def _save_cache(self, key: Hashable, result: dict) -> None:
         if not self.config.cache_ttl or not self.config.cache_max_entries:
             return
-        data = result.get("data")
-        if (result.get("code") != 0 or isinstance(result.get("code"), bool)
-                or not isinstance(data, dict)
-                or not isinstance(data.get("probe"), dict)
-                or data["probe"].get("ok") is not True):
-            return
-        if (data.get("source_selected") is not True
-                or data.get("fallback_used") is not False
-                or data.get("source_evidence") not in ("official_quality", "official_play_hash")):
-            return
-        rows = data.get("video_list")
-        if not isinstance(rows, list) or not rows:
-            return
-        if any(not isinstance(row, dict)
-               or row.get("quality") != "source"
-               or row.get("source_evidence") not in ("official_quality", "official_play_hash")
-               for row in rows):
+        try:
+            data = require_single_original(result)
+        except ParseError:
             return
         expires = [_expiry(data.get("expires_at"))]
-        for row in rows:
-            if not isinstance(row, dict):
-                return
+        for row in data["video_list"]:
             expires.append(_expiry(row.get("expires_at")))
         if any(value is None for value in expires):
             return
-        # Check every returned candidate: even an unselected URL must not
-        # outlive its upstream validity simply because the selected one does.
+        # Honor the earliest expiry reported for the selected file.
         wall_deadline = min(expires) - self.config.expiry_margin
         ttl = min(self.config.cache_ttl, wall_deadline - self._wall_clock())
         if ttl <= 0:

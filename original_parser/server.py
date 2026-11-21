@@ -6,40 +6,21 @@ import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .client import (PC_BITRATE_EVIDENCE, PLAY_DEFAULT_EVIDENCE, OriginalParser, ParseError,
-                     load_credentials, resolve_id_local)
+from .client import OriginalParser, ParseError, load_credentials, require_single_original, resolve_id_local
 from .guard import GuardConfig, GuardError, RequestGuard
 
 logger = logging.getLogger(__name__)
 
 
 def public_result(result: dict) -> dict:
-    """保留短响应；没有原画证据的播放档带来源标记。"""
-    data = result.get("data")
-    if not isinstance(data, dict):
-        return result
-    public = {"url": data.get("url")}
-    if data.get("source_candidate"):
-        public.update({
-            "source_candidate": True,
-            "source_evidence": data.get("source_evidence"),
-            "official_quality": data.get("official_quality"),
-            "source_vid": data.get("source_vid"),
-        })
-    elif data.get("source_evidence") in (PC_BITRATE_EVIDENCE, PLAY_DEFAULT_EVIDENCE):
-        public["source_evidence"] = data["source_evidence"]
-    if data.get("dash_mux_required"):
-        public.update({
-            "audio_url": data.get("audio_url"),
-            "dash_mux_required": True,
-            "size_bytes": data.get("size_bytes"),
-        })
-    return {"code": result.get("code"), "msg": result.get("msg"), "data": public}
+    """仅向调用方返回已校验的单文件原画。"""
+    data = require_single_original(result)
+    return {"code": 0, "msg": "原画解析成功", "data": {"url": data["url"]}}
 
 
 def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
           detail_mode="http", browser_profile="windows", guard_config=None,
-          allow_external_asset_recovery=None, allow_source_candidate=None):
+          allow_external_asset_recovery=None):
     if not 1 <= max_concurrent <= 32:
         raise ValueError("同时受理的 HTTP 请求数必须在 1 到 32 之间")
     if detail_mode not in ("http", "browser") or browser_profile not in ("current", "native", "windows"):
@@ -93,15 +74,13 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 text = payload.get("url") or payload.get("share_text")
                 if not isinstance(text, str) or not text.strip() or len(text) > 4096:
                     raise ValueError("请提供有效 url 或 share_text")
-                with_probe = payload.get("with_probe", True)
-                if not isinstance(with_probe, bool):
-                    raise ValueError("with_probe 必须为布尔值")
+                if payload.get("with_probe", True) is not True:
+                    raise ValueError("with_probe 必须为 true：单文件原画必须通过媒体校验")
                 force_refresh = payload.get("force_refresh", False)
                 if not isinstance(force_refresh, bool):
                     raise ValueError("force_refresh 必须为布尔值")
-                request_source_candidate = payload.get("allow_source_candidate", None)
-                if request_source_candidate is not None and not isinstance(request_source_candidate, bool):
-                    raise ValueError("allow_source_candidate 必须为布尔值")
+                if payload.get("allow_source_candidate", False) is not False:
+                    raise ValueError("allow_source_candidate 只能为 false：不提供未经确认的候选文件")
                 aweme_id, normalized_url = resolve_id_local(text)
             except (ValueError, UnicodeError) as exc:
                 self.send_json(400, {"code": "invalid_input", "msg": str(exc), "data": None})
@@ -120,11 +99,7 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                 if cookie_file:
                     credential_scope = hashlib.sha256(json.dumps(
                         [cookies, user_agent], sort_keys=True, ensure_ascii=True).encode()).hexdigest()
-                effective_source_candidate = (request_source_candidate
-                                              if request_source_candidate is not None
-                                              else allow_source_candidate)
-                key = (credential_scope, "id" if aweme_id else "link",
-                       aweme_id or normalized_url, with_probe, effective_source_candidate)
+                key = (credential_scope, "id" if aweme_id else "link", aweme_id or normalized_url)
 
                 def parse_once():
                     # 每条任务在线程内独立创建会话，短链、详情、取址及媒体校验共用解析并发上限。
@@ -132,9 +107,8 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                                         auto_guest=cookie_file is None,
                                         detail_mode=detail_mode, browser_profile=browser_profile,
                                         refresh_guest_on_rejection=False,
-                                        allow_external_asset_recovery=allow_external_asset_recovery,
-                                        allow_source_candidate=effective_source_candidate) as parser:
-                        return parser.parse(aweme_id or normalized_url, with_probe=with_probe)
+                                        allow_external_asset_recovery=allow_external_asset_recovery) as parser:
+                        return parser.parse(aweme_id or normalized_url, with_probe=True)
 
                 result = guard.run(key, parse_once, force_refresh=force_refresh)
                 self.send_json(200, public_result(result))
@@ -147,7 +121,11 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                     status = 503
                 else:
                     status = 400 if exc.code in ("invalid_input", "invalid_url") else 502
-                self.send_json(status, {"code": exc.code, "msg": str(exc), "data": None})
+                message = {
+                    "source_unavailable": "获取原画失败：未取得可验证的单文件原画",
+                    "probe_failed": "获取原画失败：媒体文件未通过单文件原画校验",
+                }.get(exc.code, str(exc))
+                self.send_json(status, {"code": exc.code, "msg": message, "data": None})
             except Exception as exc:
                 logger.warning("parse_failed category=%s", type(exc).__name__)
                 self.send_json(502, {"code": "upstream_error", "msg": "解析失败：" + type(exc).__name__, "data": None})
@@ -161,8 +139,6 @@ def serve(host="127.0.0.1", port=8765, max_concurrent=6, cookie_file=None,
                         "external_file" if cookie_file else "auto_guest")
             logger.info("external_asset_recovery=%s",
                         "env" if allow_external_asset_recovery is None else allow_external_asset_recovery)
-            logger.info("source_candidate=%s",
-                        "env" if allow_source_candidate is None else allow_source_candidate)
             logger.info("protection interval=%s-%ss cache_ttl=%ss pending=%s wait=%ss threshold=%s cooldown=%ss",
                         config.interval_range[0], config.interval_range[1],
                         config.cache_ttl, config.max_pending,

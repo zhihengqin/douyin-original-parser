@@ -48,6 +48,18 @@ def mp4(audio=True):
     return box(b"ftyp", b"isom" + bytes(12)) + box(b"mdat", bytes(2048)) + box(b"moov", moov)
 
 
+def verified_result(candidate, **overrides):
+    url = candidate["urls"][0]
+    row = {"url": url, "quality": "source", "official_quality": "original",
+           "source_evidence": "official_quality", **candidate}
+    return {"code": 0, "data": {
+        "aweme_id": AWEME, "url": url, "video_list": [row], "quality": row["quality"],
+        "source_selected": True, "fallback_used": False, "official_quality": row["official_quality"],
+        "source_evidence": row["source_evidence"], "probe": {"ok": True, "has_audio": True, "has_video": True},
+        **overrides,
+    }}
+
+
 class Raw(io.BytesIO):
     def read(self, size=-1, **_):
         return super().read(size)
@@ -680,7 +692,7 @@ class ParserTests(unittest.TestCase):
 
     def test_truncated_download_never_publishes(self):
         candidate = {"urls": [FIXTURE["decoded_url"]], "size": 9999, "file_hash": "0" * 32}
-        result = {"data": {"url": FIXTURE["decoded_url"], "video_list": [candidate]}}
+        result = verified_result(candidate)
         with tempfile.TemporaryDirectory() as folder, OriginalParser() as parser:
             path = Path(folder) / "video.mp4"
             with patch.object(parser, "_get", return_value=Response(mp4())):
@@ -693,7 +705,7 @@ class ParserTests(unittest.TestCase):
         content = mp4()
         candidate = {"urls": [FIXTURE["decoded_url"]], "size": len(content),
                      "file_hash": hashlib.md5(content).hexdigest()}
-        result = {"data": {"url": FIXTURE["decoded_url"], "video_list": [candidate]}}
+        result = verified_result(candidate)
         with tempfile.TemporaryDirectory() as folder, OriginalParser() as parser:
             path, reference = Path(folder) / "video.mp4", Path(folder) / "ref.mp4"
             reference.write_bytes(content)
@@ -705,8 +717,8 @@ class ParserTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), content)
 
     def test_expired_url_is_resolved_again(self):
-        stale = {"data": {"aweme_id": AWEME, "expires_at": 1}}
-        fresh = {"data": {"aweme_id": AWEME, "expires_at": 9999999999}}
+        stale = verified_result({"urls": [FIXTURE["decoded_url"]]}, expires_at=1)
+        fresh = verified_result({"urls": [FIXTURE["decoded_url"]]}, expires_at=9999999999)
         with tempfile.TemporaryDirectory() as folder, OriginalParser() as parser:
             with patch.object(parser, "parse", return_value=copy.deepcopy(fresh)) as resolve:
                 with patch.object(parser, "_download_once", return_value={"ok": True}) as download:
@@ -715,85 +727,7 @@ class ParserTests(unittest.TestCase):
                     self.assertEqual(download.call_args.args[0], fresh)
 
 
-def detail_with_gears(duration_ms=2000):
-    """带转码档位尺寸的详情：默认档探测靠这些尺寸判定返回的是不是原片。"""
-    item = detail()
-    item["video"].update({
-        "duration": duration_ms,
-        "is_source_HDR": 1,
-        "play_addr": {"uri": VID, "data_size": 45992041},
-        "bit_rate": [{"play_addr": {"data_size": 45992041}},
-                     {"play_addr": {"data_size": 68568404}}],
-        "download_addr": {"data_size": 68568404},
-    })
-    return item
-
-
-def play_default_response(size=140778272, *, status=206):
-    url = ("https://v95-aw-chd.douyinvod.com/x/tos-cn-v-0051/key/"
-           "?mime_type=video_mp4&x-expires=1794813615")
-    headers = {"Content-Range": f"bytes 0-15/{size}"} if status == 206 else {}
-    return Response(b"\x00\x00\x00\x10ftypisom0000", status=status, headers=headers, url=url)
-
-
-class PlayDefaultTests(unittest.TestCase):
-    """官方 play 默认档：平台登记了默认档时，只凭 video_id 就能拿到上传原片。"""
-
-    def _fail_twice(self, parser):
-        """fplay 两次都只返回转码档（和真机 HDR 作品一致）。"""
-        response = payload()
-        row = response["video_info"]["data"]["video_list"]["video_1"]
-        row.update({"quality": "normal", "size": 68568404, "vwidth": 1280, "vheight": 720})
-        row["main_url"] = FIXTURE["decoded_url"].replace(
-            "/tos-cn-v-0000c2287/", "/tos-cn-ve-51/")
-        return patch.object(parser, "_json", return_value=response)
-
-    def test_default_ratio_resolves_original_without_any_file_hash(self):
-        with OriginalParser(auto_guest=False) as parser:
-            with self._fail_twice(parser), \
-                    patch.object(parser, "_get", return_value=play_default_response()) as get:
-                _, candidates = parser.source_streams(detail_with_gears())
-        candidate = candidates[0]
-        self.assertEqual(candidate["size"], 140778272)
-        self.assertEqual(candidate["source_evidence"], "official_play_default")
-        self.assertIsNone(candidate["official_quality"])
-        self.assertEqual((candidate["width"], candidate["height"]), (0, 0))
-        params = parse_qs(urlsplit(get.call_args.args[0]).query)
-        self.assertEqual(urlsplit(get.call_args.args[0]).netloc, "www.douyin.com")
-        self.assertEqual(params["video_id"], [VID])
-        self.assertEqual(params["ratio"], ["default"])
-        self.assertEqual(params["source"], ["PackSourceEnum_PUBLISH"])
-        self.assertEqual(params["is_play_url"], ["1"])
-        self.assertTrue(params["a_bogus"][0])
-
-    def test_default_ratio_rejects_transcode_sized_payload(self):
-        with OriginalParser(auto_guest=False) as parser:
-            with self._fail_twice(parser), \
-                    patch.object(parser, "_get", return_value=play_default_response(68568404)):
-                with self.assertRaises(ParseError) as caught:
-                    parser.source_streams(detail_with_gears())
-        self.assertEqual(caught.exception.code, "source_unavailable")
-        self.assertIn("与某个转码档字节数完全相同", str(caught.exception))
-
-    def test_default_ratio_absent_reports_404_in_diagnostics(self):
-        with OriginalParser(auto_guest=False) as parser:
-            with self._fail_twice(parser), \
-                    patch.object(parser, "_get", return_value=play_default_response(status=404)):
-                with self.assertRaises(ParseError) as caught:
-                    parser.source_streams(detail_with_gears())
-        message = str(caught.exception)
-        self.assertEqual(caught.exception.code, "source_unavailable")
-        self.assertIn("未返回 original/source 原画档位", message)
-        self.assertIn("默认档接口返回 HTTP 404", message)
-
-    def test_default_ratio_is_skipped_when_transcode_sizes_are_unknown(self):
-        with OriginalParser(auto_guest=False) as parser:
-            with self._fail_twice(parser), patch.object(parser, "_get") as get:
-                with self.assertRaises(ParseError) as caught:
-                    parser.source_streams(detail())
-        get.assert_not_called()
-        self.assertIn("默认档无法判定", str(caught.exception))
-
+class ContainerProbeTests(unittest.TestCase):
     def test_probe_backfills_geometry_for_unlabelled_original(self):
         content = mp4()
         candidate = {"urls": ["https://v11.douyinvod.com/original"], "size": len(content),

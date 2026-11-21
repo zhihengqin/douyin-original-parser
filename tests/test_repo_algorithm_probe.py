@@ -4,11 +4,10 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
-from urllib.parse import parse_qs, urlsplit
 
 from original_parser.client import OriginalParser, ParseError
 from tools.probe_repo_algorithm import (
-    MAX_RANGE_BYTES, ProbeParser, main, probe_default, probe_fplay, probe_link, share_detail,
+    MAX_RANGE_BYTES, ProbeParser, main, probe_fplay, probe_link, share_detail,
 )
 
 WORK = "7707993970332290314"
@@ -72,7 +71,6 @@ class RepoAlgorithmProbeTests(unittest.TestCase):
                 patch("original_parser.client._read_original_records", side_effect=AssertionError("catalog read")), \
                 patch("original_parser.client._remember_original_record", side_effect=AssertionError("catalog write")), \
                 patch("tools.probe_repo_algorithm.inspect_identity", return_value=MEDIA), \
-                patch("tools.probe_repo_algorithm.probe_default", return_value={"route": "play_default"}), \
                 patch("tools.probe_repo_algorithm.share_detail", return_value=(None, {"route": "mobile_share_ssr"})):
             result = probe_link(parser, "https://www.douyin.com/video/" + WORK)
         self.assertTrue(result["original_verified"])
@@ -93,40 +91,6 @@ class RepoAlgorithmProbeTests(unittest.TestCase):
                 rows = probe_fplay(parser, video_with_model())
             self.assertTrue(rows)
             self.assertFalse(any(row.get("original_verified") for row in rows))
-
-    def test_unknown_default_never_promoted_by_size_and_reproduces_jiji_headers(self):
-        for size in (30, 100, 300):
-            with self.subTest(size=size), OriginalParser(auto_guest=False) as parser:
-                video = {"play_addr": {"uri": VID, "data_size": 100}, "is_need_set_cookie": True}
-                response = Response(206, b"x", {"Content-Type": "video/mp4",
-                                                "Content-Range": f"bytes 0-0/{size}"})
-                with patch.object(parser, "_get", return_value=response) as get, \
-                        patch("original_parser.abogus.ABogus.generate_abogus",
-                              side_effect=lambda query, _: (query + "&a_bogus=" + SECRET, "", parser.user_agent, "")), \
-                        patch("tools.probe_repo_algorithm.inspect_identity", return_value={**MEDIA, "actual_size": size}):
-                    result = probe_default(parser, video, origin="test")
-                self.assertFalse(result["original_verified"])
-                self.assertEqual(result["outcome"], "default_candidate_identity_unconfirmed")
-                self.assertEqual(result["size_matches_known_transcode"], size == 100)
-                url = get.call_args.args[0]
-                query = parse_qs(urlsplit(url).query)
-                self.assertEqual(query["video_id"], [VID])
-                self.assertEqual(query["ratio"], ["default"])
-                self.assertEqual(query["ss_is_p_v_ss"], ["1"])
-                self.assertNotIn("aid", query)
-                self.assertEqual(get.call_args.kwargs["headers"]["Range"], "bytes=0-0")
-                self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://www.douyin.com")
-                self.assertNotIn(SECRET, json.dumps(result))
-
-    def test_default_route_still_runs_when_video_model_is_missing(self):
-        video = {"play_addr": {"uri": VID}}
-        with OriginalParser(auto_guest=False) as parser, \
-                patch.object(parser, "detail", return_value={"aweme_id": WORK, "video": video}), \
-                patch("tools.probe_repo_algorithm.probe_default", return_value={"route": "play_default"}) as default, \
-                patch("tools.probe_repo_algorithm.share_detail", return_value=(None, {"route": "mobile_share_ssr"})):
-            result = probe_link(parser, WORK)
-        default.assert_called_once()
-        self.assertFalse(result["original_verified"])
 
     def test_share_page_does_not_accept_unrelated_work_or_empty_router(self):
         for items, outcome in (([], "item_list_not_present"),
@@ -179,7 +143,6 @@ class RepoAlgorithmProbeTests(unittest.TestCase):
                 patch.object(parser, "_json", return_value=payload()), \
                 patch.object(parser, "_source_candidates", return_value=({}, [candidate] * 4)), \
                 patch("tools.probe_repo_algorithm.inspect_identity", side_effect=ValueError(SECRET)), \
-                patch("tools.probe_repo_algorithm.probe_default", return_value={"route": "play_default"}), \
                 patch("tools.probe_repo_algorithm.share_detail", return_value=(None, {"route": "mobile_share_ssr"})):
             result = probe_link(parser, WORK)
         self.assertFalse(result["original_verified"])
